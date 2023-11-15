@@ -2,6 +2,7 @@
 
 A backend implementation of the OpenAI beta Assistants API with support for persistent threads, files, assistants, messages, and more generated from the OpenAPI spec. Compatible with existing OpenAI apps via the OpenAI SDKs with a single line of code:
 
+## Test Coverage
 **Last Updated 11/14/23**:
 
 Here are all the OpenAI endpoints, most of the stateful beta endpoints are implemented and all the simple stateless services are simply proxied to OpenAI:
