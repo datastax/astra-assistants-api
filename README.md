@@ -21,10 +21,11 @@ client = OpenAI(
         "astra-api-token": ASTRA_DB_TOKEN,
     }
 )
-
+```
 
 Optionally if you have an existing astra db you can pass your db_id in a second header. Otherwise the system will create one on your behalf and name it `assistant_api_db` using your token. Note, this means that the first request will hang until your db is ready (could be a couple of minutes). This will only happen once.
 
+```python
 client = OpenAI(
     base_url="https://open-assistant-ai.astra.datastax.com/v1", 
     api_key=OPENAI_API_KEY,
