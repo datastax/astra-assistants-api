@@ -1,6 +1,6 @@
 # Astra Assistant API Service
 
-A drop-in compatible service for the OpenAI beta Assistants API with support for persistent threads, files, assistants, messages, and more generated from the [OpenAPI spec](https://github.com/openai/openai-openapi).
+A drop-in compatible service for the OpenAI beta Assistants API with support for persistent threads, files, assistants, messages, and more using AstraDB (DataStax's db as a service offering powered by Apache Cassandra and jvector).
 Compatible with existing OpenAI apps via the OpenAI SDKs with a single line of code.
 
 ## Getting Started
