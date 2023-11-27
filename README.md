@@ -34,10 +34,11 @@ client = OpenAI(
         "astra-db-id": ASTRA_DB_ID
     }
 )
+```
 
+Now you're ready to create an assistant
 
-
-# Now you're ready to create an assistant
+```
 assistant = client.beta.assistants.create(
   instructions="You are a personal math tutor. When asked a math question, write and run code to answer the question.",
   model="gpt-4-1106-preview",
