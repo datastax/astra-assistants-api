@@ -1,70 +1,121 @@
-# Astra Assistants API
+# Open Assistant API Server
 
-A backend implementation of the OpenAI beta Assistants API with support for persistent threads, files, assistants, messages, and more generated from the OpenAPI spec. Compatible with existing OpenAI apps via the OpenAI SDKs with a single line of code:
+A drop-in compatible service for the OpenAI beta Assistants API with support for persistent threads, files, assistants, messages, and more generated from the [OpenAPI spec](https://github.com/openai/openai-openapi).
+Compatible with existing OpenAI apps via the OpenAI SDKs with a single line of code.
 
-## Test Coverage
-**Last Updated 11/14/23**:
+## Getting Started
 
-Here are all the OpenAI endpoints, most of the stateful beta endpoints are implemented and all the simple stateless services are simply proxied to OpenAI:
+Simply [create an Astra DB Vector database](https://astra.datastax.com/signup) and replace:
+```python
+client = OpenAI(
+    api_key=OPENAI_API_KEY,
+)
+```
+with:
+```python
+client = OpenAI(
+    base_url="https://open-assistant-ai.astra.datastax.com/v1", 
+    api_key=OPENAI_API_KEY,
+    default_headers={
+        "astra-api-token": ASTRA_DB_TOKEN,
+    }
+)
 
-|Endpoint | Implemented | Stateless / Proxy | Roadmap|
-|---------|-------------|-----------------|--------|
-|/chat/completions - post | X | X |  | 
-|/completions - post | X | X |  | 
-|/edits - post | X | X |  | 
-|/images/generations - post | X | X |  | 
-|/images/edits - post | X | X |  | 
-|/images/variations - post | X | X |  | 
-|/embeddings - post | X | X |  | 
-|/audio/speech - post | X | X |  | 
-|/audio/transcriptions - post | X | X |  | 
-|/audio/translations - post | X | X |  | 
-|/files - get | X | X |  | 
-|/files - post | X | X |  | 
-|/files/{file_id} - delete | X | X |  | 
-|/files/{file_id} - get | X | X |  | 
-|/files/{file_id}/content - get | X | X |  | 
-|/fine_tuning/jobs - post | X | X |  | 
-|/fine_tuning/jobs - get | X | X |  | 
-|/fine_tuning/jobs/{fine_tuning_job_id} - get | X | X |  | 
-|/fine_tuning/jobs/{fine_tuning_job_id}/events - get | X | X |  | 
-|/fine_tuning/jobs/{fine_tuning_job_id}/cancel - post | X | X |  | 
-|/fine-tunes - post | X | X |  | 
-|/fine-tunes - get | X | X |  | 
-|/fine-tunes/{fine_tune_id} - get | X | X |  | 
-|/fine-tunes/{fine_tune_id}/cancel - post | X | X |  | 
-|/fine-tunes/{fine_tune_id}/events - get | X | X |  | 
-|/models - get | X | X |  | 
-|/models/{model} - get | X | X |  | 
-|/models/{model} - delete | X | X |  | 
-|/moderations - post | X | X |  | 
-|/assistants - get | X |  |  | 
-|/assistants - post | X |  |  | 
-|/assistants/{assistant_id} - get | X |  |  | 
-|/assistants/{assistant_id} - post | X |  |  | 
-|/assistants/{assistant_id} - delete | X |  |  | 
-|/threads - post | X |  |  | 
-|/threads/{thread_id} - get | |  | X | 
-|/threads/{thread_id} - post | |  | X | 
-|/threads/{thread_id} - delete | |  | X | 
-|/threads/{thread_id}/messages - get | X |  |  | 
-|/threads/{thread_id}/messages - post | X |  |  | 
-|/threads/{thread_id}/messages/{message_id} - get | |  | X | 
-|/threads/{thread_id}/messages/{message_id} - post | |  | X | 
-|/threads/runs - post | |  | X | 
-|/threads/{thread_id}/runs - get | X |  |  | 
-|/threads/{thread_id}/runs - post | X |  |  | 
-|/threads/{thread_id}/runs/{run_id} - get | X |  |  | 
-|/threads/{thread_id}/runs/{run_id} - post | |  | X | 
-|/threads/{thread_id}/runs/{run_id}/submit_tool_outputs - post | |  | X | 
-|/threads/{thread_id}/runs/{run_id}/cancel - post | |  | X | 
-|/threads/{thread_id}/runs/{run_id}/steps - get | |  | X | 
-|/threads/{thread_id}/runs/{run_id}/steps/{step_id} - get | |  | X | 
-|/assistants/{assistant_id}/files - get | |  | X | 
-|/assistants/{assistant_id}/files - post | |  | X | 
-|/assistants/{assistant_id}/files/{file_id} - get | |  | X | 
-|/assistants/{assistant_id}/files/{file_id} - delete | |  | X | 
-|/threads/{thread_id}/messages/{message_id}/files - get | |  | X | 
-|/threads/{thread_id}/messages/{message_id}/files/{file_id} - get | |  | X | 
 
-40 out of 57 endpoints are implemented, 70%
+Optionally if you have an existing astra db you can pass your db_id in a second header. Otherwise the system will create one on your behalf and name it `assistant_api_db` using your token. Note, this means that the first request will hang until your db is ready (could be a couple of minutes). This will only happen once.
+
+client = OpenAI(
+    base_url="https://open-assistant-ai.astra.datastax.com/v1", 
+    api_key=OPENAI_API_KEY,
+    default_headers={
+        "astra-api-token": ASTRA_DB_TOKEN,
+        "astra-db-id": ASTRA_DB_ID
+    }
+)
+
+
+
+# Now you're ready to create an assistant
+assistant = client.beta.assistants.create(
+  instructions="You are a personal math tutor. When asked a math question, write and run code to answer the question.",
+  model="gpt-4-1106-preview",
+  tools=[{"type": "code_interpreter"}]
+)
+```
+
+By default, the service uses [AstraDB](https://astra.datastax.com/signup) as the database/vector store and OpenAI for embeddings and chat completion.
+
+## Third party LLM Support
+
+We now support third party models for both embeddings and completion. Pass the api key of your service using `api-key` and `embedding-model` headers.
+
+```
+client = OpenAI(
+    base_url="https://open-assistant-ai.astra.datastax.com/v1", 
+    api_key="NONE",
+    default_headers={
+        "astra-api-token": ASTRA_DB_TOKEN,
+        "api-key": COHERE_API_KEY,
+        "embedding-model": "cohere/embed-english-v3.0",
+    }
+)
+```
+
+
+Note: remember to also pass your third party model to the assistant on create:
+
+```
+assistant = client.beta.assistants.create(
+    name="Math Tutor",
+    instructions="You are a personal math tutor. Answer questions briefly, in a sentence or less.",
+    model="cohere/command",
+)
+```
+
+For AWS Bedrock you can pass additional custom headers:
+
+```
+client = OpenAI(
+    base_url="https://open-assistant-ai.astra.datastax.com/v1", 
+    api_key="NONE",
+    default_headers={
+        "astra-api-token": ASTRA_DB_TOKEN,
+        "embedding-model": "amazon.titan-embed-text-v1",
+        "LLM-PARAM-aws-access-key-id": BEDROCK_AWS_ACCESS_KEY_ID,
+        "LLM-PARAM-aws-secret-access-key": BEDROCK_AWS_SECRET_ACCESS_KEY,
+        "LLM-PARAM-aws-region-name": BEDROCK_AWS_REGION,
+    }
+)
+```
+
+and again, specify the custom model for the assistant.
+
+```
+assistant = client.beta.assistants.create(
+    name="Math Tutor",
+    instructions="You are a personal math tutor. Answer questions briefly, in a sentence or less.",
+    model="meta.llama2-13b-chat-v1",
+)
+```
+
+Additional examples including third party LLMs (bedrock, cohere, perplexity, etc.) can be found under `tests/examples`
+
+
+To run the examples using poetry create a .env file in this directory with your secrets and run:
+
+    poetry install
+
+and 
+
+    poetry run python examples/basic.py
+
+## Coverage
+
+See our coverage report [here](./coverage.md)
+
+## Roadmap:
+ - [ X ] Support for other embedding models and LLMs
+ - [ ] Pluggable RAG strategies
+ - [ ] Tools / function support
+ - [ ] Streaming support
+

@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "astra-assistants-api"
+version = "0.1.0"
+description = ""
+authors = ["phact <estevezsebastian@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10.12"
+openai = "^1.3.5"
+python-dotenv = "0.17.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
