@@ -50,7 +50,7 @@ By default, the service uses [AstraDB](https://astra.datastax.com/signup) as the
 
 ## Third party LLM Support
 
-We now support third party models for both embeddings and completion. Pass the api key of your service using `api-key` and `embedding-model` headers.
+We now support [many third party models](https://docs.litellm.ai/docs/providers) for both embeddings and completion thanks to [litellm](https://github.com/BerriAI/litellm). Pass the api key of your service using `api-key` and `embedding-model` headers.
 
 ```
 client = OpenAI(
@@ -117,7 +117,7 @@ and
 See our coverage report [here](./coverage.md)
 
 ## Roadmap:
- - [ X ] Support for other embedding models and LLMs
+ - [X] Support for other embedding models and LLMs
  - [ ] Pluggable RAG strategies
  - [ ] Tools / function support
  - [ ] Streaming support
