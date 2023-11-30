@@ -1,7 +1,8 @@
-# Open Assistant API Server
+# Astra Assistant API Service
 
-A drop-in compatible service for the OpenAI beta Assistants API with support for persistent threads, files, assistants, messages, and more generated from the [OpenAPI spec](https://github.com/openai/openai-openapi).
-Compatible with existing OpenAI apps via the OpenAI SDKs with a single line of code.
+A drop-in compatible service for the OpenAI beta Assistants API with support for persistent threads, files, assistants, messages, and more using AstraDB (DataStax's db as a service offering powered by Apache Cassandra and jvector).
+
+Compatible with existing OpenAI apps via the OpenAI SDKs by changing a single line of code.
 
 ## Getting Started
 
@@ -20,10 +21,11 @@ client = OpenAI(
         "astra-api-token": ASTRA_DB_TOKEN,
     }
 )
-
+```
 
 Optionally if you have an existing astra db you can pass your db_id in a second header. Otherwise the system will create one on your behalf and name it `assistant_api_db` using your token. Note, this means that the first request will hang until your db is ready (could be a couple of minutes). This will only happen once.
 
+```python
 client = OpenAI(
     base_url="https://open-assistant-ai.astra.datastax.com/v1", 
     api_key=OPENAI_API_KEY,
@@ -32,14 +34,15 @@ client = OpenAI(
         "astra-db-id": ASTRA_DB_ID
     }
 )
+```
 
+Now you're ready to create an assistant
 
-
-# Now you're ready to create an assistant
+```
 assistant = client.beta.assistants.create(
   instructions="You are a personal math tutor. When asked a math question, write and run code to answer the question.",
   model="gpt-4-1106-preview",
-  tools=[{"type": "code_interpreter"}]
+  tools=[{"type": "retrieval"}]
 )
 ```
 
@@ -47,7 +50,7 @@ By default, the service uses [AstraDB](https://astra.datastax.com/signup) as the
 
 ## Third party LLM Support
 
-We now support third party models for both embeddings and completion. Pass the api key of your service using `api-key` and `embedding-model` headers.
+We now support [many third party models](https://docs.litellm.ai/docs/providers) for both embeddings and completion thanks to [litellm](https://github.com/BerriAI/litellm). Pass the api key of your service using `api-key` and `embedding-model` headers.
 
 ```
 client = OpenAI(
@@ -114,7 +117,7 @@ and
 See our coverage report [here](./coverage.md)
 
 ## Roadmap:
- - [ X ] Support for other embedding models and LLMs
+ - [X] Support for other embedding models and LLMs
  - [ ] Pluggable RAG strategies
  - [ ] Tools / function support
  - [ ] Streaming support
