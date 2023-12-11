@@ -3,11 +3,13 @@ import time
 from openai import OpenAI
 from dotenv import load_dotenv
 
-load_dotenv("../.env")
+load_dotenv("./.env")
 
 OPENAI_API_KEY=os.getenv("OPENAI_API_KEY")
 ASTRA_DB_TOKEN=os.getenv("ASTRA_DB_TOKEN")
 base_url=os.getenv("base_url", "https://open-assistant-ai.astra.datastax.com/v1")
+
+print("base_url: " + base_url)
 
 client = OpenAI(
     base_url=base_url,
