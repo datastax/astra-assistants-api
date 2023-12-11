@@ -8,7 +8,7 @@ load_dotenv("./.env")
 
 # you do have to pass a key because the client requires it but it doesn't have to be valid since we're using a third party LLM
 OPENAI_API_KEY="fakekey"
-ASTRA_DB_TOKEN=os.getenv("ASTRA_DB_TOKEN")
+ASTRA_DB_APPLICATION_TOKEN=os.getenv("ASTRA_DB_APPLICATION_TOKEN")
 COHERE_API_KEY=os.getenv("COHERE_API_KEY")
 base_url=os.getenv("base_url", "https://open-assistant-ai.astra.datastax.com/v1")
 
@@ -17,7 +17,7 @@ client = OpenAI(
     base_url=base_url,
     api_key=OPENAI_API_KEY,
     default_headers={
-        "astra-api-token": ASTRA_DB_TOKEN,
+        "astra-api-token": ASTRA_DB_APPLICATION_TOKEN,
         "api-key": COHERE_API_KEY,
         "embedding-model": "cohere/embed-english-v3.0",
     }
