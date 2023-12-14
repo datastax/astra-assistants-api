@@ -8,7 +8,7 @@ load_dotenv("./.env")
 
 # you do have to pass a key because the client requires it but it doesn't have to be valid since we're using a third party LLM
 OPENAI_API_KEY="Fake key"
-ASTRA_DB_TOKEN=os.getenv("ASTRA_DB_TOKEN")
+ASTRA_DB_APPLICATION_TOKEN=os.getenv("ASTRA_DB_APPLICATION_TOKEN")
 BEDROCK_AWS_REGION=os.getenv("BEDROCK_AWS_REGION")
 BEDROCK_AWS_ACCESS_KEY_ID=os.getenv("BEDROCK_AWS_ACCESS_KEY_ID")
 BEDROCK_AWS_SECRET_ACCESS_KEY=os.getenv("BEDROCK_AWS_SECRET_ACCESS_KEY")
@@ -18,7 +18,7 @@ client = OpenAI(
     base_url=base_url,
     api_key=OPENAI_API_KEY,
     default_headers={
-        "astra-api-token": ASTRA_DB_TOKEN,
+        "astra-api-token": ASTRA_DB_APPLICATION_TOKEN,
         "embedding-model": "amazon.titan-embed-text-v1",
         "LLM-PARAM-aws-access-key-id": BEDROCK_AWS_ACCESS_KEY_ID,
         "LLM-PARAM-aws-secret-access-key": BEDROCK_AWS_SECRET_ACCESS_KEY,

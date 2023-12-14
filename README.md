@@ -18,7 +18,7 @@ client = OpenAI(
     base_url="https://open-assistant-ai.astra.datastax.com/v1", 
     api_key=OPENAI_API_KEY,
     default_headers={
-        "astra-api-token": ASTRA_DB_TOKEN,
+        "astra-api-token": ASTRA_DB_APPLICATION_TOKEN,
     }
 )
 ```
@@ -30,7 +30,7 @@ client = OpenAI(
     base_url="https://open-assistant-ai.astra.datastax.com/v1", 
     api_key=OPENAI_API_KEY,
     default_headers={
-        "astra-api-token": ASTRA_DB_TOKEN,
+        "astra-api-token": ASTRA_DB_APPLICATION_TOKEN,
         "astra-db-id": ASTRA_DB_ID
     }
 )
@@ -57,7 +57,7 @@ client = OpenAI(
     base_url="https://open-assistant-ai.astra.datastax.com/v1", 
     api_key="NONE",
     default_headers={
-        "astra-api-token": ASTRA_DB_TOKEN,
+        "astra-api-token": ASTRA_DB_APPLICATION_TOKEN,
         "api-key": COHERE_API_KEY,
         "embedding-model": "cohere/embed-english-v3.0",
     }
@@ -82,7 +82,7 @@ client = OpenAI(
     base_url="https://open-assistant-ai.astra.datastax.com/v1", 
     api_key="NONE",
     default_headers={
-        "astra-api-token": ASTRA_DB_TOKEN,
+        "astra-api-token": ASTRA_DB_APPLICATION_TOKEN,
         "embedding-model": "amazon.titan-embed-text-v1",
         "LLM-PARAM-aws-access-key-id": BEDROCK_AWS_ACCESS_KEY_ID,
         "LLM-PARAM-aws-secret-access-key": BEDROCK_AWS_SECRET_ACCESS_KEY,
