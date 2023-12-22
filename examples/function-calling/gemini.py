@@ -54,53 +54,40 @@ client = OpenAI(
 model="gemini-pro"
 
 
-response = client.chat.completions.create(
-    model=model,
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "Can you give me some travel tips for Japan?"}
-    ]
-)
-
-# Print the response
-print(response)
-
-thread = client.beta.threads.create()
-my_thread = client.beta.threads.retrieve(thread.id)
-updated = client.beta.threads.update(thread.id, metadata={"hi": "there"})
-
-client.beta.threads.messages.create(thread_id=thread.id, content="some content", role="user")
-deleted = client.beta.threads.delete(thread.id)
-print(my_thread)
-
+print("generating assistants")
 assistant = client.beta.assistants.create(
-    name="Math Tutor",
-    instructions="You are a personal math tutor. Answer questions briefly, in a sentence or less.",
-    model=model,
+  instructions="You are a weather bot. Use the provided functions to answer questions.",
+  model=model,
+  tools=[{
+      "type": "function",
+    "function": {
+      "name": "getCurrentWeather",
+      "description": "Get the weather in location",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {"type": "string", "description": "The city and state e.g. San Francisco, CA"},
+          "unit": {"type": "string", "enum": ["c", "f"]}
+        },
+        "required": ["location"]
+      }
+    }
+  }, {
+    "type": "function",
+    "function": {
+      "name": "getNickname",
+      "description": "Get the nickname of a city",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {"type": "string", "description": "The city and state e.g. San Francisco, CA"},
+        },
+        "required": ["location"]
+      }
+    } 
+  }]
 )
-
 print(assistant)
-
-print("Uploading file:")
-
-# Upload the file
-file = client.files.create(
-    file=open(
-        "./examples/language_models_are_unsupervised_multitask_learners.pdf",
-        "rb",
-    ),
-    purpose="assistants",
-)
-
-# Update Assistant
-assistant = client.beta.assistants.update(
-    assistant.id,
-    tools=[{"type": "retrieval"}],
-    file_ids=[file.id],
-)
-
-print(assistant)
-
 
 def submit_message(assistant_id, thread, user_message):
     client.beta.threads.messages.create(
@@ -117,17 +104,22 @@ def create_thread_and_run(user_input, assistant_id):
     return thread, run
 
 
+print("generating thread")
 thread, run = create_thread_and_run(
-    "What are some cool math concepts behind this ML paper pdf? Explain in two sentences.",
+    "What's the weather like in Miami today?",
     assistant.id
 )
+
+print(thread)
+print(run)
+
 def get_response(thread):
     return client.beta.threads.messages.list(thread_id=thread.id, order="desc")
 
 def pretty_print(messages):
     print("# Messages")
     for m in messages.data:
-        print(f"{m.role}: {m.content[0].text['value']}")
+        print(f"{m.role}: {m.content[0].text.value}")
     print()
 
 
@@ -139,7 +131,21 @@ def wait_on_run(run, thread):
             run_id=run.id,
         )
         time.sleep(0.5)
+    print(f"run {run}")
     return run
 
 run = wait_on_run(run, thread)
+if run.required_action is not None:
+    print(run.required_action)
+    tool_outputs = []
+    for tool_call in run.required_action.submit_tool_outputs.tool_calls:
+        tool_outputs.append({"tool_call_id": tool_call.id, "output": "75 and sunny"})
+
+    run = client.beta.threads.runs.submit_tool_outputs(
+      thread_id=thread.id,
+      run_id=run.id,
+      tool_outputs=tool_outputs
+    )
+    run = wait_on_run(run, thread)
+
 pretty_print(get_response(thread))

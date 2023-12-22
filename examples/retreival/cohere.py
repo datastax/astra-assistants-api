@@ -86,7 +86,7 @@ def get_response(thread):
 def pretty_print(messages):
     print("# Messages")
     for m in messages.data:
-        print(f"{m.role}: {m.content[0].text['value']}")
+        print(f"{m.role}: {m.content[0].text.value}")
     print()
 
 

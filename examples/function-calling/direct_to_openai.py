@@ -1,58 +1,58 @@
 import os
-from openai import OpenAI
 import time
+from openai import OpenAI
 from dotenv import load_dotenv
 
-load_dotenv("../.env")
+load_dotenv("./.env")
 
-
-OPENAI_API_KEY="fakekey"
+OPENAI_API_KEY=os.getenv("OPENAI_API_KEY")
 ASTRA_DB_APPLICATION_TOKEN=os.getenv("ASTRA_DB_APPLICATION_TOKEN")
-PERPLEXITY_API_KEY=os.getenv("PERPLEXITY_API_KEY")
 base_url=os.getenv("base_url", "https://open-assistant-ai.astra.datastax.com/v1")
 
+print("base_url: " + base_url)
+
 client = OpenAI(
-    base_url=base_url,
+#    base_url=base_url,
     api_key=OPENAI_API_KEY,
-    default_headers={
-        "astra-api-token": ASTRA_DB_APPLICATION_TOKEN,
-        "api-key": PERPLEXITY_API_KEY,
-        "custom_llm_provider": "perplexity",
-    }
+#    default_headers={
+#        "astra-api-token": ASTRA_DB_APPLICATION_TOKEN,
+#    }
 )
 
-
-response = client.chat.completions.create(
-    model="perplexity/mistral-7b-instruct",
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "Can you give me some travel tips for Japan?"}
-    ]
-)
-
-# Print the response
-print(response)
-
-
-thread = client.beta.threads.create()
-my_thread = client.beta.threads.retrieve(thread.id)
-updated = client.beta.threads.update(thread.id, metadata={"hi": "there"})
-
-client.beta.threads.messages.create(thread_id=thread.id, content="some content", role="user")
-deleted = client.beta.threads.delete(thread.id)
-print(my_thread)
-
-#mod = client.moderations.create(input="puppies")
-#print(mod)
-
+print("generating assistants")
 assistant = client.beta.assistants.create(
-    name="Math Tutor",
-    instructions="You are a personal math tutor. Answer questions briefly, in a sentence or less.",
-    model="perplexity/mistral-7b-instruct",
+  instructions="You are a weather bot.",
+  model="gpt-4-1106-preview",
+#  tools=[{
+#      "type": "function",
+#    "function": {
+#      "name": "getCurrentWeather",
+#      "description": "Get the weather in location",
+#      "parameters": {
+#        "type": "object",
+#        "properties": {
+#          "location": {"type": "string", "description": "The city and state e.g. San Francisco, CA"},
+#          "unit": {"type": "string", "enum": ["c", "f"]}
+#        },
+#        "required": ["location"]
+#      }
+#    }
+#  }, {
+#    "type": "function",
+#    "function": {
+#      "name": "getNickname",
+#      "description": "Get the nickname of a city",
+#      "parameters": {
+#        "type": "object",
+#        "properties": {
+#          "location": {"type": "string", "description": "The city and state e.g. San Francisco, CA"},
+#        },
+#        "required": ["location"]
+#      }
+#    } 
+#  }]
 )
-
 print(assistant)
-
 
 def submit_message(assistant_id, thread, user_message):
     client.beta.threads.messages.create(
@@ -69,17 +69,23 @@ def create_thread_and_run(user_input, assistant_id):
     return thread, run
 
 
+print("generating thread")
 thread, run = create_thread_and_run(
-    "What is the average speed of an unladen swallow?",
+    "What's the weather like in Miami today?",
     assistant.id
 )
+
+print(thread)
+print(run)
+
 def get_response(thread):
     return client.beta.threads.messages.list(thread_id=thread.id, order="desc")
 
 def pretty_print(messages):
     print("# Messages")
     for m in messages.data:
-        print(f"{m.role}: {m.content[0].text['value']}")
+        print(m)
+        print(f"{m.role}: {m.content[0].text.value}")
     print()
 
 
@@ -94,4 +100,6 @@ def wait_on_run(run, thread):
     return run
 
 run = wait_on_run(run, thread)
+print(thread)
+print(run)
 pretty_print(get_response(thread))
