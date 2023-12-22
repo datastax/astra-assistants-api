@@ -108,6 +108,10 @@ To run the examples using poetry create a .env file in this directory with your 
 
     poetry install
 
+Create your .env file and add your keys to it:
+
+    cp .env.bkp .env
+
 and 
 
     poetry run python examples/completion/basic.py
