@@ -1,6 +1,6 @@
 # Astra Assistant API Service
 
-A drop-in compatible service for the OpenAI beta Assistants API with support for persistent threads, files, assistants, messages, and more using AstraDB (DataStax's db as a service offering powered by Apache Cassandra and jvector).
+A drop-in compatible service for the OpenAI beta Assistants API with support for persistent threads, files, assistants, messages, retreival, function calling and more using AstraDB (DataStax's db as a service offering powered by Apache Cassandra and jvector).
 
 Compatible with existing OpenAI apps via the OpenAI SDKs by changing a single line of code.
 
@@ -101,7 +101,7 @@ assistant = client.beta.assistants.create(
 )
 ```
 
-Additional examples including third party LLMs (bedrock, cohere, perplexity, etc.) can be found under `tests/examples`
+Additional examples including third party LLMs (bedrock, cohere, perplexity, etc.) can be found under `examples`
 
 
 To run the examples using poetry create a .env file in this directory with your secrets and run:
@@ -110,7 +110,12 @@ To run the examples using poetry create a .env file in this directory with your 
 
 and 
 
-    poetry run python examples/basic.py
+    poetry run python examples/completion/basic.py
+
+    poetry run python examples/retreival/basic.py
+
+    poetry run python examples/function-calling/basic.py
+
 
 ## Coverage
 
@@ -118,7 +123,7 @@ See our coverage report [here](./coverage.md)
 
 ## Roadmap:
  - [X] Support for other embedding models and LLMs
+ - [X] function calling
  - [ ] Pluggable RAG strategies
- - [ ] Tools / function support
  - [ ] Streaming support
 
