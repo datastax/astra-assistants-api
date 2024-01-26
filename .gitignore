@@ -141,3 +141,4 @@ cython_debug/
 .openapi-generator/
 
 kittens*
+node_modules/
