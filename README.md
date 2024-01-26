@@ -110,7 +110,7 @@ To run the examples using poetry create a .env file in this directory with your 
 
 and 
 
-    poetry run python examples/basic.py
+    poetry run python examples/python/retreival/basic.py
 
 ## Coverage
 
@@ -118,7 +118,7 @@ See our coverage report [here](./coverage.md)
 
 ## Roadmap:
  - [X] Support for other embedding models and LLMs
- - [ ] Pluggable RAG strategies
- - [ ] Tools / function support
+ - [X] Function support
  - [ ] Streaming support
+ - [ ] Pluggable RAG strategies
 

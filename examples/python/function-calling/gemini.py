@@ -13,7 +13,10 @@ GOOGLE_JSON_PATH=os.getenv("GOOGLE_JSON_PATH")
 GOOGLE_PROJECT_ID=os.getenv("GOOGLE_PROJECT_ID")
 
 base_url=os.getenv("base_url", "https://open-assistant-ai.astra.datastax.com/v1")
-print(base_url)
+
+print(f"token {ASTRA_DB_TOKEN}")
+print(f"google json path {GOOGLE_JSON_PATH}")
+print(f"google project id {GOOGLE_PROJECT_ID}")
 
 client = OpenAI(
     base_url=base_url,
@@ -24,6 +27,7 @@ client = OpenAI(
     }
 )
 
+print(client)
 print("Uploading file:")
 
 # Upload the JSON auth file
@@ -90,15 +94,18 @@ assistant = client.beta.assistants.create(
 print(assistant)
 
 def submit_message(assistant_id, thread, user_message):
+    print("create message")
     client.beta.threads.messages.create(
         thread_id=thread.id, role="user", content=user_message
     )
+    print("create run")
     return client.beta.threads.runs.create(
         thread_id=thread.id,
         assistant_id=assistant_id,
     )
 
 def create_thread_and_run(user_input, assistant_id):
+    print("create thread")
     thread = client.beta.threads.create()
     run = submit_message(assistant_id, thread, user_input)
     return thread, run

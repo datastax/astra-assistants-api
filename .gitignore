@@ -139,3 +139,5 @@ cython_debug/
 
 .idea/
 .openapi-generator/
+
+kittens*
