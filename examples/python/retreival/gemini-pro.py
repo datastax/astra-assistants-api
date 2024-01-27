@@ -133,12 +133,15 @@ def pretty_print(messages):
 
 # Waiting in a loop
 def wait_on_run(run, thread):
-    while run.status == "queued" or run.status == "in_progress":
+    while run.status == "queued" or run.status == "in_progress" or run.status == "generating":
         run = client.beta.threads.runs.retrieve(
             thread_id=thread.id,
             run_id=run.id,
         )
         time.sleep(0.5)
+        if run.status == "failed":
+          print("run status failed")
+          exit()
     return run
 
 run = wait_on_run(run, thread)
