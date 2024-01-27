@@ -48,7 +48,7 @@ print("Uploading file:")
 # Upload the file
 file = client.files.create(
     file=open(
-        "./examples/language_models_are_unsupervised_multitask_learners.pdf",
+        "./examples/python/language_models_are_unsupervised_multitask_learners.pdf",
         "rb",
     ),
     purpose="assistants",
