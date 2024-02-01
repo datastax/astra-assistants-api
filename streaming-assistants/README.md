@@ -19,23 +19,12 @@ import and patch your client:
 from openai import OpenAI
 from streaming_assistants import patch
 
-client = patch(
-    OpenAI(
-        base_url="https://open-assistant-ai.astra.datastax.com/v1",
-        api_key=OPENAI_API_KEY,
-        default_headers={
-            "astra-api-token": ASTRA_DB_APPLICATION_TOKEN,
-        }
-    )
-)
-
-...
+client = patch(OpenAI())
 
 ```
 
 
-After creating your run status will go to `generating`. At this point you can call `client.beta.threads.messages.list` with streaming=True:
-
+After creating your run status will go to `generating`:
 ```
 run.id = client.beta.threads.runs.create(
     thread_id=thread.id,
@@ -52,8 +41,11 @@ while (True):
     if run.status == 'completed' or run.status == 'generating':
         break
     time.sleep(1)
+```
 
+At this point you can call `client.beta.threads.messages.list` with streaming=True:
 
+```
 response = client.beta.threads.messages.list(
     thread_id=thread_id,
     stream=True,
