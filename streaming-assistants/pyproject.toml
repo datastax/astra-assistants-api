@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "streaming-assistants"
+version = "0.7.0"
+description = "Streaming enabled Assistants API"
+authors = ["phact <estevezsebastian@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+httpx = "^0.26.0"
+openai = "^1.1.0"
+litellm = "^1.20.6"
+boto3 = "^1.34.31"
+google-generativeai = "^0.3.2"
+
+
+[tool.poetry.group.dev.dependencies]
+python-dotenv = "^1.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[[tool.poetry.packages]]
+include = "streaming_assistants"
+
