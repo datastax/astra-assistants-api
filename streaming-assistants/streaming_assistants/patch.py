@@ -119,7 +119,7 @@ def wrap_list(original_list):
             return response
         else:
             # Call the original 'list' method for non-streaming requests
-            return await original_list(self, *args, **kwargs)
+            return await original_list(*args, **kwargs)
 
     # Check if the original function is async and choose the appropriate wrapper
     func_is_async = is_async(original_list)
