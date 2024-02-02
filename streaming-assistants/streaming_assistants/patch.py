@@ -214,6 +214,15 @@ def wrap_create(original_create, client):
         # Assuming the argument we"re interested in is named "special_argument"
         model = kwargs.get("model")
 
+        assistant_id = kwargs.get("assistant_id")
+        if assistant_id is not None and "beta.threads.runs" in str(type(self)):
+            print(assistant_id)
+            assistants = client.beta.assistants.list()
+            for assistant in assistants.data:
+                if assistant_id == assistant.id:
+                    model = assistant.model
+                    break
+
         if model is not None:
             try:
                 assign_key_based_on_model(model, client)
@@ -276,6 +285,7 @@ def assign_key_based_on_model(model, client):
         else:
             if "api-key" in client._custom_headers:
                 client._custom_headers.pop("api-key")
+    return client
 
 
 def add_astra_header(client):
@@ -357,6 +367,7 @@ def patch(client: Union[OpenAI, AsyncOpenAI]):
         client.beta.assistants.create,
         client.chat.completions.create,
         client.embeddings.create,
+        client.beta.threads.runs.create,
     ]
     for original_method in methods_to_wrap_with_model_arg:
         bound_instance = original_method.__self__

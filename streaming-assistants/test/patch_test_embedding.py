@@ -13,6 +13,7 @@ def print_embedding(model):
     )
     print(f'text> {text}')
     print(f'embedding-model-{model}>\n{response.data[0].embedding}')
+    print(f'size{len(response.data[0].embedding)}')
 
 
 client = patch(OpenAI())
