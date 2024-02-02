@@ -6,35 +6,52 @@ Compatible with existing OpenAI apps via the OpenAI SDKs by changing a single li
 
 ## Getting Started
 
-Simply [create an Astra DB Vector database](https://astra.datastax.com/signup) and replace:
-```python
-client = OpenAI(
-    api_key=OPENAI_API_KEY,
-)
+Install the streaming-assistants dependency with your favorite package manager:
+
 ```
-with:
-```python
-client = OpenAI(
-    base_url="https://open-assistant-ai.astra.datastax.com/v1", 
-    api_key=OPENAI_API_KEY,
-    default_headers={
-        "astra-api-token": ASTRA_DB_APPLICATION_TOKEN,
-    }
-)
+poetry add streaming_assistants
 ```
 
-Optionally if you have an existing astra db you can pass your db_id in a second header. Otherwise the system will create one on your behalf and name it `assistant_api_db` using your token. Note, this means that the first request will hang until your db is ready (could be a couple of minutes). This will only happen once.
+[Signup for Astra and get an Admin API token](https://astra.datastax.com/signup):
+
+Set your environment variables (depending on what LLMs you want to use), see the [.env.bkp](./.env.bkp) file for an example:
+
+```
+#!/bin/bash
+
+# astra has a generous free tier, no cc required 
+# https://astra.datastax.com/ --> tokens --> administrator user --> generate
+export ASTRA_DB_APPLICATION_TOKEN=
+# https://platform.openai.com/api-keys --> create new secret key
+export OPENAI_API_KEY=
+
+# https://www.perplexity.ai/settings/api  --> generate
+export PERPLEXITYAI_API_KEY=
+
+# https://dashboard.cohere.com/api-keys
+export COHERE_API_KEY=
+
+#bedrock models https://docs.aws.amazon.com/bedrock/latest/userguide/setting-up.html
+export AWS_REGION_NAME=
+export AWS_ACCESS_KEY_ID=
+export AWS_SECRET_ACCESS_KEY=
+
+#vertexai models https://console.cloud.google.com/vertex-ai
+export GOOGLE_JSON_PATH=
+export GOOGLE_PROJECT_ID=
+
+#gemini api https://makersuite.google.com/app/apikey
+export GEMINI_API_KEY=
+```
+
+Then import and patch your client:
 
 ```python
-client = OpenAI(
-    base_url="https://open-assistant-ai.astra.datastax.com/v1", 
-    api_key=OPENAI_API_KEY,
-    default_headers={
-        "astra-api-token": ASTRA_DB_APPLICATION_TOKEN,
-        "astra-db-id": ASTRA_DB_ID
-    }
-)
+from openai import OpenAI
+from streaming_assistants import patch
+client = patch(OpenAI())
 ```
+The system will create a db on your behalf and name it `assistant_api_db` using your token. Note, this means that the first request will hang until your db is ready (could be a couple of minutes). This will only happen once.
 
 Now you're ready to create an assistant
 
@@ -48,61 +65,41 @@ assistant = client.beta.assistants.create(
 
 By default, the service uses [AstraDB](https://astra.datastax.com/signup) as the database/vector store and OpenAI for embeddings and chat completion.
 
+
 ## Third party LLM Support
 
 We now support [many third party models](https://docs.litellm.ai/docs/providers) for both embeddings and completion thanks to [litellm](https://github.com/BerriAI/litellm). Pass the api key of your service using `api-key` and `embedding-model` headers.
 
-```
-client = OpenAI(
-    base_url="https://open-assistant-ai.astra.datastax.com/v1", 
-    api_key="NONE",
-    default_headers={
-        "astra-api-token": ASTRA_DB_APPLICATION_TOKEN,
-        "api-key": COHERE_API_KEY,
-        "embedding-model": "cohere/embed-english-v3.0",
-    }
-)
-```
-
-
-Note: remember to also pass your third party model to the assistant on create:
+You can pass different models, just make sure you have the right corresponding api key in your environment.
 
 ```
+model="gpt-4-1106-preview"
+#model="gpt-3.5-turbo"
+#model="cohere/command"
+#model="perplexity/mixtral-8x7b-instruct"
+#model="perplexity/pplx-70b-online"
+#model="anthropic.claude-v2"
+#model="gemini/gemini-pro"
+#model = "meta.llama2-13b-chat-v1"
+
 assistant = client.beta.assistants.create(
     name="Math Tutor",
     instructions="You are a personal math tutor. Answer questions briefly, in a sentence or less.",
-    model="cohere/command",
+    model=model,
 )
 ```
 
-For AWS Bedrock you can pass additional custom headers:
-
+for third party embedding models we support `embedding_model` in `client.files.create`:
 ```
-client = OpenAI(
-    base_url="https://open-assistant-ai.astra.datastax.com/v1", 
-    api_key="NONE",
-    default_headers={
-        "astra-api-token": ASTRA_DB_APPLICATION_TOKEN,
-        "embedding-model": "amazon.titan-embed-text-v1",
-        "LLM-PARAM-aws-access-key-id": BEDROCK_AWS_ACCESS_KEY_ID,
-        "LLM-PARAM-aws-secret-access-key": BEDROCK_AWS_SECRET_ACCESS_KEY,
-        "LLM-PARAM-aws-region-name": BEDROCK_AWS_REGION,
-    }
+file = client.files.create(
+    file=open(
+        "./test/language_models_are_unsupervised_multitask_learners.pdf",
+        "rb",
+    ),
+    purpose="assistants",
+    embedding_model="text-embedding-3-large",
 )
 ```
-
-and again, specify the custom model for the assistant.
-
-```
-assistant = client.beta.assistants.create(
-    name="Math Tutor",
-    instructions="You are a personal math tutor. Answer questions briefly, in a sentence or less.",
-    model="meta.llama2-13b-chat-v1",
-)
-```
-
-Additional examples including third party LLMs (bedrock, cohere, perplexity, etc.) can be found under `examples`
-
 
 To run the examples using poetry create a .env file in this directory with your secrets and run:
 
@@ -114,11 +111,14 @@ Create your .env file and add your keys to it:
 
 and 
 
-    poetry run python examples/python/completion/basic.py
+    poetry run python examples/python/chat_completion/basic.py
 
     poetry run python examples/python/retreival/basic.py
 
-    poetry run python examples/python/function-calling/basic.py
+    poetry run python examples/python/streaming_retrieval/basic.py
+
+    poetry run python examples/python/function_calling/basic.py
+
 
 ## Coverage
 
@@ -127,5 +127,5 @@ See our coverage report [here](./coverage.md)
 ## Roadmap:
  - [X] Support for other embedding models and LLMs
  - [X] function calling
- - [ ] Streaming support
+ - [X] Streaming support
  - [ ] Pluggable RAG strategies

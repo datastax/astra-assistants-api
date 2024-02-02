@@ -40,7 +40,7 @@ def run_with_assistant(assistant, client):
     while True:
         if run.status == 'failed':
             raise ValueError("Run is in failed state")
-        if run.status == 'completed':
+        if run.status == 'completed' or run.status == 'generating':
             print(f"run status: {run.status}")
             break
         run = client.beta.threads.runs.retrieve(
@@ -48,10 +48,11 @@ def run_with_assistant(assistant, client):
             run_id=run.id,
         )
         time.sleep(0.5)
-
+    print(f"streaming messages")
     print("-->", end="")
-    response = client.beta.threads.messages.list(thread_id=thread.id, stream=False)
-    print(f"{response.data[0].content[0].text.value}", end="")
+    response = client.beta.threads.messages.list(thread_id=thread.id, stream=True)
+    for part in response:
+        print(f"{part.data[0].content[0].delta.value}", end="")
     print("\n")
 
 
@@ -59,15 +60,15 @@ client = patch(OpenAI())
 
 instructions = "You are a personal math tutor. Answer thoroughly. The system will provide relevant context from files, use the context to respond."
 
-model = "gpt-3.5-turbo"
-name = f"{model} Math Tutor"
+#model = "gpt-3.5-turbo"
+#name = f"{model} Math Tutor"
 
-gpt3_assistant = client.beta.assistants.create(
-    name=name,
-    instructions=instructions,
-    model=model,
-)
-run_with_assistant(gpt3_assistant, client)
+#gpt3_assistant = client.beta.assistants.create(
+#    name=name,
+#    instructions=instructions,
+#    model=model,
+#)
+#run_with_assistant(gpt3_assistant, client)
 
 model = "cohere/command"
 name = f"{model} Math Tutor"
