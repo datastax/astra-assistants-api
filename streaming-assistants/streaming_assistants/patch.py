@@ -15,9 +15,9 @@ from openai.types.beta.thread_create_and_run_params import ThreadMessage
 
 from litellm import utils
 
-LLM_PARAM_AWS_REGION_NAME = 'LLM-PARAM-aws-region-name'
-LLM_PARAM_AWS_SECRET_ACCESS_KEY = 'LLM-PARAM-aws-secret-access-key'
-LLM_PARAM_AWS_ACCESS_KEY_ID = 'LLM-PARAM-aws-access-key-id'
+LLM_PARAM_AWS_REGION_NAME = "LLM-PARAM-aws-region-name"
+LLM_PARAM_AWS_SECRET_ACCESS_KEY = "LLM-PARAM-aws-secret-access-key"
+LLM_PARAM_AWS_ACCESS_KEY_ID = "LLM-PARAM-aws-access-key-id"
 
 
 def is_async(func: Callable) -> bool:
@@ -34,16 +34,16 @@ def wrap_list(original_list):
             *args,
             **kwargs,
     ) -> Union[SyncCursorPage[ThreadMessage], Stream[MessageChunk]]:
-        thread_id = kwargs.get('thread_id')
-        after = kwargs.get('after', NOT_GIVEN)
-        before = kwargs.get('before', NOT_GIVEN)
-        limit = kwargs.get('limit', NOT_GIVEN)
-        order = kwargs.get('order', NOT_GIVEN)
-        extra_headers = kwargs.get('extra_headers', None)
-        extra_query = kwargs.get('extra_query', None)
-        extra_body = kwargs.get('extra_body', None)
-        timeout = kwargs.get('timeout', NOT_GIVEN)
-        stream = kwargs.get('stream', False)
+        thread_id = kwargs.get("thread_id")
+        after = kwargs.get("after", NOT_GIVEN)
+        before = kwargs.get("before", NOT_GIVEN)
+        limit = kwargs.get("limit", NOT_GIVEN)
+        order = kwargs.get("order", NOT_GIVEN)
+        extra_headers = kwargs.get("extra_headers", None)
+        extra_query = kwargs.get("extra_query", None)
+        extra_body = kwargs.get("extra_body", None)
+        timeout = kwargs.get("timeout", NOT_GIVEN)
+        stream = kwargs.get("stream", False)
         if stream:
             if limit is not NOT_GIVEN:
                 if limit != 1:
@@ -77,21 +77,21 @@ def wrap_list(original_list):
                 ),
             )
         else:
-            # Call the original 'list' method for non-streaming requests
+            # Call the original "list" method for non-streaming requests
             return original_list(*args, **kwargs)
 
     @wraps(original_list)
     async def async_list(self, *args, **kwargs) -> Union[SyncCursorPage[ThreadMessage], Stream[MessageChunk]]:
-        thread_id = kwargs.get('thread_id')
-        after = kwargs.get('after', NOT_GIVEN)
-        before = kwargs.get('before', NOT_GIVEN)
-        limit = kwargs.get('limit', NOT_GIVEN)
-        order = kwargs.get('order', NOT_GIVEN)
-        extra_headers = kwargs.get('extra_headers', None)
-        extra_query = kwargs.get('extra_query', None)
-        extra_body = kwargs.get('extra_body', None)
-        timeout = kwargs.get('timeout', NOT_GIVEN)
-        stream = kwargs.get('stream', False)
+        thread_id = kwargs.get("thread_id")
+        after = kwargs.get("after", NOT_GIVEN)
+        before = kwargs.get("before", NOT_GIVEN)
+        limit = kwargs.get("limit", NOT_GIVEN)
+        order = kwargs.get("order", NOT_GIVEN)
+        extra_headers = kwargs.get("extra_headers", None)
+        extra_query = kwargs.get("extra_query", None)
+        extra_body = kwargs.get("extra_body", None)
+        timeout = kwargs.get("timeout", NOT_GIVEN)
+        stream = kwargs.get("stream", False)
 
         if stream:
             response = await self._get(
@@ -118,7 +118,7 @@ def wrap_list(original_list):
             )
             return response
         else:
-            # Call the original 'list' method for non-streaming requests
+            # Call the original "list" method for non-streaming requests
             return await original_list(*args, **kwargs)
 
     # Check if the original function is async and choose the appropriate wrapper
@@ -211,7 +211,7 @@ class MessageListWithStreamingParams(TypedDict, total=False):
 def wrap_create(original_create, client):
     @wraps(original_create)
     def patched_create(self, *args, **kwargs):
-        # Assuming the argument we're interested in is named 'special_argument'
+        # Assuming the argument we"re interested in is named "special_argument"
         model = kwargs.get("model")
 
         if model is not None:
@@ -220,7 +220,7 @@ def wrap_create(original_create, client):
             except Exception as e:
                 raise RuntimeError(f"Invalid model {model} or key. Make sure you set the right environment variable.") from None
 
-        # Call the original 'create' method
+        # Call the original "create" method
         result = original_create(*args, **kwargs)
 
         return result
@@ -229,21 +229,22 @@ def wrap_create(original_create, client):
 def wrap_file_create(original_create, client):
     @wraps(original_create)
     def patched_create(self, *args, **kwargs):
-        # Assuming the argument we're interested in is named 'special_argument'
+        # Assuming the argument we"re interested in is named "special_argument"
         model = kwargs.get("embedding_model")
         if model is not None:
-            kwargs['extra_headers'] = { "embedding-model": model}
-            kwargs.pop('embedding_model')
+            kwargs["extra_headers"] = { "embedding-model": model}
+            kwargs.pop("embedding_model")
             try:
                 assign_key_based_on_model(model, client)
             except Exception as e:
                 raise RuntimeError(f"Invalid model {model} or key. Make sure you set the right environment variable.") from None
         else:
-            if 'embedding_model' in kwargs.get("extra_headers"):
-                kwargs.get("extra_headers").pop('embedding-model')
-            if 'api-key' in client._custom_headers:
-                client._custom_headers.pop('api-key')
-        # Call the original 'create' method
+            if kwargs.get("extra_headers") is not None:
+                if "embedding_model" in kwargs.get("extra_headers"):
+                    kwargs.get("extra_headers").pop("embedding-model")
+            if "api-key" in client._custom_headers:
+                client._custom_headers.pop("api-key")
+        # Call the original "create" method
         result = original_create(*args, **kwargs)
 
         return result
@@ -255,7 +256,7 @@ def assign_key_based_on_model(model, client):
         triple = utils.get_llm_provider(model)
         provider = triple[1]
         dynamic_key = triple[2]
-        if provider == 'bedrock':
+        if provider == "bedrock":
             client._custom_headers[LLM_PARAM_AWS_ACCESS_KEY_ID] = os.getenv("AWS_ACCESS_KEY_ID")
             client._custom_headers[LLM_PARAM_AWS_SECRET_ACCESS_KEY] = os.getenv("AWS_SECRET_ACCESS_KEY")
             client._custom_headers[LLM_PARAM_AWS_REGION_NAME] = os.getenv("AWS_REGION_NAME")
@@ -266,24 +267,24 @@ def assign_key_based_on_model(model, client):
                 client._custom_headers.pop(LLM_PARAM_AWS_SECRET_ACCESS_KEY)
             if LLM_PARAM_AWS_REGION_NAME in client._custom_headers:
                 client._custom_headers.pop(LLM_PARAM_AWS_REGION_NAME)
-        if provider != 'openai':
+        if provider != "openai":
             key = utils.get_api_key(provider, dynamic_key)
-        if provider == 'gemini':
+        if provider == "gemini":
             key = os.getenv("GEMINI_API_KEY")
         if key is not None:
-            client._custom_headers['api-key'] = key
+            client._custom_headers["api-key"] = key
         else:
-            if 'api-key' in client._custom_headers:
-                client._custom_headers.pop('api-key')
+            if "api-key" in client._custom_headers:
+                client._custom_headers.pop("api-key")
 
 
 def add_astra_header(client):
     ASTRA_DB_APPLICATION_TOKEN=os.getenv("ASTRA_DB_APPLICATION_TOKEN")
-    if 'astra-api-token' in client.default_headers:
+    if "astra-api-token" in client.default_headers:
         return client
     if ASTRA_DB_APPLICATION_TOKEN is None:
         raise Exception("ASTRA_DB_APPLICATION_TOKEN is not set, this setting is required to use stateful endpoints with the Astra Assistants API\nGet your token from https://astra.datastax.com/")
-    client._custom_headers['astra-api-token'] = ASTRA_DB_APPLICATION_TOKEN
+    client._custom_headers["astra-api-token"] = ASTRA_DB_APPLICATION_TOKEN
 
 
 def wrap_method(original_method, client):
