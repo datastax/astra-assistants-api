@@ -216,31 +216,7 @@ def wrap_create(original_create, client):
 
         if model is not None:
             try:
-                with contextlib.redirect_stdout(io.StringIO()):
-                    key=None
-                    triple = utils.get_llm_provider(model)
-                    provider = triple[1]
-                    dynamic_key = triple[2]
-                    if provider == 'bedrock':
-                        client._custom_headers[LLM_PARAM_AWS_ACCESS_KEY_ID] = os.getenv("AWS_ACCESS_KEY_ID")
-                        client._custom_headers[LLM_PARAM_AWS_SECRET_ACCESS_KEY] = os.getenv("AWS_SECRET_ACCESS_KEY")
-                        client._custom_headers[LLM_PARAM_AWS_REGION_NAME] = os.getenv("AWS_REGION_NAME")
-                    else:
-                        if LLM_PARAM_AWS_ACCESS_KEY_ID in client._custom_headers:
-                            client._custom_headers.pop(LLM_PARAM_AWS_ACCESS_KEY_ID)
-                        if LLM_PARAM_AWS_SECRET_ACCESS_KEY in client._custom_headers:
-                            client._custom_headers.pop(LLM_PARAM_AWS_SECRET_ACCESS_KEY)
-                        if LLM_PARAM_AWS_REGION_NAME in client._custom_headers:
-                            client._custom_headers.pop(LLM_PARAM_AWS_REGION_NAME)
-                    if provider != 'openai':
-                        key = utils.get_api_key(provider, dynamic_key)
-                    if provider == 'gemini':
-                        key = os.getenv("GEMINI_API_KEY")
-                    if key is not None:
-                        client._custom_headers['api-key'] = key
-                    else:
-                        if 'api-key' in client._custom_headers:
-                            client._custom_headers.pop('api-key')
+                assign_key_based_on_model(model, client)
             except Exception as e:
                 raise RuntimeError(f"Invalid model {model} or key. Make sure you set the right environment variable.") from None
 
@@ -248,8 +224,58 @@ def wrap_create(original_create, client):
         result = original_create(*args, **kwargs)
 
         return result
-
     return patched_create
+
+def wrap_file_create(original_create, client):
+    @wraps(original_create)
+    def patched_create(self, *args, **kwargs):
+        # Assuming the argument we're interested in is named 'special_argument'
+        model = kwargs.get("embedding_model")
+        if model is not None:
+            kwargs['extra_headers'] = { "embedding-model": model}
+            kwargs.pop('embedding_model')
+            try:
+                assign_key_based_on_model(model, client)
+            except Exception as e:
+                raise RuntimeError(f"Invalid model {model} or key. Make sure you set the right environment variable.") from None
+        else:
+            if 'embedding_model' in kwargs.get("extra_headers"):
+                kwargs.get("extra_headers").pop('embedding-model')
+            if 'api-key' in client._custom_headers:
+                client._custom_headers.pop('api-key')
+        # Call the original 'create' method
+        result = original_create(*args, **kwargs)
+
+        return result
+    return patched_create
+
+def assign_key_based_on_model(model, client):
+    with contextlib.redirect_stdout(io.StringIO()):
+        key = None
+        triple = utils.get_llm_provider(model)
+        provider = triple[1]
+        dynamic_key = triple[2]
+        if provider == 'bedrock':
+            client._custom_headers[LLM_PARAM_AWS_ACCESS_KEY_ID] = os.getenv("AWS_ACCESS_KEY_ID")
+            client._custom_headers[LLM_PARAM_AWS_SECRET_ACCESS_KEY] = os.getenv("AWS_SECRET_ACCESS_KEY")
+            client._custom_headers[LLM_PARAM_AWS_REGION_NAME] = os.getenv("AWS_REGION_NAME")
+        else:
+            if LLM_PARAM_AWS_ACCESS_KEY_ID in client._custom_headers:
+                client._custom_headers.pop(LLM_PARAM_AWS_ACCESS_KEY_ID)
+            if LLM_PARAM_AWS_SECRET_ACCESS_KEY in client._custom_headers:
+                client._custom_headers.pop(LLM_PARAM_AWS_SECRET_ACCESS_KEY)
+            if LLM_PARAM_AWS_REGION_NAME in client._custom_headers:
+                client._custom_headers.pop(LLM_PARAM_AWS_REGION_NAME)
+        if provider != 'openai':
+            key = utils.get_api_key(provider, dynamic_key)
+        if provider == 'gemini':
+            key = os.getenv("GEMINI_API_KEY")
+        if key is not None:
+            client._custom_headers['api-key'] = key
+        else:
+            if 'api-key' in client._custom_headers:
+                client._custom_headers.pop('api-key')
+
 
 def add_astra_header(client):
     ASTRA_DB_APPLICATION_TOKEN=os.getenv("ASTRA_DB_APPLICATION_TOKEN")
@@ -267,6 +293,17 @@ def wrap_method(original_method, client):
         add_astra_header(client)
 
         result = original_method(self, *args, **kwargs)
+        return result
+
+    return patched_method
+
+def wrap_file_create_method(original_method, client):
+    @wraps(original_method)
+    def patched_method(self, *args, **kwargs):
+
+        add_astra_header(client)
+
+        result = original_method(*args, **kwargs)
         return result
 
     return patched_method
@@ -309,6 +346,7 @@ def patch(client: Union[OpenAI, AsyncOpenAI]):
 
     # for astra headers
     patch_methods(client.beta,client)
+    client.files.create = MethodType(wrap_file_create_method(client.files.create, client), client.files.create)
 
     # for stream
     client.beta.threads.messages.list = MethodType(wrap_list(client.beta.threads.messages.list), client.beta.threads.messages)
@@ -324,5 +362,8 @@ def patch(client: Union[OpenAI, AsyncOpenAI]):
         method_name = original_method.__name__
 
         setattr(bound_instance, method_name, MethodType(wrap_create(original_method, client), bound_instance))
+
+    # fancy model / embedding_model derivation for files
+    client.files.create = MethodType(wrap_file_create(client.files.create, client), client.files.create)
 
     return client
