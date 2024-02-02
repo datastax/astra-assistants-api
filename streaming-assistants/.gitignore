@@ -1,3 +1,4 @@
 .env
 dist/
 .idea/
+*/__pycache__/*
