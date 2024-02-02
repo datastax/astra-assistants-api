@@ -56,7 +56,7 @@ process the streaming response:
 
 ```
 for part in response:
-    print(part.data[0].content[0].text.value)
+    print(part.data[0].content[0].delta.value)
 ```
 
 

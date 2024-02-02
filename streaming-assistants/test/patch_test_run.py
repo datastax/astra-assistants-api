@@ -36,10 +36,12 @@ def test_run_with_assistant(assistant, client):
     print(f"thread.id {thread.id}")
     response = client.beta.threads.messages.list(thread_id=thread.id, stream=True)
 
-    print(f"{assistant.model} =>")
+    print(f"{assistant.model} - streaming=>")
     for part in response:
-        print(part.data[0].content[0].text.value)
+        print(part.data[0].content[0].delta.value, end="")
 
+    #Note, we can list now that the run is completed, we know the run is completed because we finished streaming
+    print(f"{assistant.model} no streaming=>")
     response = client.beta.threads.messages.list(thread_id=thread.id)
     print(response.data[0].content[0].text.value)
 
@@ -47,37 +49,39 @@ def test_run_with_assistant(assistant, client):
 
 client = patch(OpenAI())
 
+instructions="You're an animal expert who gives very long winded answers with flowery prose."
+
 gpt3_assistant = client.beta.assistants.create(
-    name="GPT3 Math Tutor",
-    instructions="You're an animal expert. Answer questions briefly, in a sentence or less.",
+    name="GPT3 Animal Tutor",
+    instructions=instructions,
     model="gpt-3.5-turbo",
 )
 test_run_with_assistant(gpt3_assistant, client)
 
 cohere_assistant = client.beta.assistants.create(
-    name="Cohere Math Tutor",
-    instructions="You are an animal expert. Answer questions briefly, in a sentence or less.",
+    name="Cohere Animal Tutor",
+    instructions=instructions,
     model="cohere/command",
 )
 test_run_with_assistant(cohere_assistant, client)
 
 perplexity_assistant = client.beta.assistants.create(
-    name="Perplexity/Mixtral Math Tutor",
-    instructions="You are an animal expert. Answer questions briefly, in a sentence or less.",
+    name="Perplexity/Mixtral Animal Tutor",
+    instructions=instructions,
     model="perplexity/mixtral-8x7b-instruct",
 )
 test_run_with_assistant(perplexity_assistant, client)
 
 claude_assistant = client.beta.assistants.create(
-    name="Claude Math Tutor",
-    instructions="You are an animal expert. Answer questions briefly, in a sentence or less.",
+    name="Claude Animal Tutor",
+    instructions=instructions,
     model="anthropic.claude-v2",
 )
 test_run_with_assistant(claude_assistant, client)
 
 gemini_assistant = client.beta.assistants.create(
-    name="Gemini Math Tutor",
-    instructions="You are an animal expert. Answer questions briefly, in a sentence or less.",
+    name="Gemini Animal Tutor",
+    instructions=instructions,
     model="gemini/gemini-pro",
 )
 test_run_with_assistant(gemini_assistant, client)

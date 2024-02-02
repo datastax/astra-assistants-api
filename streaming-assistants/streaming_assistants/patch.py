@@ -133,7 +133,7 @@ class Delta(BaseModel):
     value: str
 
 class Content(BaseModel):
-    text: Delta
+    delta: Delta
     type: str
 
 class DataMessageChunk(BaseModel):
