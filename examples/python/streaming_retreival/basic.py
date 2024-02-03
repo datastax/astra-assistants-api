@@ -60,15 +60,15 @@ client = patch(OpenAI())
 
 instructions = "You are a personal math tutor. Answer thoroughly. The system will provide relevant context from files, use the context to respond."
 
-#model = "gpt-3.5-turbo"
-#name = f"{model} Math Tutor"
+model = "gpt-3.5-turbo"
+name = f"{model} Math Tutor"
 
-#gpt3_assistant = client.beta.assistants.create(
-#    name=name,
-#    instructions=instructions,
-#    model=model,
-#)
-#run_with_assistant(gpt3_assistant, client)
+gpt3_assistant = client.beta.assistants.create(
+    name=name,
+    instructions=instructions,
+    model=model,
+)
+run_with_assistant(gpt3_assistant, client)
 
 model = "cohere/command"
 name = f"{model} Math Tutor"
