@@ -6,7 +6,7 @@ Compatible with existing OpenAI apps via the OpenAI SDKs by changing a single li
 
 ## Getting Started
 
-Install the streaming-assistants dependency with your favorite package manager:
+Install the [streaming-assistants](https://github.com/phact/streaming-assistants) dependency with your favorite package manager:
 
 ```
 poetry add streaming_assistants
