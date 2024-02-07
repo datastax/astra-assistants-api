@@ -113,7 +113,7 @@ and
 
     poetry run python examples/python/chat_completion/basic.py
 
-    poetry run python examples/python/retreival/basic.py
+    poetry run python examples/python/retrieval/basic.py
 
     poetry run python examples/python/streaming_retrieval/basic.py
 
