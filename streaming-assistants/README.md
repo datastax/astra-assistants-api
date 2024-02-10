@@ -26,7 +26,7 @@ client = patch(OpenAI())
 
 After creating your run status will go to `generating`:
 ```
-run.id = client.beta.threads.runs.create(
+run = client.beta.threads.runs.create(
     thread_id=thread.id,
     assistant_id=assistant_id,
 )
