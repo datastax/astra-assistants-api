@@ -58,7 +58,7 @@ def run_with_assistant(assistant, client):
 
 client = patch(OpenAI())
 
-instructions = "You are a personal math tutor. Answer thoroughly. The system will provide relevant context from files, use the context to respond."
+instructions = "You are a personal math tutor. Answer thoroughly. The system will provide relevant context from files, use the context to respond and share the exact snippets from the file at the end of your response."
 
 model = "gpt-3.5-turbo"
 name = f"{model} Math Tutor"

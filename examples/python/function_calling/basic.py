@@ -99,4 +99,4 @@ print(messages.data[0].content[0].text.value)
 
 response = client.beta.threads.messages.list(thread_id=thread.id, stream=True)
 for part in response:
-    print(f"streamed response: {part.data[0].content[0].text.value}")
+    print(f"streamed response: {part.data[0].content[0].delta.value}")
