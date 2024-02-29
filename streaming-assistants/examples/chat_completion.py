@@ -33,7 +33,7 @@ def print_chat_completion(model):
         print(part.choices[0].delta.content, end="")
 
 
-client = patch(OpenAI())
+client = patch(OpenAI(max_retries=1))
 
 
 model="gpt-4-1106-preview"

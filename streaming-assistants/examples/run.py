@@ -1,10 +1,12 @@
 from openai import OpenAI
 from streaming_assistants import patch
+
 from dotenv import load_dotenv
 import time
 
 load_dotenv('./.env')
 
+client = patch(OpenAI())
 
 def test_run_with_assistant(assistant, client):
     user_message = "What's your favorite animal."
@@ -34,11 +36,15 @@ def test_run_with_assistant(assistant, client):
 
 
     print(f"thread.id {thread.id}")
-    response = client.beta.threads.messages.list(thread_id=thread.id, stream=True)
+    response = client.beta.threads.messages.list(
+        thread_id=thread.id,
+        stream=True
+    )
 
     print(f"{assistant.model} - streaming=>")
     for part in response:
         print(part.data[0].content[0].delta.value, end="")
+
 
     #Note, we can list now that the run is completed, we know the run is completed because we finished streaming
     print(f"{assistant.model} no streaming=>")
@@ -47,7 +53,6 @@ def test_run_with_assistant(assistant, client):
 
 
 
-client = patch(OpenAI())
 
 instructions="You're an animal expert who gives very long winded answers with flowery prose."
 
@@ -56,6 +61,9 @@ gpt3_assistant = client.beta.assistants.create(
     instructions=instructions,
     model="gpt-3.5-turbo",
 )
+
+assistant = client.beta.assistants.retrieve(gpt3_assistant.id)
+print(assistant)
 test_run_with_assistant(gpt3_assistant, client)
 
 cohere_assistant = client.beta.assistants.create(

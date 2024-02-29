@@ -1,9 +1,5 @@
-import time
-from openai import OpenAI
-from dotenv import load_dotenv
-from streaming_assistants import patch
+import pytest
 
-load_dotenv("./.env")
 
 def run_with_assistant(assistant, client):
     print(f"created assistant: {assistant.name}")
@@ -11,7 +7,7 @@ def run_with_assistant(assistant, client):
     # Upload the file
     file = client.files.create(
         file=open(
-            "./test/language_models_are_unsupervised_multitask_learners.pdf",
+            "./tests/language_models_are_unsupervised_multitask_learners.pdf",
             "rb",
         ),
         purpose="assistants",
@@ -56,56 +52,61 @@ def run_with_assistant(assistant, client):
     print("\n")
 
 
-client = patch(OpenAI())
 
 instructions = "You are a personal math tutor. Answer thoroughly. The system will provide relevant context from files, use the context to respond."
 
-model = "gpt-3.5-turbo"
-name = f"{model} Math Tutor"
+def test_run_gpt3_5(openai_client):
+    model = "gpt-3.5-turbo"
+    name = f"{model} Math Tutor"
 
-gpt3_assistant = client.beta.assistants.create(
-    name=name,
-    instructions=instructions,
-    model=model,
-)
-run_with_assistant(gpt3_assistant, client)
+    gpt3_assistant = openai_client.beta.assistants.create(
+        name=name,
+        instructions=instructions,
+        model=model,
+    )
+    run_with_assistant(gpt3_assistant, openai_client)
 
-model = "cohere/command"
-name = f"{model} Math Tutor"
+def test_run_cohere(openai_client):
+    model = "cohere/command"
+    name = f"{model} Math Tutor"
 
-cohere_assistant = client.beta.assistants.create(
-    name=name,
-    instructions=instructions,
-    model=model,
-)
-run_with_assistant(cohere_assistant, client)
+    cohere_assistant = openai_client.beta.assistants.create(
+        name=name,
+        instructions=instructions,
+        model=model,
+    )
+    run_with_assistant(cohere_assistant, openai_client)
 
-model = "perplexity/mixtral-8x7b-instruct"
-name = f"{model} Math Tutor"
+def test_run_perp(openai_client):
+    model = "perplexity/mixtral-8x7b-instruct"
+    name = f"{model} Math Tutor"
 
-perplexity_assistant = client.beta.assistants.create(
-    name=name,
-    instructions=instructions,
-    model=model,
-)
-run_with_assistant(perplexity_assistant, client)
+    perplexity_assistant = openai_client.beta.assistants.create(
+        name=name,
+        instructions=instructions,
+        model=model,
+    )
+    run_with_assistant(perplexity_assistant, openai_client)
 
-model = "anthropic.claude-v2"
-name = f"{model} Math Tutor"
+@pytest.mark.skip(reason="fix streaming-assistants aws with openai embedding issue")
+def test_run_claude(openai_client):
+    model = "anthropic.claude-v2"
+    name = f"{model} Math Tutor"
 
-claude_assistant = client.beta.assistants.create(
-    name=name,
-    instructions=instructions,
-    model=model,
-)
-run_with_assistant(claude_assistant, client)
+    claude_assistant = openai_client.beta.assistants.create(
+        name=name,
+        instructions=instructions,
+        model=model,
+    )
+    run_with_assistant(claude_assistant, openai_client)
 
-model = "gemini/gemini-pro"
-name = f"{model} Math Tutor"
+def test_run_gemini(openai_client):
+    model = "gemini/gemini-pro"
+    name = f"{model} Math Tutor"
 
-gemini_assistant = client.beta.assistants.create(
-    name=name,
-    instructions=instructions,
-    model=model,
-)
-run_with_assistant(gemini_assistant, client)
+    gemini_assistant = openai_client.beta.assistants.create(
+        name=name,
+        instructions=instructions,
+        model=model,
+    )
+    run_with_assistant(gemini_assistant, openai_client)

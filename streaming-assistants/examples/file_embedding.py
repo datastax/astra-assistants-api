@@ -9,7 +9,7 @@ client = patch(OpenAI())
 
 file = client.files.create(
     file=open(
-        "./test/language_models_are_unsupervised_multitask_learners.pdf",
+        "./tests/language_models_are_unsupervised_multitask_learners.pdf",
         "rb",
     ),
     purpose="assistants",

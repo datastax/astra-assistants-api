@@ -16,6 +16,7 @@ google-generativeai = "^0.3.2"
 
 [tool.poetry.group.dev.dependencies]
 python-dotenv = "^1.0.1"
+pytest = "^8.0.2"
 
 [build-system]
 requires = ["poetry-core"]

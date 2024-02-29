@@ -217,11 +217,8 @@ def wrap_create(original_create, client):
         assistant_id = kwargs.get("assistant_id")
         if assistant_id is not None and "beta.threads.runs" in str(type(self)):
             print(assistant_id)
-            assistants = client.beta.assistants.list()
-            for assistant in assistants.data:
-                if assistant_id == assistant.id:
-                    model = assistant.model
-                    break
+            assistant = client.beta.assistants.retrieve(assistant_id)
+            model = assistant.model
 
         if model is not None:
             try:
@@ -266,6 +263,8 @@ def assign_key_based_on_model(model, client):
         provider = triple[1]
         dynamic_key = triple[2]
         if provider == "bedrock":
+            if os.getenv("AWS_ACCESS_KEY_ID") is None or os.getenv("AWS_SECRET_ACCESS_KEY") is None or os.getenv("AWS_REGION_NAME") is None:
+                raise Exception("For bedrock models you must set the AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION_NAME environment variables")
             client._custom_headers[LLM_PARAM_AWS_ACCESS_KEY_ID] = os.getenv("AWS_ACCESS_KEY_ID")
             client._custom_headers[LLM_PARAM_AWS_SECRET_ACCESS_KEY] = os.getenv("AWS_SECRET_ACCESS_KEY")
             client._custom_headers[LLM_PARAM_AWS_REGION_NAME] = os.getenv("AWS_REGION_NAME")
