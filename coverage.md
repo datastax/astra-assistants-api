@@ -60,4 +60,4 @@ Here are all the OpenAI endpoints, most of the stateful beta endpoints are imple
 |/threads/{thread_id}/messages/{message_id}/files - get | |  | X | 
 |/threads/{thread_id}/messages/{message_id}/files/{file_id} - get | |  | X | 
 
-48 out of 57 endpoints are implemented, 84%
+47 out of 57 endpoints are implemented, 82%
