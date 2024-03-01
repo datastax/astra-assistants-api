@@ -42,14 +42,14 @@ Here are all the OpenAI endpoints, most of the stateful beta endpoints are imple
 |/threads/{thread_id} - delete | X |  |  | 
 |/threads/{thread_id}/messages - get | X |  |  | 
 |/threads/{thread_id}/messages - post | X |  |  | 
-|/threads/{thread_id}/messages/{message_id} - get | |  | X | 
-|/threads/{thread_id}/messages/{message_id} - post | |  | X | 
-|/threads/runs - post | |  | X | 
+|/threads/{thread_id}/messages/{message_id} - get | X |  |  | 
+|/threads/{thread_id}/messages/{message_id} - post | X |  |  | 
+|/threads/runs - post | X |  |  | 
 |/threads/{thread_id}/runs - get | X |  |  | 
 |/threads/{thread_id}/runs - post | X |  |  | 
 |/threads/{thread_id}/runs/{run_id} - get | X |  |  | 
 |/threads/{thread_id}/runs/{run_id} - post | |  | X | 
-|/threads/{thread_id}/runs/{run_id}/submit_tool_outputs - post | |  | X | 
+|/threads/{thread_id}/runs/{run_id}/submit_tool_outputs - post | X |  |  | 
 |/threads/{thread_id}/runs/{run_id}/cancel - post | |  | X | 
 |/threads/{thread_id}/runs/{run_id}/steps - get | |  | X | 
 |/threads/{thread_id}/runs/{run_id}/steps/{step_id} - get | |  | X | 
@@ -60,4 +60,4 @@ Here are all the OpenAI endpoints, most of the stateful beta endpoints are imple
 |/threads/{thread_id}/messages/{message_id}/files - get | |  | X | 
 |/threads/{thread_id}/messages/{message_id}/files/{file_id} - get | |  | X | 
 
-43 out of 57 endpoints are implemented, 75%
+48 out of 57 endpoints are implemented, 84%
