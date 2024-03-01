@@ -1,4 +1,6 @@
 # Astra Assistant API Service
+[![Run tests](https://github.com/datastax/astra-assistants-api/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/datastax/astra-assistants-api/actions/workflows/run-tests.yml)
+[![Docker build and publish](https://github.com/datastax/astra-assistants-api/actions/workflows/docker.yml/badge.svg)](https://github.com/datastax/astra-assistants-api/actions/workflows/docker.yml)
 
 A drop-in compatible service for the OpenAI beta Assistants API with support for persistent threads, files, assistants, messages, retreival, function calling and more using AstraDB (DataStax's db as a service offering powered by Apache Cassandra and jvector).
 
@@ -128,4 +130,4 @@ See our coverage report [here](./coverage.md)
  - [X] Support for other embedding models and LLMs
  - [X] function calling
  - [X] Streaming support
- - [ ] Pluggable RAG strategies
+ - [ ] Configurable RAG
