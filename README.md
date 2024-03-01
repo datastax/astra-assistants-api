@@ -2,13 +2,15 @@
 [![Run tests](https://github.com/datastax/astra-assistants-api/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/datastax/astra-assistants-api/actions/workflows/run-tests.yml)
 [![Docker build and publish](https://github.com/datastax/astra-assistants-api/actions/workflows/docker.yml/badge.svg)](https://github.com/datastax/astra-assistants-api/actions/workflows/docker.yml)
 
-A drop-in compatible service for the OpenAI beta Assistants API with support for persistent threads, files, assistants, messages, retreival, function calling and more using AstraDB (DataStax's db as a service offering powered by Apache Cassandra and jvector).
+A drop-in compatible service for the OpenAI beta Assistants API with support for persistent threads, files, assistants, *streaming* messages, retreival, function calling and more using [AstraDB](https://astra.datastax.com) (DataStax's db as a service offering powered by [Apache Cassandra](https://cassandra.apache.org/_/index.html) and [jvector](https://github.com/jbellis/jvector)).
 
 Compatible with existing OpenAI apps via the OpenAI SDKs by changing a single line of code.
 
-## Getting Started
+You can use our Astra Assistants service, or host the API server yourself.
 
-Install the [streaming-assistants](https://github.com/phact/streaming-assistants) dependency with your favorite package manager:
+## Client Getting Started
+
+To build an app that uses the Astra Asistants service install the [streaming-assistants](https://github.com/phact/streaming-assistants) dependency with your favorite package manager:
 
 ```
 poetry add streaming_assistants
@@ -121,6 +123,22 @@ and
 
     poetry run python examples/python/function_calling/basic.py
 
+
+## Running yourself
+
+with docker:
+
+    docker run datastax/astra-assistants
+
+or locally with poetry:
+
+    poetry install
+
+    poetry run python run.py
+
+## Contributing
+
+Check out our [contributing guide](./CONTRIBUTING.md)
 
 ## Coverage
 
