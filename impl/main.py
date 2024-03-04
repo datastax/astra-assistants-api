@@ -17,6 +17,9 @@ logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
+logger = logging.getLogger('cassandra')
+logger.setLevel(logging.WARN)
+
 
 logger = logging.getLogger(__name__)
 
