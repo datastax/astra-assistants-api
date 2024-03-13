@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from streaming_assistants import patch
 
 load_dotenv("./.env")
+load_dotenv("../../../.env")
 
 def print_chat_completion(client, model, prompt):
     response = client.chat.completions.create(
@@ -30,7 +31,9 @@ def print_chat_completion(client, model, prompt):
         print(part.choices[0].delta.content, end="")
 
 # Ensure the right environment variables are configured for the model you are using
-model="gpt-4-1106-preview"
+#model="anthropic/claude-3-opus-20240229"
+model="anthropic/claude-3-sonnet-20240229"
+#model="gpt-4-1106-preview"
 #model="gpt-3.5-turbo"
 #model="cohere/command"
 #model="perplexity/mixtral-8x7b-instruct"

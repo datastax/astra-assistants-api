@@ -8,7 +8,9 @@ load_dotenv("./.env")
 client = patch(OpenAI())
 
 # Ensure the right environment variables are configured for the model you are using
-model="gpt-4-1106-preview"
+#model="gpt-4-1106-preview"
+#model="anthropic/claude-3-opus-20240229"
+model="anthropic/claude-3-sonet-20240229"
 #model="gpt-3.5-turbo"
 #model="cohere/command"
 #model="perplexity/mixtral-8x7b-instruct"

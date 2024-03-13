@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from streaming_assistants import patch
 
 load_dotenv("./.env")
+load_dotenv("../../../.env")
 
 def run_with_assistant(assistant, client):
     print(f"created assistant: {assistant.name}")
@@ -48,11 +49,10 @@ def run_with_assistant(assistant, client):
             run_id=run.id,
         )
         time.sleep(0.5)
-    print(f"streaming messages")
     print("-->", end="")
     response = client.beta.threads.messages.list(thread_id=thread.id, stream=True)
     for part in response:
-        print(f"{part.data[0].content[0].delta.value}", end="")
+        print(part.data[0].content[0].deta.value, end="")
     print("\n")
 
 
