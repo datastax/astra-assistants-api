@@ -38,7 +38,7 @@ for _, name, _ in pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + "."):
 @router.post(
     "/audio/speech",
     responses={
-        200: {"model": str, "description": "OK"},
+        200: {"model": file, "description": "OK"},
     },
     tags=["Audio"],
     summary="Generates audio from the input text.",
@@ -50,7 +50,7 @@ async def create_speech(
     token_ApiKeyAuth: TokenModel = Security(
         get_token_ApiKeyAuth
     ),
-) -> str:
+) -> file:
     ...
 
 
@@ -74,7 +74,7 @@ async def create_transcription(
 ,
     response_format: str = Form('json', description="The format of the transcript output, in one of these options: &#x60;json&#x60;, &#x60;text&#x60;, &#x60;srt&#x60;, &#x60;verbose_json&#x60;, or &#x60;vtt&#x60;. ")
 ,
-    temperature: float = Form(0, description="The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase the temperature until certain thresholds are hit. ")
+    temperature:  = Form(0, description="The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase the temperature until certain thresholds are hit. ")
 ,
     timestamp_granularities: List[str] = Form(None, description="The timestamp granularities to populate for this transcription. Any of these options: &#x60;word&#x60;, or &#x60;segment&#x60;. Note: There is no additional latency for segment timestamps, but generating word timestamps incurs additional latency. ")
 ,
@@ -103,7 +103,7 @@ async def create_translation(
 ,
     response_format: str = Form('json', description="The format of the transcript output, in one of these options: &#x60;json&#x60;, &#x60;text&#x60;, &#x60;srt&#x60;, &#x60;verbose_json&#x60;, or &#x60;vtt&#x60;. ")
 ,
-    temperature: float = Form(0, description="The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase the temperature until certain thresholds are hit. ")
+    temperature:  = Form(0, description="The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase the temperature until certain thresholds are hit. ")
 ,
     token_ApiKeyAuth: TokenModel = Security(
         get_token_ApiKeyAuth

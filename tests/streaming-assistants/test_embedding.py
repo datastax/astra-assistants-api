@@ -6,11 +6,23 @@ def print_embedding(model, client):
     text="Draw your favorite animal."
     response = client.embeddings.create(
         model=model,
-        input=[text]
+        input=[text],
     )
     logger.info(f'text> {text}')
     logger.info(f'embedding-model-{model}>\n{response.data[0].embedding}')
     logger.info(f'size{len(response.data[0].embedding)}')
+    text2="Draw your least favorite animal."
+    response = client.embeddings.create(
+        model=model,
+        input=[text, text2],
+    )
+    logger.info(f'text> {text}')
+
+    assert len(response.data) == 2
+
+    for datum in response.data:
+        logger.info(f'embedding-model-{model}>\n{datum.embedding}')
+
 
 
 def test_embedding_cohere(openai_client):

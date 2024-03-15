@@ -7,19 +7,19 @@ from uuid import uuid1
 from fastapi import APIRouter, Body, Depends, Path, Query, HTTPException
 from starlette.background import BackgroundTasks
 from impl.astra_vector import CassandraClient
-from openapi_server.models.assistant_object import AssistantObject
-from openapi_server.models.assistant_object_tools_inner import AssistantObjectToolsInner
-from openapi_server.models.create_assistant_request import CreateAssistantRequest
-from openapi_server.models.create_run_request import CreateRunRequest
 from openapi_server.models.create_thread_and_run_request import CreateThreadAndRunRequest
 from openapi_server.models.delete_assistant_response import DeleteAssistantResponse
 from openapi_server.models.list_assistants_response import ListAssistantsResponse
-from openapi_server.models.modify_assistant_request import ModifyAssistantRequest
 from openapi_server.models.run_object import RunObject
 from .threads import create_thread, create_run
 
 from .utils import verify_db_client, verify_openai_token, infer_embedding_model, infer_embedding_api_key, \
     get_litellm_kwargs
+from ..model.assistant_object import AssistantObject
+from ..model.assistant_object_tools_inner import AssistantObjectToolsInner
+from ..model.create_assistant_request import CreateAssistantRequest
+from ..model.create_run_request import CreateRunRequest
+from ..model.modify_assistant_request import ModifyAssistantRequest
 
 router = APIRouter()
 
@@ -57,6 +57,14 @@ async def list_assistants(
     raw_assistants = astradb.selectAllFromTable(table="assistants")
 
     assistants = []
+    if len(raw_assistants) == 0:
+        return ListAssistantsResponse(
+            data=assistants,
+            object="runs",
+            first_id="none",
+            last_id="none",
+            has_more=False,
+        )
     for assistant in raw_assistants:
         created_at = int(assistant["created_at"].timestamp() * 1000)
 
@@ -91,23 +99,16 @@ async def list_assistants(
             metadata=metadata,
         )
         assistants.append(assistant)
-    if len(raw_assistants) == 0:
-        return ListAssistantsResponse(
-            data=assistants,
-            object="runs",
-            first_id="none",
-            last_id="none",
-            has_more=False,
-        )
     first_id = raw_assistants[0]["id"]
     last_id = raw_assistants[len(raw_assistants) - 1]["id"]
-    return ListAssistantsResponse(
+    assistants_response = ListAssistantsResponse(
         data=assistants,
         object="assistants",
         first_id=first_id,
         last_id=last_id,
         has_more=False,
     )
+    return assistants_response
 
 
 @router.post(
@@ -279,7 +280,6 @@ async def get_assistant(
     response_model_by_alias=True,
 )
 async def create_thread_and_run(
-        background_tasks: BackgroundTasks,
         create_thread_and_run_request: CreateThreadAndRunRequest = Body(None, description=""),
         astradb: CassandraClient = Depends(verify_db_client),
         embedding_model: str = Depends(infer_embedding_model),
@@ -300,7 +300,6 @@ async def create_thread_and_run(
         metadata=create_thread_and_run_request.metadata
     )
     return await create_run(
-        background_tasks=background_tasks,
         thread_id=thread.id,
         create_run_request=create_run_request,
         astradb=astradb,

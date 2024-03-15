@@ -3,7 +3,6 @@
 from fastapi.testclient import TestClient
 
 
-from openapi_server.models.create_embedding_request import CreateEmbeddingRequest  # noqa: F401
 from openapi_server.models.create_embedding_response import CreateEmbeddingResponse  # noqa: F401
 from tests.http.conftest import MODEL, get_headers
 

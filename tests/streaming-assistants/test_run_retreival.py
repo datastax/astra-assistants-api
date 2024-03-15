@@ -50,8 +50,12 @@ def run_with_assistant(assistant, client):
     logger.info(f"streaming messages")
     logger.info("-->")
     response = client.beta.threads.messages.list(thread_id=thread.id, stream=True)
+
+    i = 0
     for part in response:
+        i += 1
         logger.info(f"{part.data[0].content[0].delta.value}")
+    assert i > 0
     logger.info("\n")
 
 

@@ -3,12 +3,14 @@ import pytest
 import logging
 
 from fastapi.testclient import TestClient
+
+from impl.model.create_assistant_request import CreateAssistantRequest
+from impl.model.create_run_request import CreateRunRequest
+from impl.model.message_object import MessageObject
 from openapi_server.models.assistant_file_object import AssistantFileObject  # noqa: F401
 from openapi_server.models.assistant_object import AssistantObject  # noqa: F401
 from openapi_server.models.create_assistant_file_request import CreateAssistantFileRequest  # noqa: F401
-from openapi_server.models.create_assistant_request import CreateAssistantRequest  # noqa: F401
 from openapi_server.models.create_message_request import CreateMessageRequest  # noqa: F401
-from openapi_server.models.create_run_request import CreateRunRequest  # noqa: F401
 from openapi_server.models.create_thread_and_run_request import CreateThreadAndRunRequest  # noqa: F401
 from openapi_server.models.create_thread_request import CreateThreadRequest  # noqa: F401
 from openapi_server.models.delete_assistant_file_response import DeleteAssistantFileResponse  # noqa: F401
@@ -17,12 +19,9 @@ from openapi_server.models.delete_thread_response import DeleteThreadResponse  #
 from openapi_server.models.list_assistant_files_response import ListAssistantFilesResponse  # noqa: F401
 from openapi_server.models.list_assistants_response import ListAssistantsResponse  # noqa: F401
 from openapi_server.models.list_message_files_response import ListMessageFilesResponse  # noqa: F401
-from openapi_server.models.list_messages_response import ListMessagesResponse  # noqa: F401
 from openapi_server.models.list_run_steps_response import ListRunStepsResponse  # noqa: F401
 from openapi_server.models.list_runs_response import ListRunsResponse  # noqa: F401
 from openapi_server.models.message_file_object import MessageFileObject  # noqa: F401
-from openapi_server.models.message_object import MessageObject  # noqa: F401
-from openapi_server.models.modify_assistant_request import ModifyAssistantRequest  # noqa: F401
 from openapi_server.models.modify_message_request import ModifyMessageRequest  # noqa: F401
 from openapi_server.models.modify_run_request import ModifyRunRequest  # noqa: F401
 from openapi_server.models.modify_thread_request import ModifyThreadRequest  # noqa: F401

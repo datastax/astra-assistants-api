@@ -17,7 +17,7 @@ class BaseAudioApi:
     def create_speech(
         self,
         create_speech_request: CreateSpeechRequest,
-    ) -> str:
+    ) -> file:
         ...
 
 
@@ -28,7 +28,7 @@ class BaseAudioApi:
         language: str,
         prompt: str,
         response_format: str,
-        temperature: float,
+        temperature: ,
         timestamp_granularities: List[str],
     ) -> CreateTranscriptionResponse:
         ...
@@ -40,6 +40,6 @@ class BaseAudioApi:
         model: CreateTranscriptionRequestModel,
         prompt: str,
         response_format: str,
-        temperature: float,
+        temperature: ,
     ) -> CreateTranslationResponse:
         ...

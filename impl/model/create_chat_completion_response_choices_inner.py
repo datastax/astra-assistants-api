@@ -1,0 +1,11 @@
+from typing import Optional
+
+from pydantic import Field
+
+from openapi_server.models.create_chat_completion_response_choices_inner import CreateChatCompletionResponseChoicesInner as CreateChatCompletionResponseChoicesInnerGenerated
+from openapi_server.models.create_chat_completion_response_choices_inner_logprobs import \
+    CreateChatCompletionResponseChoicesInnerLogprobs
+
+
+class CreateChatCompletionResponseChoicesInner(CreateChatCompletionResponseChoicesInnerGenerated):
+    logprobs: Optional[CreateChatCompletionResponseChoicesInnerLogprobs] = Field(alias="logprobs", default=None)

@@ -14,6 +14,7 @@ def print_chat_completion(model, client):
     logger.info(f'prompt> {prompt}')
     logger.info(f'artist-{model}>\n{response.choices[0].message.content}')
 
+    logger.info('now streaming')
     response = client.chat.completions.create(
         model=model,
         messages=[

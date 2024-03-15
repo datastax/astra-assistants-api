@@ -36,9 +36,12 @@ def run_with_assistant(assistant, client):
     )
 
     logger.info(f"{assistant.model} - streaming=>")
+    i = 0
     for part in response:
+        i += 1
         logger.info(part.data[0].content[0].delta.value)
 
+    assert i > 0
 
     #Note, we can list now that the run is completed, we know the run is completed because we finished streaming
     logger.info(f"{assistant.model} no streaming=>")

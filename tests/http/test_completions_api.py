@@ -2,7 +2,7 @@
 import logging
 from fastapi.testclient import TestClient
 
-from openapi_server.models.create_completion_request import CreateCompletionRequest  # noqa: F401
+from impl.model.create_completion_request import CreateCompletionRequest
 from openapi_server.models.create_completion_response import CreateCompletionResponse  # noqa: F401
 from tests.http.conftest import get_headers, MODEL
 
@@ -16,7 +16,7 @@ def test_create_completion(client: TestClient):
     create_completion_request = {
         "model": "gpt-3.5-turbo-instruct",
         "prompt": "puppies are the best",
-        "logit_bias":{11:-1},
+        "logit_bias":{"11":-1},
         "seed":-2147483648,
         "max_tokens":16,
         "presence_penalty":0.25495066265333133,

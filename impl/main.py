@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Callable, Sequence, Union
 
@@ -10,11 +11,12 @@ from prometheus_client import Counter, Summary, Histogram
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_fastapi_instrumentator.metrics import Info
 
+from impl.background import background_task_set
 from impl.routes import assistants, files, health, stateless, threads
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)',
+                    format='%(asctime)s - %(levelname)s - %(message)s (%(module)s:%(filename)s:%(lineno)d)',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 logger = logging.getLogger('cassandra')
@@ -24,11 +26,21 @@ logger.setLevel(logging.WARN)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    # TODO: Change these?
-    title="OpenAI API",
-    description="The OpenAI REST API. Please see https://platform.openai.com/docs/api-reference for more details.",
+    title="Astra Assistants API",
+    description="Drop in replacement for OpenAI Assistants API. .",
     version="2.0.0",
 )
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    logger.info("shutting down server")
+    for task in background_task_set:
+        task.cancel()
+        try:
+            await task  # Give the task a chance to finish
+        except asyncio.CancelledError:
+            pass  # Handle cancellation if needed
+
 
 app.include_router(assistants.router, prefix="/v1")
 app.include_router(files.router, prefix="/v1")
@@ -163,5 +175,5 @@ async def unimplemented(request: Request, full_path: str):
     )
 
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+#if __name__ == "__main__":
+#    uvicorn.run(app, host="0.0.0.0", port=8000)
