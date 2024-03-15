@@ -2633,13 +2633,13 @@ full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.7
 
 [[package]]
 name = "streaming-assistants"
-version = "0.15.0rc2"
+version = "0.15.0rc3"
 description = "Streaming enabled Assistants API"
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "streaming_assistants-0.15.0rc2-py3-none-any.whl", hash = "sha256:80a2965b2bb5e4d76a6d6cd526a353fbca23ab6a671984134dcdb61ee3373f0d"},
-    {file = "streaming_assistants-0.15.0rc2.tar.gz", hash = "sha256:d7ae5a3f6d53acaec40b48ce155ca6e458b4405f49e50d348bfb08ff15b209dd"},
+    {file = "streaming_assistants-0.15.0rc3-py3-none-any.whl", hash = "sha256:0919ef6f973492d4c4e0c4beda39daa3502c2de45f33b9720584d6514814d040"},
+    {file = "streaming_assistants-0.15.0rc3.tar.gz", hash = "sha256:5e4366e654b101804a08568fb9245322ecc152f032aa0f9d3ba6c2dc8e4ec99c"},
 ]
 
 [package.dependencies]
@@ -3270,4 +3270,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10.12"
-content-hash = "449ba0ebf66660c5f4858006ec88e72059494825f6232b207fbd87d53622fffd"
+content-hash = "d3b6594a904480865067eb7673f3bd557883ac444b84c2bf41df034f6f2f6dc5"
