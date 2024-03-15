@@ -3,7 +3,7 @@ import os
 import io
 from functools import wraps
 from types import MethodType, FunctionType
-from typing import Callable, Literal, Union, List, Dict, Any, TypedDict
+from typing import Callable, Literal, Union, List, Dict, Any, TypedDict, cast, Optional
 import contextlib
 from openai import Stream, OpenAI, AsyncOpenAI
 from openai._base_client import make_request_options
@@ -81,7 +81,11 @@ def wrap_list(original_list):
             return original_list(*args, **kwargs)
 
     @wraps(original_list)
-    async def async_list(self, *args, **kwargs) -> Union[SyncCursorPage[ThreadMessage], Stream[MessageChunk]]:
+    async def async_list(
+            self,
+            *args,
+            **kwargs
+    ) -> Union[SyncCursorPage[ThreadMessage], Stream[MessageChunk]]:
         thread_id = kwargs.get("thread_id")
         after = kwargs.get("after", NOT_GIVEN)
         before = kwargs.get("before", NOT_GIVEN)
@@ -129,6 +133,9 @@ def wrap_list(original_list):
     wrapper_function.__doc__ = original_list.__doc__
 
     return wrapper_function
+
+
+
 class Delta(BaseModel):
     value: str
 
@@ -159,6 +166,7 @@ class DataMessageChunk(BaseModel):
     """metadata"""
 
 
+
 class MessageChunk(BaseModel):
     object: Literal["list"]
     """The object type, which is always `list`."""
@@ -174,6 +182,7 @@ class MessageChunk(BaseModel):
     last_id: str
     """message id of the last message in the stream
     """
+
 
 class MessageListWithStreamingParams(TypedDict, total=False):
     after: str
@@ -367,6 +376,7 @@ def patch(client: Union[OpenAI, AsyncOpenAI]):
         client.chat.completions.create,
         client.embeddings.create,
         client.beta.threads.runs.create,
+        client.beta.threads.runs.create_and_stream,
     ]
     for original_method in methods_to_wrap_with_model_arg:
         bound_instance = original_method.__self__
