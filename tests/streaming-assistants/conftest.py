@@ -36,8 +36,8 @@ class SafeLoggingHandler(logging.StreamHandler):
 def start_application():
     stop_event = threading.Event()
 
-    def run_server(stop_event):
-        config = uvicorn.Config(app=app, host="127.0.0.1", port=8000, log_level="critical")
+    def run_server(this_stop_event):
+        config = uvicorn.Config(app=app, host="127.0.0.1", port=8000, log_level="debug")
         server = uvicorn.Server(config=config)
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -46,7 +46,7 @@ def start_application():
             await server.serve()
 
         async def check_for_stop():
-            while not stop_event.is_set():
+            while not this_stop_event.is_set():
                 await asyncio.sleep(1)  # Check for the stop event every second
             root_logger = logging.getLogger()
             root_logger.setLevel(logging.CRITICAL)
@@ -57,7 +57,6 @@ def start_application():
         loop.create_task(serve_app())
         loop.create_task(check_for_stop())
         loop.run_forever()
-
 
     server_thread = threading.Thread(target=run_server, args=(stop_event,))
     server_thread.start()
@@ -92,4 +91,3 @@ def start_application():
 def openai_client(start_application) -> OpenAI:
     oai = patch(OpenAI())
     return oai
-

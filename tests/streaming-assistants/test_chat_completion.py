@@ -25,15 +25,19 @@ def print_chat_completion(model, client):
     )
     logger.info(f"prompt> {prompt}")
     logger.info(f"artist-{model}>")
+    i = 0
     for part in response:
+        i += 1
         if part.choices[0].finish_reason is not None:
             break
         logger.info(part.choices[0].delta.content)
 
+    assert i > 0
+
 
 def test_chat_completion_gpt4(openai_client):
     model="gpt-4-1106-preview"
-    (model, openai_client)
+    print_chat_completion(model, openai_client)
 
 def test_chat_completion_gpt3_5(openai_client):
     model="gpt-3.5-turbo"
