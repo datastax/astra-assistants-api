@@ -3,7 +3,6 @@ import io
 import logging
 import os
 
-import httpx
 import pytest
 from dotenv import load_dotenv
 from httpx import AsyncClient
@@ -11,8 +10,10 @@ from litellm import utils
 
 from impl.main import app
 from impl.model.create_run_request import CreateRunRequest
+from impl.model.run_object import RunObject
 from openapi_server.models.assistant_object import AssistantObject
 from openapi_server.models.create_assistant_request import CreateAssistantRequest
+from openapi_server.models.create_thread_and_run_request import CreateThreadAndRunRequest
 from openapi_server.models.create_thread_request import CreateThreadRequest
 from openapi_server.models.thread_object import ThreadObject
 
@@ -108,3 +109,82 @@ async def test_streaming_run():
         for line in response.iter_lines():
             if line:
                 print(f"Received: {line}")
+
+        create_thread_and_run_request = {"instructions":"instructions","metadata":{},"assistant_id": assistant.id,"model":MODEL,"thread":{"metadata":{},"messages":[{"metadata":{},"role":"user","file_ids":[],"content":"content"},{"metadata":{},"role":"user","file_ids":[],"content":"content"}]},"tools":[]}
+
+        parsed_create_thread_and_run_request = CreateThreadAndRunRequest.parse_obj(create_thread_and_run_request)
+        logger.info(parsed_create_thread_and_run_request)
+
+        response = await client.request(
+            "POST",
+            "/threads/runs",
+            headers=headers,
+            json=create_thread_and_run_request,
+        )
+
+        # uncomment below to assert the status code of the HTTP response
+        assert response.status_code == 200
+
+        run = RunObject.parse_raw(response.content)
+
+        response = await client.request(
+            "GET",
+            "/threads/{thread_id}/runs/{run_id}".format(thread_id=run.thread_id, run_id=run.id),
+            headers=headers,
+        )
+        logger.info(response)
+
+        # uncomment below to assert the status code of the HTTP response
+        assert response.status_code == 200
+
+        params = [("limit", 20),     ("order", 'desc')]
+        response = await client.request(
+            "GET",
+            "/threads/{thread_id}/runs".format(thread_id=run.thread_id),
+            headers=headers,
+            params=params,
+        )
+
+        logger.info(response)
+        # uncomment below to assert the status code of the HTTP response
+        assert response.status_code == 200
+
+        submit_tool_outputs_run_request = {"tool_outputs":[{"output":"output","tool_call_id":"tool_call_id"},{"output":"output","tool_call_id":"tool_call_id"}]}
+
+        response = await client.request(
+            "POST",
+            "/threads/{thread_id}/runs/{run_id}/submit_tool_outputs".format(thread_id=run.thread_id, run_id=run.id),
+            headers=headers,
+            json=submit_tool_outputs_run_request,
+        )
+
+        # uncomment below to assert the status code of the HTTP response
+        assert response.status_code == 200
+
+#        TODO: Cancel run test
+#        headers = {
+#            "Authorization": "Bearer special-key",
+#        }
+#        response = client.request(
+#            "POST",
+#            "/threads/{thread_id}/runs/{run_id}/cancel".format(thread_id=run.thread_id, run_id=run.id),
+#            headers=headers,
+#        )
+#
+#        # uncomment below to assert the status code of the HTTP response
+#        assert response.status_code == 200
+
+#        TODO: Modify run test
+#        modify_run_request = {"metadata":{}}
+#
+#        headers = get_headers(MODEL)
+#        response = client.request(
+#            "POST",
+#            "/threads/{thread_id}/runs/{run_id}".format(thread_id=run.thread_id, run_id=run.id),
+#            headers=headers,
+#            json=modify_run_request,
+#        )
+#
+#        logger.info(response)
+#        # uncomment below to assert the status code of the HTTP response
+#        assert response.status_code == 200

@@ -35,27 +35,6 @@ logger = logging.getLogger(__name__)
 
 model="gpt-3.5-turbo"
 
-@pytest.mark.skip(reason="Not implemented")
-def test_cancel_run(client: TestClient):
-    """Test case for cancel_run
-
-    Cancels a run that is `in_progress`.
-    """
-
-    run = test_create_run(client)
-
-    headers = {
-        "Authorization": "Bearer special-key",
-    }
-    response = client.request(
-        "POST",
-        "/threads/{thread_id}/runs/{run_id}/cancel".format(thread_id=run.thread_id, run_id=run.id),
-        headers=headers,
-    )
-
-    # uncomment below to assert the status code of the HTTP response
-    assert response.status_code == 200
-
 
 @pytest.mark.skip(reason="Other tests use this function")
 def test_create_assistant(client: TestClient):
@@ -144,34 +123,6 @@ def test_create_message(client: TestClient):
 
 
 
-def test_create_run(client: TestClient):
-    """Test case for create_run
-
-    Create a run.
-    """
-    thread = test_create_thread(client)
-    assistant = test_create_assistant(client)
-    create_run_request = {"instructions":"instructions","metadata":{},"assistant_id":assistant.id,"model":MODEL,"tools":[]}
-
-    parsed_create_run_request = CreateRunRequest.parse_obj(create_run_request)
-
-    logger.info(parsed_create_run_request)
-
-    headers = get_headers(MODEL)
-
-    response = client.request(
-        "POST",
-        "/threads/{thread_id}/runs".format(thread_id=thread.id),
-        headers=headers,
-        json=create_run_request,
-    )
-
-    # uncomment below to assert the status code of the HTTP response
-    assert response.status_code == 200
-
-    run = RunObject.parse_raw(response.content)
-    return run
-
 
 def test_create_thread(client: TestClient):
     """Test case for create_thread
@@ -198,34 +149,6 @@ def test_create_thread(client: TestClient):
 
     thread = ThreadObject.parse_raw(response.content)
     return thread
-
-
-def test_create_thread_and_run(client: TestClient):
-    """Test case for create_thread_and_run
-
-    Create a thread and run it in one request.
-    """
-
-    assistant = test_create_assistant(client)
-    create_thread_and_run_request = {"instructions":"instructions","metadata":{},"assistant_id": assistant.id,"model":MODEL,"thread":{"metadata":{},"messages":[{"metadata":{},"role":"user","file_ids":[],"content":"content"},{"metadata":{},"role":"user","file_ids":[],"content":"content"}]},"tools":[]}
-
-    parsed_create_thread_and_run_request = CreateThreadAndRunRequest.parse_obj(create_thread_and_run_request)
-    logger.info(parsed_create_thread_and_run_request)
-
-    headers = get_headers(MODEL)
-
-    response = client.request(
-        "POST",
-        "/threads/runs",
-        headers=headers,
-        json=create_thread_and_run_request,
-    )
-
-    # uncomment below to assert the status code of the HTTP response
-    assert response.status_code == 200
-
-    run = RunObject.parse_raw(response.content)
-    return run
 
 
 def test_delete_assistant(client: TestClient):
@@ -363,24 +286,6 @@ def test_get_message_file(client: TestClient):
     # uncomment below to assert the status code of the HTTP response
     #assert response.status_code == 200
 
-
-def test_get_run(client: TestClient):
-    """Test case for get_run
-
-    Retrieves a run.
-    """
-
-    run = test_create_run(client)
-    headers = get_headers(MODEL)
-    response = client.request(
-        "GET",
-        "/threads/{thread_id}/runs/{run_id}".format(thread_id=run.thread_id, run_id=run.id),
-        headers=headers,
-    )
-    logger.info(response)
-
-    # uncomment below to assert the status code of the HTTP response
-    assert response.status_code == 200
 
 
 @pytest.mark.skip(reason="Not implemented")
@@ -523,28 +428,6 @@ def test_list_run_steps(client: TestClient):
     #assert response.status_code == 200
 
 
-def test_list_runs(client: TestClient):
-    """Test case for list_runs
-
-    Returns a list of runs belonging to a thread.
-    """
-    run = test_create_thread_and_run(client)
-
-    #params = [("limit", 20),     ("order", 'desc'),     ("after", 'after_example'),     ("before", 'before_example')]
-    params = [("limit", 20),     ("order", 'desc')]
-    headers = get_headers(MODEL)
-    response = client.request(
-        "GET",
-        "/threads/{thread_id}/runs".format(thread_id=run.thread_id),
-        headers=headers,
-        params=params,
-    )
-
-    logger.info(response)
-    # uncomment below to assert the status code of the HTTP response
-    assert response.status_code == 200
-
-
 def test_modify_assistant(client: TestClient):
     """Test case for modify_assistant
 
@@ -587,28 +470,6 @@ def test_modify_message(client: TestClient):
     # uncomment below to assert the status code of the HTTP response
     assert response.status_code == 200
 
-@pytest.mark.skip(reason="Not implemented")
-def test_modify_run(client: TestClient):
-    """Test case for modify_run
-
-    Modifies a run.
-    """
-    run = test_create_run(client)
-
-    modify_run_request = {"metadata":{}}
-
-    headers = get_headers(MODEL)
-    response = client.request(
-        "POST",
-        "/threads/{thread_id}/runs/{run_id}".format(thread_id=run.thread_id, run_id=run.id),
-        headers=headers,
-        json=modify_run_request,
-    )
-
-    logger.info(response)
-    # uncomment below to assert the status code of the HTTP response
-    assert response.status_code == 200
-
 
 def test_modify_thread(client: TestClient):
     """Test case for modify_thread
@@ -633,28 +494,6 @@ def test_modify_thread(client: TestClient):
     assert response.status_code == 200
 
 
-def test_submit_tool_ouputs_to_run(client: TestClient):
-    """Test case for submit_tool_ouputs_to_run
-
-    When a run has the `status: \"requires_action\"` and `required_action.type` is `submit_tool_outputs`, this endpoint can be used to submit the outputs from the tool calls once they're all completed. All outputs must be submitted in a single request. 
-    """
-    run = test_create_thread_and_run(client)
-
-    submit_tool_outputs_run_request = {"tool_outputs":[{"output":"output","tool_call_id":"tool_call_id"},{"output":"output","tool_call_id":"tool_call_id"}]}
-
-    headers = get_headers(MODEL)
-    response = client.request(
-        "POST",
-        "/threads/{thread_id}/runs/{run_id}/submit_tool_outputs".format(thread_id=run.thread_id, run_id=run.id),
-        headers=headers,
-        json=submit_tool_outputs_run_request,
-    )
-
-    # uncomment below to assert the status code of the HTTP response
-    assert response.status_code == 200
-
-
-
 def test_modify_assistant(client: TestClient):
     """Test case for modify_assistant
 
@@ -674,4 +513,3 @@ def test_modify_assistant(client: TestClient):
     logger.info(response)
     # uncomment below to assert the status code of the HTTP response
     assert response.status_code == 200
-
