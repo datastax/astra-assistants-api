@@ -4,41 +4,41 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def test_function_calling_gpt_4(openai_client):
+def test_function_calling_gpt_4(patched_openai_client):
     model="gpt-4-1106-preview"
-    function_calling(model, openai_client)
+    function_calling(model, patched_openai_client)
 
-def test_function_calling_gpt_3_5(openai_client):
+def test_function_calling_gpt_3_5(patched_openai_client):
     model="gpt-3.5-turbo"
-    function_calling(model, openai_client)
+    function_calling(model, patched_openai_client)
 
 @pytest.mark.skip(reason="claude does not consistently work with function calling, skip")
-def test_function_calling_cohere(openai_client):
+def test_function_calling_cohere(patched_openai_client):
     model="cohere/command"
-    function_calling(model, openai_client)
+    function_calling(model, patched_openai_client)
 
-def test_function_calling_pplx_mix(openai_client):
+def test_function_calling_pplx_mix(patched_openai_client):
     model="perplexity/mixtral-8x7b-instruct"
-    function_calling(model, openai_client)
+    function_calling(model, patched_openai_client)
 
 @pytest.mark.skip(reason="pplx_online just looks up the weather and doesn't do the function call")
-def test_function_calling_pplx_online(openai_client):
+def test_function_calling_pplx_online(patched_openai_client):
     model="perplexity/pplx-70b-online"
-    function_calling(model, openai_client)
+    function_calling(model, patched_openai_client)
 
 @pytest.mark.skip(reason="claude does not consistently work with function calling, skip")
-def test_function_calling_claude(openai_client):
+def test_function_calling_claude(patched_openai_client):
     model="anthropic.claude-v2"
-    function_calling(model, openai_client)
+    function_calling(model, patched_openai_client)
 
-def test_function_calling_gemini(openai_client):
+def test_function_calling_gemini(patched_openai_client):
     model="gemini/gemini-pro"
-    function_calling(model, openai_client)
+    function_calling(model, patched_openai_client)
 
 @pytest.mark.skip(reason="llama does not consistently work with function calling, skip")
-def test_function_calling_llama(openai_client):
+def test_function_calling_llama(patched_openai_client):
     model = "meta.llama2-13b-chat-v1"
-    function_calling(model, openai_client)
+    function_calling(model, patched_openai_client)
 
 
 def function_calling(model, client):

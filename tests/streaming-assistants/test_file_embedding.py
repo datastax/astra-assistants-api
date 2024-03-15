@@ -1,8 +1,8 @@
 import logging
 
 logger = logging.getLogger(__name__)
-def test_file_embedding(openai_client):
-    file = openai_client.files.create(
+def test_file_embedding(patched_openai_client):
+    file = patched_openai_client.files.create(
         file=open(
             "./tests/fixtures/language_models_are_unsupervised_multitask_learners.pdf",
             "rb",

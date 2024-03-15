@@ -35,26 +35,26 @@ def print_chat_completion(model, client):
     assert i > 0
 
 
-def test_chat_completion_gpt4(openai_client):
+def test_chat_completion_gpt4(patched_openai_client):
     model="gpt-4-1106-preview"
-    print_chat_completion(model, openai_client)
+    print_chat_completion(model, patched_openai_client)
 
-def test_chat_completion_gpt3_5(openai_client):
+def test_chat_completion_gpt3_5(patched_openai_client):
     model="gpt-3.5-turbo"
-    print_chat_completion(model, openai_client)
+    print_chat_completion(model, patched_openai_client)
 
-def test_chat_completion_cohere(openai_client):
+def test_chat_completion_cohere(patched_openai_client):
     model="cohere/command"
-    print_chat_completion(model, openai_client)
+    print_chat_completion(model, patched_openai_client)
 
-def test_chat_completion_perp_mixtral(openai_client):
+def test_chat_completion_perp_mixtral(patched_openai_client):
     model="perplexity/mixtral-8x7b-instruct"
-    print_chat_completion(model, openai_client)
+    print_chat_completion(model, patched_openai_client)
 
-def test_chat_completion_claude(openai_client):
+def test_chat_completion_claude(patched_openai_client):
     model="anthropic.claude-v2"
-    print_chat_completion(model, openai_client)
+    print_chat_completion(model, patched_openai_client)
 
-def test_chat_completion_gemini_pro(openai_client):
+def test_chat_completion_gemini_pro(patched_openai_client):
     model="gemini/gemini-pro"
-    print_chat_completion(model, openai_client)
+    print_chat_completion(model, patched_openai_client)
