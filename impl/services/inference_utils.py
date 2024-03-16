@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any, Dict, List, Optional, Union, AsyncGenerator
 
 import litellm
@@ -42,11 +43,12 @@ def get_embeddings_response(
             litellm_kwargs = litellm_kwargs.copy()
             litellm_kwargs["api_base"] = litellm_kwargs.pop("base_url")
 
-        return get_litellm_embedding(
+        embeddings = get_litellm_embedding(
             model=model,
             input=texts,
             **litellm_kwargs,
         )
+        return embeddings
     except Exception as e:
         logger.error(f"Error: {e}")
         raise e
@@ -102,6 +104,9 @@ async def get_async_chat_completion_response(
             raise ValueError(f"Model {model} is not currently supported")
         logger.error(f"Error: {e}")
         raise ValueError(f"Error: {e}")
+    except asyncio.CancelledError:
+        logger.error("litellm call cancelled")
+        raise RuntimeError("litellm call cancelled")
 
 
 async def get_chat_completion(

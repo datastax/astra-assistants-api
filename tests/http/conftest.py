@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from impl.main import app as application, startup_event
+from impl.main import app as application
 from litellm import utils
 
 

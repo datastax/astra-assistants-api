@@ -12,16 +12,18 @@ from starlette.responses import StreamingResponse, JSONResponse
 from openapi_server.models.chat_completion_stream_response_delta import ChatCompletionStreamResponseDelta
 from openapi_server.models.completion_usage import CompletionUsage
 from openapi_server.models.create_chat_completion_stream_response import CreateChatCompletionStreamResponse
-from openapi_server.models.create_chat_completion_request import CreateChatCompletionRequest
 from openapi_server.models.create_chat_completion_response import CreateChatCompletionResponse
-from openapi_server.models.create_chat_completion_response_choices_inner import CreateChatCompletionResponseChoicesInner
 from openapi_server.models.create_chat_completion_stream_response_choices_inner import \
     CreateChatCompletionStreamResponseChoicesInner
-from openapi_server.models.create_embedding_request import CreateEmbeddingRequest
 from openapi_server.models.create_embedding_response import CreateEmbeddingResponse
 from impl.services.inference_utils import get_embeddings_response, get_async_chat_completion_response
+from openapi_server.models.create_embedding_response_usage import CreateEmbeddingResponseUsage
 
 from .utils import get_litellm_kwargs, check_if_using_openai, forward_request
+from ..model.create_chat_completion_request import CreateChatCompletionRequest
+from ..model.create_chat_completion_response_choices_inner import CreateChatCompletionResponseChoicesInner
+from ..model.create_embedding_request import CreateEmbeddingRequest
+from ..model.embedding import Embedding
 
 router = APIRouter()
 
@@ -111,11 +113,13 @@ async def _completion_from_request(
         finish_reason = choice.finish_reason
         if finish_reason is None:
             finish_reason = "None"
-        choices.append(CreateChatCompletionResponseChoicesInner(
-            finish_reason=finish_reason,
-            index=choice.index,
-            message=choice.message
-        ))
+        choice_message = choice.message.dict()
+        inner = CreateChatCompletionResponseChoicesInner(
+                finish_reason=finish_reason,
+                index=choice.index,
+                message=choice_message
+            )
+        choices.append(inner)
 
     usage = CompletionUsage(prompt_tokens=response.usage['prompt_tokens'],completion_tokens=response.usage['completion_tokens'],total_tokens=response.usage['total_tokens'])
 
@@ -137,11 +141,12 @@ async def chat_completion_streamer(response, model):
             created_time = int(time.time())
             for part in response:
                 choices = []
+                #TODO: check function calls here
                 delta = ChatCompletionStreamResponseDelta(content=str(part.candidates[0].content.parts[0].text))
                 choices.append(CreateChatCompletionStreamResponseChoicesInner(
                     finish_reason=None,
                     index=i,
-                    delta=delta
+                    delta=delta.dict()
                 ))
                 i+=1
                 response_obj = CreateChatCompletionStreamResponse(
@@ -162,7 +167,7 @@ async def chat_completion_streamer(response, model):
                     choices.append(CreateChatCompletionStreamResponseChoicesInner(
                         finish_reason=finish_reason,
                         index=choice.index,
-                        delta=choice.delta
+                        delta=choice.delta.dict()
                     ))
                 response_obj = CreateChatCompletionStreamResponse(
                     id=part.id,
@@ -293,12 +298,22 @@ async def create_embedding(
         **litellm_kwargs,
     )
 
-    return CreateEmbeddingResponse(
-        data=embedding_response.data,
+    data = []
+    for datum in embedding_response.data:
+        embedding = Embedding(**datum)
+        data.append(embedding)
+
+    if type(embedding_response.usage) is dict:
+        usage = CreateEmbeddingResponseUsage(**embedding_response.usage)
+    else:
+        usage = embedding_response.usage.dict()
+    embedding_response = CreateEmbeddingResponse(
+        data=data,
         model=create_embedding_request.model,
         object=embedding_response.object,
-        usage=embedding_response.usage,
+        usage=usage,
     )
+    return embedding_response
 
 
 @router.post(

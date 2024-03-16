@@ -22,7 +22,6 @@ from impl.services.chunks import get_document_chunks
 from impl.services.file import get_document_from_file
 from openapi_server.models.delete_file_response import DeleteFileResponse
 from openapi_server.models.list_files_response import ListFilesResponse
-from openapi_server.models.open_ai_file import OpenAIFile
 
 from .utils import (
     verify_db_client,
@@ -31,6 +30,7 @@ from .utils import (
     forward_request,
     infer_embedding_model,
 )
+from ..model.open_ai_file import OpenAIFile
 
 router = APIRouter()
 
@@ -187,6 +187,12 @@ async def list_files(
     files = []
     for file in raw_files:
         created_at = int(file["created_at"].timestamp() * 1000)
+        status = file["status"]
+        if status == "success":
+            if file["purpose"] == "auth":
+                status = "uploaded"
+            else:
+                status = "processed"
         files.append(
             OpenAIFile(
                 id=file["id"],
@@ -195,11 +201,12 @@ async def list_files(
                 filename=file["filename"],
                 object="file",
                 purpose=file["purpose"],
-                status=file["status"],
+                status=status,
             )
         )
 
-    return ListFilesResponse(data=files, object="files")
+    file_list = ListFilesResponse(data=files, object="list")
+    return file_list
 
 
 @router.get(

@@ -506,7 +506,7 @@ async def list_messages(
 ,
     before: str = Query(None, description="pagination_before_param_description")
 ,
-    stream: bool = Query(None, description="If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format) as they become available, with the stream terminated by a &#x60;data: [DONE]&#x60; message. [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions). ")
+    UNKNOWN_PARAMETER_NAME:  = Query(None, description="If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format) as they become available, with the stream terminated by a &#x60;data: [DONE]&#x60; message. [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions). ")
 ,
     token_ApiKeyAuth: TokenModel = Security(
         get_token_ApiKeyAuth

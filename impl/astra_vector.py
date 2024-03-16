@@ -25,6 +25,11 @@ from cassandra.query import (
 )
 from pydantic import BaseModel, Field
 
+from impl.model.assistant_object import AssistantObject
+from impl.model.assistant_object_tools_inner import AssistantObjectToolsInner
+from impl.model.message_object import MessageObject
+from impl.model.open_ai_file import OpenAIFile
+from impl.model.run_object import RunObject
 from impl.models import (
     DocumentChunk,
     DocumentChunkMetadata,
@@ -34,16 +39,11 @@ from impl.models import (
     QueryWithEmbedding,
 )
 from impl.services.inference_utils import get_embeddings
-from openapi_server.models.assistant_object import AssistantObject
 from openapi_server.models.message_content_text_object import MessageContentTextObject
 from openapi_server.models.message_content_text_object_text import MessageContentTextObjectText
 from openapi_server.models.run_object_required_action import RunObjectRequiredAction
-from openapi_server.models.message_object import MessageObject
-from openapi_server.models.message_object_content_inner import MessageObjectContentInner
-from openapi_server.models.open_ai_file import OpenAIFile
-from openapi_server.models.run_object import RunObject
 from openapi_server.models.thread_object import ThreadObject
-from openapi_server.models.assistant_object_tools_inner import AssistantObjectToolsInner
+
 
 
 # Create a logger for this module.
@@ -858,6 +858,7 @@ class CassandraClient:
             tools=tools,
             file_ids=file_ids,
             metadata=metadata,
+            usage=None,
         )
 
     def upsert_message(
@@ -944,8 +945,8 @@ class CassandraClient:
         if file_ids is None:
             file_ids = []
 
-        created_at = row["created_at"].timestamp() * 1000
-        return MessageObject(
+        created_at = int(row["created_at"].timestamp() * 1000)
+        message_object = MessageObject(
             id=row['id'],
             object=row['object'],
             created_at=created_at,
@@ -957,12 +958,13 @@ class CassandraClient:
             file_ids=file_ids,
             metadata=metadata
         )
+        return message_object
 
     def upsert_content_only_file(
             self, id, created_at, object, purpose, filename, format, bytes, content, **litellm_kwargs,
     ):
         self.upsert_chunks_content_only(id, content, created_at)
-        status = "success"
+        status = "uploaded"
         query_string = f"""insert into {CASSANDRA_KEYSPACE}.files (
                     id,
                     object,
@@ -998,7 +1000,7 @@ class CassandraClient:
             self, id, created_at, object, purpose, filename, format, bytes, chunks, model, **litellm_kwargs,
     ):
         self.upsert_chunks(chunks, model, **litellm_kwargs)
-        status = "success"
+        status = "processed"
 
         query_string = f"""insert into {CASSANDRA_KEYSPACE}.files (
                     id,
@@ -1157,7 +1159,6 @@ class CassandraClient:
 
     def __del__(self):
         # close the connection when the client is destroyed
-        logger.info("shutdown")
         self.session.shutdown()
 
     # TODO: make these async

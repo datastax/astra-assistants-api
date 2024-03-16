@@ -5,7 +5,6 @@ from fastapi.testclient import TestClient
 
 from openapi_server.models.delete_file_response import DeleteFileResponse  # noqa: F401
 from openapi_server.models.list_files_response import ListFilesResponse  # noqa: F401
-from openapi_server.models.open_ai_file import OpenAIFile  # noqa: F401
 
 
 @pytest.mark.skip(reason="use client")
