@@ -27,7 +27,6 @@ from openapi_server.models.modify_run_request import ModifyRunRequest  # noqa: F
 from openapi_server.models.modify_thread_request import ModifyThreadRequest  # noqa: F401
 from openapi_server.models.run_object import RunObject  # noqa: F401
 from openapi_server.models.run_step_object import RunStepObject  # noqa: F401
-from openapi_server.models.submit_tool_outputs_run_request import SubmitToolOutputsRunRequest  # noqa: F401
 from openapi_server.models.thread_object import ThreadObject  # noqa: F401
 from tests.http.conftest import get_headers, MODEL
 

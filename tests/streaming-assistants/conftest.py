@@ -90,4 +90,5 @@ def start_application():
 @pytest.fixture(scope="function")
 def patched_openai_client(start_application) -> OpenAI:
     oai = patch(OpenAI())
+    #oai = OpenAI()
     return oai

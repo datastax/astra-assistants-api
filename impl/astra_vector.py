@@ -645,7 +645,7 @@ class CassandraClient:
             required_action_object = RunObjectRequiredAction.parse_raw(required_action)
         run = RunObject(
             id=json_rows["id"],
-            object="run",
+            object="thread.run",
             created_at=created_at,
             thread_id=json_rows["thread_id"],
             assistant_id=json_rows["assistant_id"],

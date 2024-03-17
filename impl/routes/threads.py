@@ -22,8 +22,13 @@ from fastapi.encoders import jsonable_encoder
 from litellm import CustomStreamWrapper
 from openai.types.beta import AssistantStreamEvent
 from openai.types.beta.assistant_stream_event import ThreadRunCreated, ThreadRunQueued, ThreadRunInProgress, \
-    ThreadMessageCreated, ThreadMessageInProgress, ThreadMessageDelta
-from openai.types.beta.threads import Message, MessageDeltaEvent, MessageDelta, TextDeltaBlock
+    ThreadMessageCreated, ThreadMessageInProgress, ThreadMessageDelta, ThreadRunRequiresAction, ThreadRunStepDelta, \
+    ThreadRunStepCreated, ThreadRunStepInProgress
+from openai.types.beta.threads import Message, MessageDeltaEvent, MessageDelta, TextDeltaBlock, TextDelta
+from openai.types.beta.threads.runs import RunStepDeltaEvent, RunStepDelta, ToolCallsStepDetails, FunctionToolCallDelta, \
+    ToolCallDeltaObject, RunStep, MessageCreationStepDetails
+from openai.types.beta.threads.runs.message_creation_step_details import MessageCreation
+from openai.types.beta.threads.runs.run_step import StepDetails
 from starlette.responses import StreamingResponse, ContentStream
 
 from impl.astra_vector import CassandraClient
@@ -33,6 +38,7 @@ from impl.model.create_run_request import CreateRunRequest
 from impl.model.list_messages_response import ListMessagesResponse
 from impl.model.message_object import MessageObject
 from impl.model.run_object import RunObject
+from impl.model.submit_tool_outputs_run_request import SubmitToolOutputsRunRequest
 from impl.routes.utils import verify_db_client, get_litellm_kwargs, infer_embedding_model, infer_embedding_api_key
 from impl.services.inference_utils import get_chat_completion, get_async_chat_completion_response
 from openapi_server.models.create_message_request import CreateMessageRequest
@@ -53,7 +59,6 @@ from openapi_server.models.run_object_required_action import RunObjectRequiredAc
 from openapi_server.models.run_object_required_action_submit_tool_outputs import RunObjectRequiredActionSubmitToolOutputs
 from openapi_server.models.run_tool_call_object import RunToolCallObject
 from openapi_server.models.run_tool_call_object_function import RunToolCallObjectFunction
-from openapi_server.models.submit_tool_outputs_run_request import SubmitToolOutputsRunRequest
 from openapi_server.models.thread_object import ThreadObject
 
 router = APIRouter()
@@ -216,16 +221,63 @@ def extractFunctionName(content: str, candidates: [str]):
 
 
 async def run_event_stream(run, astradb):
+    # copy run
     run_holder = Run(**run.dict())
-    event = ThreadRunCreated(data=run_holder, event="thread.run.created")
+    run_holder.required_action = None
+    run_holder.status = "created"
+    event = ThreadRunCreated(data=run_holder, event=f"thread.run.{run_holder.status}")
     event_json = event.json()
     yield f"data: {event_json}\n\n"
-    event = ThreadRunQueued(data=run_holder, event="thread.run.queued")
+    run_holder.status = "queued"
+    event = ThreadRunQueued(data=run_holder, event=f"thread.run.{run_holder.status}")
     event_json = event.json()
     yield f"data: {event_json}\n\n"
-    event = ThreadRunInProgress(data=run_holder, event="thread.run.in_progress")
+    run_holder.status = "in_progress"
+    event = ThreadRunInProgress(data=run_holder, event=f"thread.run.{run_holder.status}")
     event_json = event.json()
     yield f"data: {event_json}\n\n"
+
+    if run.status == "requires_action":
+       # annoyingly the sdk looks for a run step even though the data we need is in the RunRequiresAction
+       # data.delta.step_details_tool_calls
+        step_details = ToolCallsStepDetails(type="tool_calls", tool_calls=[])
+        run_step = RunStep(
+            type="tool_calls",
+            thread_id=run.thread_id,
+            run_id=run.id,
+            id=run.id,
+            status="in_progress",
+            created_at=run.created_at,
+            assistant_id=run.assistant_id,
+            step_details=step_details,
+            object="thread.run.step",
+        )
+        event = ThreadRunStepCreated(data=run_step, event=f"thread.run.step.created")
+        event_json = event.json()
+        yield f"data: {event_json}\n\n"
+        event = ThreadRunStepInProgress(data=run_step, event=f"thread.run.step.in_progress")
+        event_json = event.json()
+        yield f"data: {event_json}\n\n"
+
+        tool_calls = []
+        index = 0
+        for run_tool_call in run.required_action.submit_tool_outputs.tool_calls:
+            tool_call = FunctionToolCallDelta(**run_tool_call.dict(), index=index)
+            index += 1
+            tool_calls.append(tool_call)
+        step_details = ToolCallDeltaObject(tool_calls=tool_calls, type="tool_calls")
+        step_delta = RunStepDelta(step_details=step_details)
+        # TODO: if / when we implement persistent run steps, change this ID.
+        run_step_delta = RunStepDeltaEvent(id=run.id, delta=step_delta, object="thread.run.step.delta")
+        event = ThreadRunStepDelta(data=run_step_delta, event="thread.run.step.delta")
+        event_json = event.json()
+        yield f"data: {event_json}\n\n"
+
+        run_holder = Run(**run.dict())
+        event = ThreadRunRequiresAction(data=run_holder, event=f"thread.run.{run_holder.status}")
+        event_json = event.json()
+        yield f"data: {event_json}\n\n"
+        return
 
     async for event in stream_message_events(astradb, run.thread_id, None, "desc", None, None):
         yield event
@@ -768,7 +820,7 @@ async def list_runs(
         runs.append(
             RunObject(
                 id=run["id"],
-                object="run",
+                object="thread.run",
                 created_at=created_at,
                 thread_id=run["thread_id"],
                 assistant_id=run["assistant_id"],
@@ -1112,6 +1164,7 @@ async def delete_thread(
     tags=["Assistants"],
     summary="When a run has the &#x60;status: \&quot;requires_action\&quot;&#x60; and &#x60;required_action.type&#x60; is &#x60;submit_tool_outputs&#x60;, this endpoint can be used to submit the outputs from the tool calls once they&#39;re all completed. All outputs must be submitted in a single request. ",
     response_model_by_alias=True,
+    response_model=None
 )
 async def submit_tool_ouputs_to_run(
         thread_id: str = Path(..., description="The ID of the [thread](/docs/api-reference/threads) to which this run belongs."),
@@ -1119,7 +1172,7 @@ async def submit_tool_ouputs_to_run(
         submit_tool_outputs_run_request: SubmitToolOutputsRunRequest = Body(None, description=""),
         litellm_kwargs: Dict[str, Any] = Depends(get_litellm_kwargs),
         astradb: CassandraClient = Depends(verify_db_client),
-) -> RunObject:
+) -> RunObject | StreamingResponse:
     try:
         logger.info(submit_tool_outputs_run_request)
 
@@ -1137,33 +1190,186 @@ async def submit_tool_ouputs_to_run(
             # message_content.append({"role": "system", "content": f"tool response for {tool_output.tool_call_id} is {tool_output.output}"})
             message_content.append({"role": "user", "content": f"tool response for {tool_output.tool_call_id} is {tool_output.output}"})
         # TODO MAKE THIS BIT DRY
-        message = await get_chat_completion(
-            messages=message_content,
-            model=model,
-            **litellm_kwargs,
-        )
-        completion = message.content
+        if not submit_tool_outputs_run_request.stream:
+            message = await get_chat_completion(
+                messages=message_content,
+                model=model,
+                **litellm_kwargs,
+            )
+            completion = message.content
 
-        id = str(uuid1())
-        created_at = int(time.mktime(datetime.now().timetuple()))
+            id = str(uuid1())
+            created_at = int(time.mktime(datetime.now().timetuple()))
 
-        astradb.upsert_message(
-            id=id,
-            object="thread.message",
-            created_at=created_at,
-            thread_id=thread_id,
-            role="assistant",
-            content=[completion],
-            assistant_id="TODO",
-            run_id=run_id,
-            file_ids=file_ids,
-            metadata={},
-        )
-        astradb.update_run_status(thread_id=thread_id, id=run_id, status="completed")
-        run = astradb.get_run(id=run_id, thread_id=thread_id)
-        return run
+            astradb.upsert_message(
+                id=id,
+                object="thread.message",
+                created_at=created_at,
+                thread_id=thread_id,
+                role="assistant",
+                content=[completion],
+                assistant_id=run.assistant_id,
+                run_id=run_id,
+                file_ids=file_ids,
+                metadata={},
+            )
+            astradb.update_run_status(thread_id=thread_id, id=run_id, status="completed")
+            run = astradb.get_run(id=run_id, thread_id=thread_id)
+            return run
+        else:
+
+            message_id = str(uuid1())
+            created_at = int(time.mktime(datetime.now().timetuple()))
+            # initialize message
+            astradb.upsert_message(
+                id=message_id,
+                object="thread.message",
+                created_at=created_at,
+                thread_id=thread_id,
+                role="assistant",
+                content=[],
+                assistant_id=assistant.id,
+                run_id=run_id,
+                file_ids=file_ids,
+                metadata={},
+            )
+            try:
+                response = await get_async_chat_completion_response(
+                    messages=message_content,
+                    model=model,
+                    stream=True,
+                    **litellm_kwargs,
+                )
+                return StreamingResponse(message_delta_streamer(message_id, created_at, response, run, astradb), media_type="text/event-stream")
+            except asyncio.CancelledError:
+                logger.error("process_rag cancelled")
+                raise RuntimeError("process_rag cancelled")
     except Exception as e:
         logger.info(e)
         astradb.update_run_status(thread_id=thread_id, id=run_id, status="failed")
         raise
 
+
+async def message_delta_streamer(message_id, created_at, response, run, astradb):
+    try:
+        run_holder = Run(**run.dict())
+        run_holder.required_action = None
+        run_holder.status = "queued"
+        event = ThreadRunQueued(data=run_holder, event=f"thread.run.{run_holder.status}")
+        event_json = event.json()
+        yield f"data: {event_json}\n\n"
+        run_holder.status = "in_progress"
+        event = ThreadRunInProgress(data=run_holder, event=f"thread.run.{run_holder.status}")
+        event_json = event.json()
+        yield f"data: {event_json}\n\n"
+
+        message_creation = MessageCreation(message_id=message_id)
+        step_details = MessageCreationStepDetails(type="message_creation", message_creation=message_creation)
+        run_step = RunStep(
+            type="message_creation",
+            thread_id=run.thread_id,
+            run_id=run.id,
+            id=run.id,
+            status="in_progress",
+            created_at=run.created_at,
+            assistant_id=run.assistant_id,
+            step_details=step_details,
+            object="thread.run.step",
+        )
+        event = ThreadRunStepCreated(data=run_step, event=f"thread.run.step.created")
+        event_json = event.json()
+        yield f"data: {event_json}\n\n"
+        event = ThreadRunStepInProgress(data=run_step, event=f"thread.run.step.in_progress")
+        event_json = event.json()
+        yield f"data: {event_json}\n\n"
+
+
+        message_holder = Message(
+            id=message_id,
+            assistant_id=run.assistant_id,
+            content=[],
+            created_at=created_at,
+            file_ids=run.file_ids,
+            object="thread.message",
+            role="assistant",
+            run_id=run.id,
+            thread_id=run.thread_id,
+            status="in_progress",
+        )
+        event = ThreadMessageCreated(data=message_holder, event="thread.message.created")
+        event_json = event.json()
+        yield f"data: {event_json}\n\n"
+        event = ThreadMessageInProgress(data=message_holder, event="thread.message.in_progress")
+        event_json = event.json()
+        yield f"data: {event_json}\n\n"
+
+        text = ""
+        start_time = time.time()
+        frequency_in_seconds = 1
+        i=0
+
+        if 'gemini' in run.model:
+            async for part in response:
+                delta = part.choices[0].delta.content
+                event_json = await make_text_delta_event_from_chunk(delta, i, run, message_id, )
+                i += 1
+                yield f"data: {event_json}\n\n"
+                text += delta
+                start_time = await maybe_checkpoint(run.assistant_id, astradb, created_at, run.file_ids, frequency_in_seconds, message_id,
+                                                    run.id, start_time, text, run.thread_id)
+        else:
+            done = False
+            while not done:
+                async for part in response:
+                    if part.choices[0].finish_reason is not None:
+                        done = True
+                    delta = part.choices[0].delta.content
+                    if delta is not None and isinstance(delta, str):
+                        event_json = await make_text_delta_event_from_chunk(delta, i, run, message_id, )
+                        i += 1
+                        yield f"data: {event_json}\n\n"
+                        text += delta
+                    start_time = await maybe_checkpoint(run.assistant_id, astradb, created_at, run.file_ids, frequency_in_seconds, message_id,
+                                                        run.id, start_time, text, run.thread_id)
+
+        # final message upsert
+        astradb.upsert_message(
+            id=message_id,
+            object="thread.message",
+            created_at=created_at,
+            thread_id=run.thread_id,
+            role="assistant",
+            content=[text],
+            assistant_id=run.assistant_id,
+            run_id=run.id,
+            file_ids=run.file_ids,
+            metadata={},
+        )
+        astradb.update_run_status(thread_id=run.thread_id, id=run.id, status="completed")
+        logger.info(f"completed run_id {run.id} thread_id {run.thread_id} with tool submission")
+
+    except Exception as e:
+        logger.info(e)
+        astradb.update_run_status(thread_id=run.thread_id, id=run.id, status="failed")
+        raise
+async def make_text_delta_event_from_chunk(chunk, i, run, message_id):
+    # TODO - improve annotations
+    text = TextDelta(value=chunk)
+    text_delta_block = TextDeltaBlock(
+        type="text",
+        text=text,
+        index=i,
+    )
+    message_delta_holder = MessageDelta(
+        content=[text_delta_block],
+        role="assistant",
+        file_ids=run.file_ids,
+    )
+    message_delta_event = MessageDeltaEvent(
+        delta=message_delta_holder,
+        id=message_id,
+        object="thread.message.delta"
+    )
+    event = ThreadMessageDelta(data=message_delta_event, event="thread.message.delta")
+    event_json = event.json()
+    return event_json
