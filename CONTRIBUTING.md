@@ -1,6 +1,14 @@
+### prereqs 
 
+You need a supported version of python >= 3.10.12, < 3.12.0
 
-### setup
+    pyenv install 3.11.8
+
+and make sure poetry is using it, usually:
+
+    poetry env use ~./.pyenv/versions/3.11.8/bin/python
+
+### setup dependencies
 
     poetry install
 
