@@ -1,10 +1,6 @@
-import time
 from openai import OpenAI
 from dotenv import load_dotenv
-from openai.types.beta.assistant_stream_event import ThreadMessageDelta
 from streaming_assistants import patch
-from openai.lib.streaming import AssistantEventHandler
-from typing_extensions import override
 
 
 load_dotenv("./.env")
@@ -36,21 +32,14 @@ def run_with_assistant(assistant, client):
     )
     print(f"> {user_message}")
 
-    class EventHandler(AssistantEventHandler):
-            @override
-            def on_text_delta(self, delta, snapshot):
-                # Increment the counter each time the method is called
-                print(delta.value, end="", flush=True)
-
     print(f"creating run")
     with client.beta.threads.runs.create_and_stream(
         thread_id=thread.id,
         assistant_id=assistant.id,
-        event_handler=EventHandler(),
     ) as stream:
-        for part in stream:
-            if not isinstance(part, ThreadMessageDelta):
-                print(f'received event: {part}\n')
+        for text in stream.text_deltas:
+            print(text, end="", flush=True)
+            print()
 
     print("\n")
 
