@@ -12,7 +12,7 @@ authors = ["phact <estevezsebastian@gmail.com>"]
 include = "openapi_server"
 
 [tool.poetry.dependencies]
-python = "^3.10.12"
+python = "^3.10.12,<3.12"
 aiofiles = "23.1.0"
 aniso8601 = "7.0.0"
 async-exit-stack = "1.0.1"
@@ -25,7 +25,6 @@ fastapi = "^0.110.0"
 graphene = "2.1.8"
 graphql-core = "2.3.2"
 graphql-relay = "2.0.1"
-httptools = "0.1.2"
 idna = "2.10"
 itsdangerous = "1.1.0"
 markupsafe = "2.0.1"
