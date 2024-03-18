@@ -113,10 +113,12 @@ async def create_file(
         if litellm_kwargs_embedding.get("aws_region_name") is not None:
             litellm_kwargs_embedding.pop("aws_region_name")
     logger.info("getting chunks")
+    format = file.filename.format()
     chunks = get_document_chunks(
         documents=[document],
         chunk_token_size=None,
         embedding_model=embedding_model,
+        format=format,
         **litellm_kwargs_embedding,
     )
     # TODO: make this a background task

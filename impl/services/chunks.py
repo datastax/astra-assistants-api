@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import tiktoken
 
 from impl.models import Document, DocumentChunk, DocumentChunkMetadata
+#from impl.services.code_chunks import get_code_chunks
 from impl.services.inference_utils import get_embeddings
 
 # Global variables
@@ -101,7 +102,9 @@ def get_text_chunks(text: str, chunk_token_size: Optional[int]) -> List[str]:
 
 
 def create_document_chunks(
-    doc: Document, chunk_token_size: Optional[int]
+    doc: Document,
+    chunk_token_size: Optional[int],
+    format: str
 ) -> Tuple[List[DocumentChunk], str]:
     """
     Create a list of document chunks from a document object and return the document id.
@@ -122,7 +125,12 @@ def create_document_chunks(
     doc_id = doc.id or str(uuid.uuid1())
 
     # Split the document text into chunks
-    text_chunks = get_text_chunks(doc.text, chunk_token_size)
+    if format in ("c", "cpp", "css", "html", "java", "js", "json", "md", "php", "py", "rb", "ts", "xml"):
+        #TODO: do language specific code chunking
+        #text_chunks = get_code_chunks(doc.text, chunk_token_size, format)
+        text_chunks = get_text_chunks(doc.text, chunk_token_size, format)
+    else:
+        text_chunks = get_text_chunks(doc.text, chunk_token_size)
 
     metadata = (
         DocumentChunkMetadata(**doc.metadata.__dict__)
@@ -154,6 +162,7 @@ def get_document_chunks(
     documents: List[Document],
     chunk_token_size: Optional[int],
     embedding_model: str,
+    format: str,
     **litellm_kwargs: Any,
 ) -> Dict[str, List[DocumentChunk]]:
     """
@@ -175,7 +184,7 @@ def get_document_chunks(
 
     # Loop over each document and create chunks
     for doc in documents:
-        doc_chunks, doc_id = create_document_chunks(doc, chunk_token_size)
+        doc_chunks, doc_id = create_document_chunks(doc, chunk_token_size, format)
 
         # Append the chunks for this document to the list of all chunks
         all_chunks.extend(doc_chunks)

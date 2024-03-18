@@ -11,3 +11,14 @@ def test_file_embedding(patched_openai_client):
         embedding_model="text-embedding-3-large",
     )
     logger.info(file)
+
+def test_file_embedding_python(patched_openai_client):
+    file = patched_openai_client.files.create(
+        file=open(
+            "./tests/fixtures/sample.py",
+            "rb",
+        ),
+        purpose="assistants",
+        embedding_model="text-embedding-3-large",
+    )
+    logger.info(file)

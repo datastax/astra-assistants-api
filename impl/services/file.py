@@ -14,7 +14,7 @@ from impl.models import Document
 
 
 async def get_document_from_file(file: UploadFile, file_id: str) -> Document:
-    extracted_text = await extract_text_from_form_file(file)
+    extracted_text = await extract_text_from_from_file(file)
 
     doc = Document(id=file_id, text=extracted_text)
 
@@ -45,6 +45,7 @@ def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None) ->
 
 
 def extract_text_from_file(file: BufferedReader, mimetype: str) -> str:
+    filetype = mimetype
     if mimetype == "application/pdf":
         # Extract text from pdf using PyPDF2
         reader = PdfReader(file)
@@ -58,6 +59,7 @@ def extract_text_from_file(file: BufferedReader, mimetype: str) -> str:
     ):
         # Extract text from docx using docx2txt
         extracted_text = docx2txt.process(file)
+    # TODO: supported formats should be Supported formats: "c", "cpp", "css", "csv", "docx", "gif", "html", "java", "jpeg", "jpg", "js", "json", "md", "pdf", "php", "png", "pptx", "py", "rb", "tar", "tex", "ts", "txt", "xlsx", "xml", "zip"
     elif mimetype == "text/csv":
         # Extract text from csv using csv module
         extracted_text = ""
@@ -80,15 +82,17 @@ def extract_text_from_file(file: BufferedReader, mimetype: str) -> str:
                             extracted_text += run.text + " "
                     extracted_text += "\n"
     else:
-        # Unsupported file type
-        # TODO: supported formats should be Supported formats: "c", "cpp", "css", "csv", "docx", "gif", "html", "java", "jpeg", "jpg", "js", "json", "md", "pdf", "php", "png", "pptx", "py", "rb", "tar", "tex", "ts", "txt", "xlsx", "xml", "zip"
-        raise ValueError("Unsupported file type: {}".format(mimetype))
-
+        extension = mimetypes.guess_extension(mimetype)[1:]
+        if extension in ("c", "cpp", "css", "html", "java", "js", "json", "md", "php", "py", "rb", "ts", "xml"):
+            extracted_text = file.read().decode("utf-8")
+        else:
+            # Unsupported file type
+            raise ValueError("Unsupported file type: {}".format(mimetype))
     return extracted_text
 
 
 # Extract text from a file based on its mimetype
-async def extract_text_from_form_file(file: UploadFile):
+async def extract_text_from_from_file(file: UploadFile):
     """Return the text content of a file."""
     # get the file body from the upload file object
     mimetype = file.content_type
