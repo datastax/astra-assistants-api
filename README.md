@@ -2,7 +2,7 @@
 [![Run tests](https://github.com/datastax/astra-assistants-api/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/datastax/astra-assistants-api/actions/workflows/run-tests.yml)
 [![Docker build and publish](https://github.com/datastax/astra-assistants-api/actions/workflows/docker.yml/badge.svg)](https://github.com/datastax/astra-assistants-api/actions/workflows/docker.yml)
 
-A drop-in compatible service for the OpenAI beta Assistants API with support for persistent threads, files, assistants, *streaming* messages, retreival, function calling and more using [AstraDB](https://astra.datastax.com) (DataStax's db as a service offering powered by [Apache Cassandra](https://cassandra.apache.org/_/index.html) and [jvector](https://github.com/jbellis/jvector)).
+A drop-in compatible service for the OpenAI beta Assistants API with support for persistent threads, files, assistants, streaming, retreival, function calling and more using [AstraDB](https://astra.datastax.com) (DataStax's db as a service offering powered by [Apache Cassandra](https://cassandra.apache.org/_/index.html) and [jvector](https://github.com/jbellis/jvector)).
 
 Compatible with existing OpenAI apps via the OpenAI SDKs by changing a single line of code.
 
