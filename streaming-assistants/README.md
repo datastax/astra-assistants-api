@@ -22,3 +22,7 @@ from streaming_assistants import patch
 client = patch(OpenAI())
 
 ```
+
+# Server
+
+The astra-assistants server code is now open source (Apache2)! Check it out here https://github.com/datastax/astra-assistants-api
