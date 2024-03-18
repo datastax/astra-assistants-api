@@ -21,16 +21,16 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
-      - name: Set up Python 3.10.12
+      - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.10.12'
+           python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.10.12
+      - name: Configure Poetry to Use Python 3.11.8
         run: poetry env use python3.10
       - name: get dependencies
         run: |
@@ -55,16 +55,16 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
-      - name: Set up Python 3.10.12
+      - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.10.12'
+           python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.10.12
+      - name: Configure Poetry to Use Python 3.11.8
         run: poetry env use python3.10
       - name: get dependencies
         run: |
@@ -89,16 +89,16 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
-      - name: Set up Python 3.10.12
+      - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.10.12'
+           python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.10.12
+      - name: Configure Poetry to Use Python 3.11.8
         run: poetry env use python3.10
       - name: get dependencies
         run: |
@@ -124,16 +124,16 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
-      - name: Set up Python 3.10.12
+      - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.10.12'
+           python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.10.12
+      - name: Configure Poetry to Use Python 3.11.8
         run: poetry env use python3.10
       - name: get dependencies
         run: |
@@ -159,16 +159,16 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
-      - name: Set up Python 3.10.12
+      - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.10.12'
+           python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.10.12
+      - name: Configure Poetry to Use Python 3.11.8
         run: poetry env use python3.10
       - name: get dependencies
         run: |
@@ -193,16 +193,16 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
-      - name: Set up Python 3.10.12
+      - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.10.12'
+           python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.10.12
+      - name: Configure Poetry to Use Python 3.11.8
         run: poetry env use python3.10
       - name: get dependencies
         run: |
@@ -227,16 +227,16 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
-      - name: Set up Python 3.10.12
+      - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.10.12'
+           python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.10.12
+      - name: Configure Poetry to Use Python 3.11.8
         run: poetry env use python3.10
       - name: get dependencies
         run: |
@@ -261,16 +261,16 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
-      - name: Set up Python 3.10.12
+      - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.10.12'
+           python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.10.12
+      - name: Configure Poetry to Use Python 3.11.8
         run: poetry env use python3.10
       - name: get dependencies
         run: |
@@ -295,16 +295,16 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
-      - name: Set up Python 3.10.12
+      - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.10.12'
+           python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.10.12
+      - name: Configure Poetry to Use Python 3.11.8
         run: poetry env use python3.10
       - name: get dependencies
         run: |
@@ -329,16 +329,16 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
-      - name: Set up Python 3.10.12
+      - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.10.12'
+           python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.10.12
+      - name: Configure Poetry to Use Python 3.11.8
         run: poetry env use python3.10
       - name: get dependencies
         run: |
@@ -363,16 +363,16 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
-      - name: Set up Python 3.10.12
+      - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.10.12'
+           python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.10.12
+      - name: Configure Poetry to Use Python 3.11.8
         run: poetry env use python3.10
       - name: get dependencies
         run: |
@@ -397,16 +397,16 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
-      - name: Set up Python 3.10.12
+      - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-          python-version: '3.10.12'
+          python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.10.12
+      - name: Configure Poetry to Use Python 3.11.8
         run: poetry env use python3.10
       - name: get dependencies
         run: |
