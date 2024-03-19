@@ -5,7 +5,7 @@ from typing import Callable, Sequence, Union
 import httpx
 import openai
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from prometheus_client import Counter, Summary, Histogram
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -158,6 +158,8 @@ async def generic_exception_handler(request: Request, exc: Exception):
     # Log the error
     logger.error(f"Unexpected error: {exc}")
 
+    if isinstance(exc, HTTPException):
+        raise exec
     # Return an error response, not sure if we want to return all errors but at least this surfaces things like bad embedding model. Though that should be a 4xx error?
     return JSONResponse(
         status_code=501, content={"message": str(exc)}

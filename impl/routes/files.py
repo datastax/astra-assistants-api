@@ -13,7 +13,8 @@ from fastapi import (
     Path,
     Request,
     Query,
-    UploadFile, HTTPException,
+    UploadFile,
+    HTTPException,
 )
 from litellm import utils
 

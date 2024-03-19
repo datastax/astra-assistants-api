@@ -22,3 +22,17 @@ def test_file_embedding_python(patched_openai_client):
         embedding_model="text-embedding-3-large",
     )
     logger.info(file)
+
+def test_file_embedding_python(patched_openai_client):
+    try:
+        patched_openai_client.files.create(
+            file=open(
+                "./tests/fixtures/invalid",
+                "rb",
+            ),
+            purpose="assistants",
+            embedding_model="text-embedding-3-large",
+        )
+    except Exception as e:
+        assert e.status_code == 400
+        logger.info(e)

@@ -6,10 +6,11 @@ from typing import Optional
 
 import docx2txt
 import pptx
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
 from loguru import logger
 from PyPDF2 import PdfReader
 
+from impl.astra_vector import HandledResponse
 from impl.models import Document
 
 
@@ -32,7 +33,7 @@ def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None) ->
         if filepath.endswith(".md"):
             mimetype = "text/markdown"
         else:
-            raise Exception("Unsupported file type")
+            raise HTTPException(status_code=400, detail="Unsupported file type")
 
     try:
         with open(filepath, "rb") as file:
@@ -82,12 +83,17 @@ def extract_text_from_file(file: BufferedReader, mimetype: str) -> str:
                             extracted_text += run.text + " "
                     extracted_text += "\n"
     else:
-        extension = mimetypes.guess_extension(mimetype)[1:]
-        if extension in ("c", "cpp", "css", "html", "java", "js", "json", "md", "php", "py", "rb", "ts", "xml"):
-            extracted_text = file.read().decode("utf-8")
+        raw_extension = mimetypes.guess_extension(mimetype)
+        if raw_extension is not None:
+            extension = raw_extension[1:]
+            if extension in ("c", "cpp", "css", "html", "java", "js", "json", "md", "php", "py", "rb", "ts", "xml"):
+                extracted_text = file.read().decode("utf-8")
         else:
             # Unsupported file type
-            raise ValueError("Unsupported file type: {}".format(mimetype))
+            raise HTTPException(
+                status_code=400,
+                detail="Unsupported file type: {}".format(mimetype),
+            )
     return extracted_text
 
 
