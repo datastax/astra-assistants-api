@@ -88,6 +88,13 @@ def extract_text_from_file(file: BufferedReader, mimetype: str) -> str:
             extension = raw_extension[1:]
             if extension in ("c", "cpp", "css", "html", "java", "js", "json", "md", "php", "py", "rb", "ts", "xml"):
                 extracted_text = file.read().decode("utf-8")
+            else:
+                # Unsupported file type
+                raise HTTPException(
+                    status_code=400,
+                    detail="Unsupported file type: {}".format(mimetype),
+                )
+
         else:
             # Unsupported file type
             raise HTTPException(
