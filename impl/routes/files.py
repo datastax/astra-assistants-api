@@ -9,7 +9,6 @@ from fastapi import (
     Depends,
     File,
     Form,
-    Header,
     Path,
     Request,
     Query,
