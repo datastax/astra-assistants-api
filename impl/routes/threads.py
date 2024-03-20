@@ -1,7 +1,6 @@
 import asyncio
 import json
 import logging
-import os
 import time
 import re
 from datetime import datetime
@@ -11,7 +10,6 @@ from uuid import uuid1
 from cassandra.query import UNSET_VALUE
 from fastapi import (
     APIRouter,
-    BackgroundTasks,
     Body,
     Depends,
     HTTPException,
@@ -19,32 +17,33 @@ from fastapi import (
     Query,
 )
 from fastapi.encoders import jsonable_encoder
-from litellm import CustomStreamWrapper
 from openai.types.beta import AssistantStreamEvent
 from openai.types.beta.assistant_stream_event import ThreadRunCreated, ThreadRunQueued, ThreadRunInProgress, \
     ThreadMessageCreated, ThreadMessageInProgress, ThreadMessageDelta, ThreadRunRequiresAction, ThreadRunStepDelta, \
-    ThreadRunStepCreated, ThreadRunStepInProgress
+    ThreadRunStepCreated, ThreadRunStepInProgress, ThreadRunStepCompleted
 from openai.types.beta.threads import Message, MessageDeltaEvent, MessageDelta, TextDeltaBlock, TextDelta
 from openai.types.beta.threads.runs import RunStepDeltaEvent, RunStepDelta, ToolCallsStepDetails, FunctionToolCallDelta, \
-    ToolCallDeltaObject, RunStep, MessageCreationStepDetails
+    ToolCallDeltaObject, RunStep, MessageCreationStepDetails, RetrievalToolCall, RetrievalToolCallDelta
 from openai.types.beta.threads.runs.message_creation_step_details import MessageCreation
-from openai.types.beta.threads.runs.run_step import StepDetails
-from starlette.responses import StreamingResponse, ContentStream
+from starlette.responses import StreamingResponse
 
 from impl.astra_vector import CassandraClient
 from impl.background import add_background_task, background_task_set
 from impl.model.client_run import Run
 from impl.model.create_run_request import CreateRunRequest
 from impl.model.list_messages_response import ListMessagesResponse
+from impl.model.list_messages_stream_response import ListMessagesStreamResponse
 from impl.model.message_object import MessageObject
+from impl.model.message_stream_response_object import MessageStreamResponseObject
+from impl.model.open_ai_file import OpenAIFile
 from impl.model.run_object import RunObject
 from impl.model.submit_tool_outputs_run_request import SubmitToolOutputsRunRequest
+from impl.routes.files import retrieve_file
 from impl.routes.utils import verify_db_client, get_litellm_kwargs, infer_embedding_model, infer_embedding_api_key
 from impl.services.inference_utils import get_chat_completion, get_async_chat_completion_response
 from openapi_server.models.create_message_request import CreateMessageRequest
 from openapi_server.models.create_thread_request import CreateThreadRequest
 from openapi_server.models.delete_thread_response import DeleteThreadResponse
-from openapi_server.models.list_messages_stream_response import ListMessagesStreamResponse
 from openapi_server.models.list_runs_response import ListRunsResponse
 from openapi_server.models.message_content_delta_object import MessageContentDeltaObject
 from openapi_server.models.message_content_delta_object_delta import MessageContentDeltaObjectDelta
@@ -52,7 +51,6 @@ from openapi_server.models.message_content_text_object import MessageContentText
 from openapi_server.models.message_content_text_object_text import (
     MessageContentTextObjectText,
 )
-from openapi_server.models.message_stream_response_object import MessageStreamResponseObject
 from openapi_server.models.modify_message_request import ModifyMessageRequest
 from openapi_server.models.modify_thread_request import ModifyThreadRequest
 from openapi_server.models.run_object_required_action import RunObjectRequiredAction
@@ -220,7 +218,7 @@ def extractFunctionName(content: str, candidates: [str]):
         raise ValueError("Could not extract function name from LLM response, may not have been properly formatted")
 
 
-async def run_event_stream(run, astradb):
+async def run_event_stream(run, message_id, astradb):
     # copy run
     run_holder = Run(**run.dict())
     run_holder.required_action = None
@@ -245,6 +243,7 @@ async def run_event_stream(run, astradb):
             type="tool_calls",
             thread_id=run.thread_id,
             run_id=run.id,
+            # TODO: maybe change this ID.
             id=run.id,
             status="in_progress",
             created_at=run.created_at,
@@ -267,17 +266,50 @@ async def run_event_stream(run, astradb):
             tool_calls.append(tool_call)
         step_details = ToolCallDeltaObject(tool_calls=tool_calls, type="tool_calls")
         step_delta = RunStepDelta(step_details=step_details)
-        # TODO: if / when we implement persistent run steps, change this ID.
+        # TODO: maybe change this ID.
         run_step_delta = RunStepDeltaEvent(id=run.id, delta=step_delta, object="thread.run.step.delta")
         event = ThreadRunStepDelta(data=run_step_delta, event="thread.run.step.delta")
         event_json = event.json()
         yield f"data: {event_json}\n\n"
+
+        # persist run step
+        astradb.upsert_run_step(run_step)
 
         run_holder = Run(**run.dict())
         event = ThreadRunRequiresAction(data=run_holder, event=f"thread.run.{run_holder.status}")
         event_json = event.json()
         yield f"data: {event_json}\n\n"
         return
+
+    # this works because we make the run_step id the same as the message_id
+    run_step = astradb.get_run_step(run_id=run.id, id=message_id)
+    if run_step is not None:
+        event = ThreadRunStepCreated(data=run_step, event=f"thread.run.step.created")
+        event_json = event.json()
+        yield f"data: {event_json}\n\n"
+        event = ThreadRunStepInProgress(data=run_step, event=f"thread.run.step.in_progress")
+        event_json = event.json()
+        yield f"data: {event_json}\n\n"
+
+        #retrieval_tool_call_deltas = []
+        #index = 0
+        #for run_tool_call in run_step.step_details.tool_calls:
+        #    tool_call = RetrievalToolCallDelta(**run_tool_call.dict(), index=index)
+        #    index += 1
+        #    retrieval_tool_call_deltas.append(tool_call)
+
+        #tool_call_delta_object = ToolCallDeltaObject(type="tool_calls", tool_calls=retrieval_tool_call_deltas)
+        tool_call_delta_object = ToolCallDeltaObject(type="tool_calls", tool_calls=None)
+        step_delta = RunStepDelta(step_details=tool_call_delta_object)
+        run_step_delta = RunStepDeltaEvent(id=run_step.id, delta=step_delta, object="thread.run.step.delta")
+        event = ThreadRunStepDelta(data=run_step_delta, event="thread.run.step.delta")
+        event_json = event.json()
+        yield f"data: {event_json}\n\n"
+
+        event = ThreadRunStepCompleted(data=run_step, event=f"thread.run.step.completed")
+        event_json = event.json()
+        yield f"data: {event_json}\n\n"
+
 
     async for event in stream_message_events(astradb, run.thread_id, None, "desc", None, None):
         yield event
@@ -586,6 +618,7 @@ async def create_run(
         status=status,
         required_action=required_action,
         last_error=None,
+        # TODO: these should probably be None for consistency
         expires_at=0,
         started_at=0,
         cancelled_at=0,
@@ -599,7 +632,7 @@ async def create_run(
     )
     logger.info(f"created run {run.id} for thread {run.thread_id}")
     if create_run_request.stream:
-        return StreamingResponse(run_event_stream(run, astradb), media_type="text/event-stream")
+        return StreamingResponse(run_event_stream(run=run, message_id=message_id, astradb=astradb), media_type="text/event-stream")
     else:
         return run
 
@@ -634,6 +667,7 @@ async def process_rag(
         message_string, message_content = summarize_message_content(instructions, messages)
         # TODO incorporate file_ids into the search using where in
         if len(file_ids) > 0:
+            created_at = int(time.mktime(datetime.now().timetuple()))
             context_json = astradb.annSearch(
                 table="file_chunks",
                 vector_index_column="embedding",
@@ -644,13 +678,58 @@ async def process_rag(
                 embedding_api_key=embedding_api_key,
             )
 
+            # get the unique file_ids from the context_json
+            file_ids = list(set([chunk["file_id"] for chunk in context_json]))
+
+            file_meta = {}
+            for file_id in file_ids:
+                file : OpenAIFile = await retrieve_file(file_id, astradb)
+                file_object = {
+                    "file_name" : file.filename,
+                    "file_id" : file.id,
+                    "bytes" : file.bytes
+                }
+                file_meta[file_id] = file_object
+
+            # add file metadata from file_meta to context_json
+            context_json_meta = [{**chunk, **file_meta[chunk['file_id']]} for chunk in context_json if chunk['file_id'] in file_meta]
+
+            completed_at = int(time.mktime(datetime.now().timetuple()))
+
+            # TODO: consider [optionally?] excluding the content payload because it can be big
+            details = ToolCallsStepDetails(
+                type="tool_calls",
+                tool_calls = [
+                    RetrievalToolCall(
+                        id = message_id,
+                        type = "retrieval",
+                        retrieval = context_json_meta,
+                    ),
+                ],
+            )
+
+            run_step = RunStep(
+                id = message_id,
+                assistant_id = assistant_id,
+                completed_at = completed_at,
+                created_at = created_at,
+                object = "thread.run.step",
+                run_id = run_id,
+                status = "completed",
+                step_details = details,
+                thread_id = thread_id,
+                type = "tool_calls",
+            )
+            logger.info(f"creating run_step {run_step}")
+            astradb.upsert_run_step(run_step)
+
             user_message = message_content.pop()
-            message_content.append({"role": "system", "content": "Important, ALWAYS use the following information to craft your responses. Include the relevant file_id and chunk_id references in parenthesis as part of your response i.e. (chunk_id dbd94b44-cb13-11ee-a868-fd1abaa6ff88_18)."})
-            for context in context_json:
+            message_content.append({"role": "system", "content": "Important, ALWAYS use the following information to craft your responses. Include the relevant file_name and chunk_id references in parenthesis as part of your response i.e. (chunk_id dbd94b44-cb13-11ee-a868-fd1abaa6ff88_18)."})
+            for context in context_json_meta:
                 # TODO improve citations https://platform.openai.com/docs/guides/prompt-engineering/six-strategies-for-getting-better-results
                 content = (
-                    "the information below comes from file_id - "
-                    + context["file_id"]
+                    "the information below comes from file_name - "
+                    + context["file_name"]
                     + " and chunk_id - "
                     + context["chunk_id"]
                     + ":\n"
@@ -670,6 +749,8 @@ async def process_rag(
             **litellm_kwargs,
         )
     except asyncio.CancelledError:
+        # TODO maybe do a cancelled run step with more details?
+        astradb.update_run_status(thread_id=thread_id, id=run_id, status="failed")
         logger.error("process_rag cancelled")
         raise RuntimeError("process_rag cancelled")
     try:
