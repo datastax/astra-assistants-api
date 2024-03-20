@@ -23,6 +23,7 @@ from cassandra.query import (
     dict_factory,
     named_tuple_factory, PreparedStatement,
 )
+from openai.types.beta.threads.runs import RunStep, ToolCallsStepDetails
 from pydantic import BaseModel, Field
 
 from impl.model.assistant_object import AssistantObject
@@ -572,6 +573,29 @@ class CassandraClient:
             ); """
             )
 
+            self.session.execute(
+                f"""create table if not exists {CASSANDRA_KEYSPACE}.run_steps(
+                id text,
+                assistant_id text,
+                cancelled_at timestamp,
+                completed_at timestamp,
+                created_at timestamp,
+                expired_at timestamp,
+                failed_at timestamp,
+                last_error text,
+                metadata map<text, text>,
+                object text,
+                run_id text,
+                status text,
+                step_details text,
+                thread_id text,
+                type text,
+                usage text,
+                PRIMARY KEY((run_id), id)
+            ); """
+            )
+
+
             statement = SimpleStatement(
                 f"CREATE CUSTOM INDEX IF NOT EXISTS ON {CASSANDRA_KEYSPACE}.file_chunks (embedding) USING 'StorageAttachedIndex';",
                 consistency_level=ConsistencyLevel.QUORUM,
@@ -592,6 +616,73 @@ class CassandraClient:
         bound = statement.bind((id,))
         self.session.execute(bound)
         return True
+
+    def get_run_step(self, id, run_id):
+        query_string = f"""
+        SELECT * FROM {CASSANDRA_KEYSPACE}.run_steps WHERE id = ? and run_id = ?;  
+        """
+
+        statement = self.session.prepare(query_string)
+        statement.consistency_level = ConsistencyLevel.QUORUM
+        self.session.row_factory = dict_factory
+        bound = statement.bind(
+            (
+                id,
+                run_id,
+            )
+        )
+        rows = self.session.execute(bound)
+        result = [dict(row) for row in rows]
+        if result is None or len(result) == 0:
+            return None
+        json_rows = result[0]
+        self.session.row_factory = named_tuple_factory
+
+        metadata = json_rows["metadata"]
+        if metadata is None:
+            metadata = {}
+
+        cancelled_at = json_rows["cancelled_at"]
+        completed_at = json_rows["completed_at"]
+        created_at = json_rows["created_at"]
+        expired_at = json_rows["expired_at"]
+        failed_at = json_rows["failed_at"]
+
+        if cancelled_at is not None:
+            cancelled_at = int(cancelled_at.timestamp() * 1000)
+        if completed_at is not None:
+            completed_at = int(completed_at.timestamp() * 1000)
+        if created_at is not None:
+            created_at = int(created_at.timestamp() * 1000)
+        if expired_at is not None:
+            expired_at = int(expired_at.timestamp() * 1000)
+        if failed_at is not None:
+            failed_at = int(failed_at.timestamp() * 1000)
+
+        try:
+            step_details = ToolCallsStepDetails.parse_raw(json_rows["step_details"])
+            run_step = RunStep(
+                id=json_rows["id"],
+                assistant_id=json_rows["assistant_id"],
+                cancelled_at=cancelled_at,
+                completed_at=completed_at,
+                created_at=created_at,
+                expired_at=expired_at,
+                failed_at=failed_at,
+                last_error=json_rows["last_error"],
+                metadata=metadata,
+                object=json_rows["object"],
+                run_id=json_rows["run_id"],
+                status=json_rows["status"],
+                step_details=step_details,
+                thread_id=json_rows["thread_id"],
+                type=json_rows["type"],
+                usage=json_rows["usage"],
+            )
+            return run_step
+        except Exception as e:
+            logger.error(f"Error parsing run step: {e}")
+            raise e
 
     def get_run(self, id, thread_id):
         query_string = f"""
@@ -757,6 +848,71 @@ class CassandraClient:
         )
         self.session.execute(bound)
         return True
+
+
+    def upsert_run_step(self, run_step : RunStep):
+        query_string = f"""insert into {CASSANDRA_KEYSPACE}.run_steps(
+            id,
+            assistant_id,
+            cancelled_at,
+            completed_at,
+            created_at,
+            expired_at,
+            failed_at,
+            last_error,
+            metadata,
+            object,
+            run_id,
+            status,
+            step_details,
+            thread_id,
+            type,
+            usage
+            ) VALUES (
+            ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
+        );"""
+        statement = self.session.prepare(query_string)
+        statement.consistency_level = ConsistencyLevel.QUORUM
+
+        id = run_step.id
+        assistant_id = run_step.assistant_id
+        cancelled_at = run_step.cancelled_at
+        completed_at = run_step.completed_at
+        created_at = run_step.created_at
+        expired_at = run_step.expired_at
+        failed_at = run_step.failed_at
+        last_error = run_step.last_error
+        metadata = run_step.metadata
+        object = run_step.object
+        run_id = run_step.run_id
+        status = run_step.status
+        step_details = run_step.step_details
+        thread_id = run_step.thread_id
+        type = run_step.type
+        usage = run_step.usage
+
+        self.session.execute(
+            statement,
+            (
+                id,
+                assistant_id,
+                cancelled_at,
+                completed_at,
+                created_at,
+                expired_at,
+                failed_at,
+                last_error,
+                metadata,
+                object,
+                run_id,
+                status,
+                step_details.json(),
+                thread_id,
+                type,
+                usage
+            ),
+        )
+
 
     def upsert_run(
             self,
@@ -1550,33 +1706,42 @@ class CassandraClient:
             ):
                 litellm_kwargs_embedding = litellm_kwargs.copy()
                 litellm_kwargs_embedding["api_key"] = embedding_api_key
-                embeddings.append(get_embeddings([search_string], model=embedding_model, **litellm_kwargs_embedding))
-                # TODO maybe support scores one day?
-                # queryString += f"similarity_cosine(?, {column['column_name']}) as {column['column_name']}_score, "
-            else:
+                embeddings.append(get_embeddings([search_string], model=embedding_model, **litellm_kwargs_embedding)[0])
+                queryString += f"similarity_cosine(?, {column['column_name']}) as score, "
+            elif 'embedding' not in column['column_name'] and column['column_name'] != 'created_at':
                 queryString += f"{column['column_name']}, "
         queryString = queryString[:-2]
 
         queryString += f""" FROM {CASSANDRA_KEYSPACE}.{table} """
-        if len(partitions) > 0:
-            queryString += f"WHERE file_id in ("
-            for partition in partitions:
-                queryString += f"'{partition}',"
-            queryString = queryString[:-1]
-            queryString += f") "
-        queryString += f"ORDER BY "
+        if len(partitions) > 1:
+            return self.handle_multiple_partitions(embeddings, limit, queryString, vector_index_column, partitions)
+        else:
+            return self.finish_ann_query_and_get_json(embeddings, limit, queryString, vector_index_column, partitions)
 
+    # TODO: make this async and or fix the data model
+    def handle_multiple_partitions(self, embeddings, limit, queryString, vector_index_column, partitions):
+        json_rows = []
+        for partition in partitions:
+            ann_results = self.finish_ann_query_and_get_json(embeddings, limit, queryString, vector_index_column, [partition])
+            json_rows.append(ann_results[0])
+        #sort json_rows by score
+        json_rows = sorted(json_rows, key=lambda x: x["score"], reverse=True)
+        #trim limit
+        json_rows = json_rows[:limit]
+        return json_rows
+
+    def finish_ann_query_and_get_json(self, embeddings, limit, queryString, vector_index_column, partitions):
+        queryString += f"WHERE file_id = '{partitions[0]}' "
+        queryString += f"ORDER BY "
         queryString += f"""
                 {vector_index_column} ann of ?
                 """
-
         # TODO make limit configurable
         queryString += f"LIMIT {limit}"
-
         statement = self.session.prepare(queryString)
         statement.retry_policy = VectorRetryPolicy()
         statement.consistency_level = ConsistencyLevel.LOCAL_ONE
-        boundStatement = statement.bind(embeddings[0])
+        boundStatement = statement.bind([embeddings[0], embeddings[0]])
         self.session.row_factory = dict_factory
         json_rows = self.execute_and_get_json(boundStatement, vector_index_column)
         return json_rows
