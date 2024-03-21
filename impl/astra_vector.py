@@ -1,12 +1,15 @@
+import asyncio
 import json
 import logging
 import os
+import random
 import tempfile
 import time
 from datetime import datetime
 from random import randint
 from typing import Any, Dict, List, Optional
 
+import httpx
 import numpy as np
 import requests
 from cassandra.concurrent import execute_concurrent
@@ -76,8 +79,9 @@ class AstraVectorDataStore:
         # self.client = self.create_db_client()
         pass
 
-    def create_db_client(self, token, dbid):
+    async def create_db_client(self, token, dbid):
         self.client = CassandraClient(token, dbid)
+        await self.client.async_setup()
         return self.client
 
     async def _query(self, queries: List[QueryWithEmbedding]) -> List[QueryResult]:
@@ -145,9 +149,9 @@ class AstraVectorDataStore:
             #    return False
         return True
 
-    def setupSession(self, token, dbid):
+    async def setupSession(self, token, dbid):
         self.dbid = dbid
-        self.client = self.create_db_client(token, dbid)
+        self.client = await self.create_db_client(token, dbid)
         return self.client
 
 
@@ -194,22 +198,26 @@ class VectorRetryPolicy(RetryPolicy):
 
 
 class CassandraClient:
-    def __init__(self, token, dbid) -> None:
-        super().__init__()
+
+    def __init__(self, token, dbid=None) -> None:
         self.token = token
         self.dbid = dbid
+        self.session = None  # Initialize session to None
 
-        if dbid is None:
-            self.get_or_create_db()
+    async def async_setup(self):
+        if self.dbid is None:
+            await self.get_or_create_db()
 
+        # Attempt to connect synchronously (assuming connect is a sync method)
         session = self.connect()
         if session:
             self.session = session
-            self.create_table()
+            # Perform async table creation
+            await self.create_table()
         else:
             raise Exception("Failed to connect to AstraDB")
 
-    def get_or_create_db(self):
+    async def get_or_create_db(self):
         logger.info("get or create db")
         token = self.token
 
@@ -239,23 +247,23 @@ class CassandraClient:
                 if status == "HIBERNATED":
                     # running make keyspace will wake it up
                     self.dbid = database["id"]
-                    self.make_keyspace()
+                    await self.make_keyspace()
                     logger.info(f"Waking up hibernated db {database['id']}")
                     time.sleep(5)
-                    self.get_or_create_db()
+                    await self.get_or_create_db()
                     return
                 if status == "TERMINATING":
                     is_terminating = True
                 else:
                     time.sleep(5)
                     logger.info(f"Waiting for {database['id']} to come up")
-                    self.get_or_create_db()
+                    await self.get_or_create_db()
                     return
 
         if is_terminating:
             time.sleep(5)
             logger.info(f"Waiting for {database['id']} to terminate")
-            self.get_or_create_db()
+            await self.get_or_create_db()
             return
 
         logger.info(f"Creating db for {token}")
@@ -286,7 +294,7 @@ class CassandraClient:
             logger.error(f"Failed to create AstraDBs {handled_response.detail}")
             raise HTTPException(detail=handled_response.detail, status_code=handled_response.status_code)
         self.dbid = response.headers.get("location")
-        self.get_or_create_db()
+        await self.get_or_create_db()
         return
 
     def handle_response_errors(self, response: requests.Response) -> HandledResponse:
@@ -412,7 +420,7 @@ class CassandraClient:
         else:
             raise Exception("Failed to connect to AstraDB")
 
-    def make_keyspace(self):
+    async def make_keyspace(self):
         # Define the URL
         url = f"https://api.astra.datastax.com/v2/databases/{self.dbid}/keyspaces/{CASSANDRA_KEYSPACE}"
 
@@ -425,17 +433,19 @@ class CassandraClient:
         # Define the payload (if any)
         payload = {}
 
-        # Make the POST request
-        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        # Make the POST request asynchronously
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, headers=headers, json=payload)
+
         handled_response = self.handle_response_errors(response)
         if handled_response is not None:
             if handled_response.retryable:
-                time.sleep(5)
-                return self.make_keyspace()
+                wait_time = random.uniform(5, 20)
+                await asyncio.sleep(wait_time)  # Use asyncio.sleep for async sleep
+                return await self.make_keyspace()  # Recursively call itself with await
             else:
                 logger.error(f"Failed to create AstraDB keyspace" + handled_response.detail)
                 raise HTTPException(detail=handled_response.detail, status_code=handled_response.status_code)
-        return
 
     def infer_embedding_dim(self, model, litellm_kwargs) -> int:
         """Dependency to infer embedding dimension based on headers by making a request"""
@@ -466,9 +476,9 @@ class CassandraClient:
         except Exception as e:
             logger.warning(f"Exception adding index for column: {e}")
 
-    def create_table(self):
+    async def create_table(self):
         try:
-            self.make_keyspace()
+            await self.make_keyspace()
 
             self.session.execute(
                 f"""create table if not exists {CASSANDRA_KEYSPACE}.assistants (
@@ -1762,4 +1772,4 @@ class CassandraClient:
                 time.sleep(1)
                 return self.execute_and_get_json(boundStatement, vector_index_column, tries + 1)
             else:
-                raise HTTPException(status_code=501, detail=f"Exception during recall")
+                raise HTTPException(status_code=500, detail=f"Exception during recall")

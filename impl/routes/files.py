@@ -1,7 +1,7 @@
 import time
 import logging
 from datetime import datetime
-from typing import Annotated, Any, Dict, Optional
+from typing import Any, Dict
 from uuid import uuid1
 
 from fastapi import (
@@ -16,6 +16,7 @@ from fastapi import (
     HTTPException,
 )
 from litellm import utils
+from slowapi import Limiter
 
 from impl.astra_vector import CassandraClient
 from impl.services.chunks import get_document_chunks
@@ -31,6 +32,7 @@ from .utils import (
     infer_embedding_model,
 )
 from ..model.open_ai_file import OpenAIFile
+from ..rate_limiter import limiter
 
 router = APIRouter()
 
@@ -46,6 +48,7 @@ logger = logging.getLogger(__name__)
     summary="Upload a file that can be used across various endpoints/features. The size of all the files uploaded by one organization can be up to 100 GB.  The size of individual files for can be a maximum of 512MB. See the [Assistants Tools guide](/docs/assistants/tools) to learn more about the types of files supported. The Fine-tuning API only supports &#x60;.jsonl&#x60; files.  Please [contact us](https://help.openai.com/) if you need to increase these storage limits. ",
     response_model_by_alias=True,
 )
+@limiter.limit("1/second")
 async def create_file(
     request: Request,
     file: UploadFile = File(...),

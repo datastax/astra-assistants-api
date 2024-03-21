@@ -60,10 +60,10 @@ if not OPENAI_API_KEY or not ASTRA_DB_TOKEN:
     pytest.skip("No Astra DB credentials found in environment.")
 
 @pytest.fixture(scope="session")
-def db_client() -> CassandraClient:
+async def db_client() -> CassandraClient:
     """Gets a DB client for testing."""
     # import pdb; pdb.set_trace()
-    return datastore_cache(token=ASTRA_DB_TOKEN, dbid=None)
+    return await datastore_cache(token=ASTRA_DB_TOKEN, dbid=None)
 
 
 #@pytest.fixture(scope="session", autouse=True)

@@ -65,6 +65,8 @@ pydantic-core = "^2.16.3"
 pydantic = "^2.6.4"
 tree-sitter-languages = "^1.10.2"
 httptools = "^0.6.1"
+slowapi = "^0.1.9"
+async-lru = "^2.0.4"
 
 
 [tool.poetry.group.dev.dependencies]

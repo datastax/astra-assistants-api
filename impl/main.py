@@ -10,8 +10,11 @@ from fastapi.responses import JSONResponse
 from prometheus_client import Counter, Summary, Histogram
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_fastapi_instrumentator.metrics import Info
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from impl.background import background_task_set
+from impl.rate_limiter import get_dbid, limiter
 from impl.routes import assistants, files, health, stateless, threads
 
 # Configure logging
@@ -30,6 +33,9 @@ app = FastAPI(
     description="Drop in replacement for OpenAI Assistants API. .",
     version="2.0.0",
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 @app.on_event("shutdown")
 async def shutdown_event():

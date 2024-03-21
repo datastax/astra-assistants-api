@@ -4,6 +4,7 @@ from json import JSONDecodeError
 from functools import lru_cache
 from typing import Any, Dict, Optional
 
+from async_lru import alru_cache
 from fastapi import Depends, Header, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, APIKeyHeader
 from fastapi.security.utils import get_authorization_scheme_param
@@ -218,18 +219,18 @@ async def forward_request(request: Request) -> StreamingResponse:
 
 # Since we may have no control over client, using global DB connections cache
 # keyed by DB ID and token instead of sessions
-@lru_cache(maxsize=128)
-def datastore_cache(
+@alru_cache(maxsize=128)
+async def datastore_cache(
     token: str,
     dbid: str,
 ) -> CassandraClient:
     logger.debug(f"Client not in cache for DB: {dbid}")
     datastore = AstraVectorDataStore()
-    client = datastore.setupSession(token, dbid)
+    client = await datastore.setupSession(token, dbid)
     return client
 
 
-def verify_db_client(
+async def verify_db_client(
     request: Request,
     astra_api_token: Annotated[Optional[str], Header()] = None,
     astra_db_id: Annotated[Optional[str], Header()] = None,
@@ -240,7 +241,7 @@ def verify_db_client(
             status_code=403,
             detail="Must pass an astradb token in the astra-api-token header",
         )
-    client = datastore_cache(
+    client = await datastore_cache(
         astra_api_token,
         astra_db_id
     )
