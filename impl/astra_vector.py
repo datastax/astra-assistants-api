@@ -308,6 +308,12 @@ class CassandraClient:
                     detail=f"{TOKEN_AUTH_FAILURE_MESSAGE}\nCould not access url: {e.response.url}. Detail: {e.response.text}",
                     retryable=False,
                 )
+            if e.response.status_code == 409:
+                return HandledResponse(
+                    status_code=409,
+                    detail="Conflict",
+                    retryable=True,
+                )
         try:
             response_dict = response.json()
         except json.JSONDecodeError:
@@ -436,7 +442,6 @@ class CassandraClient:
         # Make the POST request asynchronously
         async with httpx.AsyncClient() as client:
             response = await client.post(url, headers=headers, json=payload)
-
         handled_response = self.handle_response_errors(response)
         if handled_response is not None:
             if handled_response.retryable:
