@@ -298,6 +298,19 @@ class CassandraClient:
         return
 
     def handle_response_errors(self, response: requests.Response) -> HandledResponse:
+        if response.status_code == 401:
+            # Forward the auth error to return from FastAPI
+            return HandledResponse(
+                status_code=401,
+                detail=f"{TOKEN_AUTH_FAILURE_MESSAGE}\nCould not access url: {e.response.url}. Detail: {e.response.text}",
+                retryable=False,
+            )
+        elif response.status_code == 409:
+            return HandledResponse(
+                status_code=409,
+                detail="Conflict",
+                retryable=True,
+            )
         try:
             response.raise_for_status()
         except requests.HTTPError as e:
@@ -307,12 +320,6 @@ class CassandraClient:
                     status_code=401,
                     detail=f"{TOKEN_AUTH_FAILURE_MESSAGE}\nCould not access url: {e.response.url}. Detail: {e.response.text}",
                     retryable=False,
-                )
-            if e.response.status_code == 409:
-                return HandledResponse(
-                    status_code=409,
-                    detail="Conflict",
-                    retryable=True,
                 )
         try:
             response_dict = response.json()
