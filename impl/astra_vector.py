@@ -1698,7 +1698,7 @@ class CassandraClient:
             embedding_model: str,
             embedding_api_key: str,
             partitions,
-            limit=100,
+            limit=20,
     ):
 
         queryString = f"SELECT "
