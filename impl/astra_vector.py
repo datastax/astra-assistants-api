@@ -1698,6 +1698,7 @@ class CassandraClient:
             embedding_model: str,
             embedding_api_key: str,
             partitions,
+            # Todo: make this configurable or based on model token limit
             limit=20,
     ):
 
