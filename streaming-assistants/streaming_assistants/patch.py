@@ -358,10 +358,12 @@ def patch_methods(obj, client, visited=None):
 
 def patch(client: Union[OpenAI, AsyncOpenAI]):
 
-    base_url = os.getenv("base_url", "https://open-assistant-ai.astra.datastax.com/v1")
-    client.base_url=base_url
 
-    print(f"Patching OpenAI client, it will now communicate to Astra Assistants API: {base_url}\nLearn more about Astra at: https://docs.datastax.com/en/astra/astra-db-vector/integrations/astra-assistants-api.html")
+    if client.base_url == "https://api.openai.com/v1/":
+        base_url = os.getenv("base_url") or os.getenv("BASE_URL", "https://open-assistant-ai.astra.datastax.com/v1")
+        client.base_url=base_url
+
+    print(f"Patching OpenAI client, it will now communicate to Astra Assistants API: {client.base_url}\nLearn more about Astra at: https://docs.datastax.com/en/astra/astra-db-vector/integrations/astra-assistants-api.html")
 
     # for astra headers
     patch_methods(client.beta,client)
