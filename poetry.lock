@@ -1524,13 +1524,13 @@ rediscluster = ["redis (>=4.2.0,!=4.5.2,!=4.5.3)"]
 
 [[package]]
 name = "litellm"
-version = "1.31.14"
+version = "1.33.4"
 description = "Library to easily interface with LLM API providers"
 optional = false
-python-versions = ">=3.8, !=2.7.*, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, !=3.6.*, !=3.7.*"
+python-versions = "!=2.7.*,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,!=3.7.*,>=3.8"
 files = [
-    {file = "litellm-1.31.14-py3-none-any.whl", hash = "sha256:7712821d9a84c02d7be98897361cc8d565c45fe9559b7c19d98629f7922fd787"},
-    {file = "litellm-1.31.14.tar.gz", hash = "sha256:54cf9312167ec9209a7195e5a4f65607946725aa651aca6c9567a639c6c30ed1"},
+    {file = "litellm-1.33.4-py3-none-any.whl", hash = "sha256:5e564bd4b55f14a9b9d0cb5bd2fed1afb4a907efe527236c06f36fdf71bc4d3f"},
+    {file = "litellm-1.33.4.tar.gz", hash = "sha256:80ccf0a915bdbdd829d954345fa31d78b86c95b15383007e2880e8603c0d1246"},
 ]
 
 [package.dependencies]
@@ -1546,7 +1546,7 @@ tokenizers = "*"
 
 [package.extras]
 extra-proxy = ["streamlit (>=1.29.0,<2.0.0)"]
-proxy = ["PyJWT (>=2.8.0,<3.0.0)", "apscheduler (>=3.10.4,<4.0.0)", "argon2-cffi (>=23.1.0,<24.0.0)", "backoff", "fastapi (>=0.104.1,<0.105.0)", "fastapi-sso (>=0.10.0,<0.11.0)", "gunicorn (>=21.2.0,<22.0.0)", "orjson (>=3.9.7,<4.0.0)", "python-multipart (>=0.0.6,<0.0.7)", "pyyaml (>=6.0.1,<7.0.0)", "rq", "uvicorn (>=0.22.0,<0.23.0)"]
+proxy = ["PyJWT (>=2.8.0,<3.0.0)", "apscheduler (>=3.10.4,<4.0.0)", "argon2-cffi (>=23.1.0,<24.0.0)", "backoff", "fastapi (>=0.109.1,<0.110.0)", "fastapi-sso (>=0.10.0,<0.11.0)", "gunicorn (>=21.2.0,<22.0.0)", "orjson (>=3.9.7,<4.0.0)", "python-multipart (>=0.0.6,<0.0.7)", "pyyaml (>=6.0.1,<7.0.0)", "rq", "uvicorn (>=0.22.0,<0.23.0)"]
 
 [[package]]
 name = "loguru"
@@ -3563,4 +3563,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10.12,<3.12"
-content-hash = "499fb68f5d51384ce1b0fc6efbf1ea886c2fd9ed6b8c0da55be46de9e31f10eb"
+content-hash = "a23017d16f3755037b1b962114b2143ce5c031a663dd696eea28f9199f80aed9"
