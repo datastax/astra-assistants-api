@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional
 import httpx
 import numpy as np
 import requests
-from cassandra.concurrent import execute_concurrent
+from cassandra.concurrent import execute_concurrent, execute_concurrent_with_args
 from fastapi import HTTPException
 
 from cassandra import ConsistencyLevel, Unauthorized
@@ -1506,7 +1506,7 @@ class CassandraClient:
 
     def upsert_chunks_concurrently(self, statements_and_params: [SimpleStatement]):
         results = execute_concurrent(
-            self.session, statements_and_params, concurrency=10)
+            self.session, statements_and_params, concurrency=100)
 
         for (success, result) in results:
             if not success:
@@ -1698,7 +1698,7 @@ class CassandraClient:
             embedding_model: str,
             embedding_api_key: str,
             partitions,
-            limit=10,
+            limit=100,
     ):
 
         queryString = f"SELECT "
@@ -1743,13 +1743,42 @@ class CassandraClient:
     # TODO: make this async and or fix the data model
     def handle_multiple_partitions(self, embeddings, limit, queryString, vector_index_column, partitions):
         json_rows = []
+
+        queryString += f"WHERE file_id = ? "
+        queryString += f"ORDER BY "
+        queryString += f"""
+                {vector_index_column} ann of ?
+                """
+        # TODO make limit configurable
+        queryString += f"LIMIT {limit}"
+        statement = self.session.prepare(queryString)
+        statement.retry_policy = VectorRetryPolicy()
+        statement.consistency_level = ConsistencyLevel.LOCAL_ONE
+        self.session.row_factory = dict_factory
+        parameters = []
         for partition in partitions:
-            ann_results = self.finish_ann_query_and_get_json(embeddings, limit, queryString, vector_index_column, [partition])
-            json_rows.append(ann_results[0])
+            parameters.append([embeddings[0], partition, embeddings[0]])
+        rows = execute_concurrent_with_args(self.session, statement, parameters, concurrency=100)
+
+        json_rows = []
+        for (success, result) in rows:
+            if not success:
+                logger.error(f"problem with async query: {result}")  # result will be an Exception
+            else:
+                for row in result:
+                    json_rows.append(dict(row))
+        json_rows = [
+            {k: v for k, v in row.items() if k not in [vector_index_column]}
+            for row in json_rows
+        ]
+        self.session.row_factory = named_tuple_factory
+
         #sort json_rows by score
         json_rows = sorted(json_rows, key=lambda x: x["score"], reverse=True)
+
         #trim limit
         json_rows = json_rows[:limit]
+
         return json_rows
 
     def finish_ann_query_and_get_json(self, embeddings, limit, queryString, vector_index_column, partitions):
