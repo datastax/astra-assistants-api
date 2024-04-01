@@ -1524,13 +1524,13 @@ rediscluster = ["redis (>=4.2.0,!=4.5.2,!=4.5.3)"]
 
 [[package]]
 name = "litellm"
-version = "1.33.4"
+version = "1.34.18"
 description = "Library to easily interface with LLM API providers"
 optional = false
 python-versions = "!=2.7.*,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,!=3.7.*,>=3.8"
 files = [
-    {file = "litellm-1.33.4-py3-none-any.whl", hash = "sha256:5e564bd4b55f14a9b9d0cb5bd2fed1afb4a907efe527236c06f36fdf71bc4d3f"},
-    {file = "litellm-1.33.4.tar.gz", hash = "sha256:80ccf0a915bdbdd829d954345fa31d78b86c95b15383007e2880e8603c0d1246"},
+    {file = "litellm-1.34.18-py3-none-any.whl", hash = "sha256:0fcf89f01981f934a2f1fb934ed431095893980277e499e492c15380063259bc"},
+    {file = "litellm-1.34.18.tar.gz", hash = "sha256:b897b97b6fa2744b5220dd23e8e3adb31d5006457e0e5ad7a5f58a4a8d5d3b82"},
 ]
 
 [package.dependencies]
@@ -1545,8 +1545,8 @@ tiktoken = ">=0.4.0"
 tokenizers = "*"
 
 [package.extras]
-extra-proxy = ["streamlit (>=1.29.0,<2.0.0)"]
-proxy = ["PyJWT (>=2.8.0,<3.0.0)", "apscheduler (>=3.10.4,<4.0.0)", "argon2-cffi (>=23.1.0,<24.0.0)", "backoff", "fastapi (>=0.109.1,<0.110.0)", "fastapi-sso (>=0.10.0,<0.11.0)", "gunicorn (>=21.2.0,<22.0.0)", "orjson (>=3.9.7,<4.0.0)", "python-multipart (>=0.0.6,<0.0.7)", "pyyaml (>=6.0.1,<7.0.0)", "rq", "uvicorn (>=0.22.0,<0.23.0)"]
+extra-proxy = ["azure-identity (>=1.15.0,<2.0.0)", "azure-keyvault-secrets (>=4.8.0,<5.0.0)", "google-cloud-kms (>=2.21.3,<3.0.0)", "prisma (==0.11.0)", "resend (>=0.8.0,<0.9.0)"]
+proxy = ["PyJWT (>=2.8.0,<3.0.0)", "apscheduler (>=3.10.4,<4.0.0)", "backoff", "cryptography (>=42.0.5,<43.0.0)", "fastapi (>=0.109.1,<0.110.0)", "fastapi-sso (>=0.10.0,<0.11.0)", "gunicorn (>=21.2.0,<22.0.0)", "orjson (>=3.9.7,<4.0.0)", "python-multipart (>=0.0.9,<0.0.10)", "pyyaml (>=6.0.1,<7.0.0)", "rq", "uvicorn (>=0.22.0,<0.23.0)"]
 
 [[package]]
 name = "loguru"
@@ -2746,20 +2746,20 @@ full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.7
 
 [[package]]
 name = "streaming-assistants"
-version = "0.15.0rc3"
+version = "0.15.3"
 description = "Streaming enabled Assistants API"
 optional = false
-python-versions = ">=3.10,<4.0"
+python-versions = "<4.0,>=3.10"
 files = [
-    {file = "streaming_assistants-0.15.0rc3-py3-none-any.whl", hash = "sha256:0919ef6f973492d4c4e0c4beda39daa3502c2de45f33b9720584d6514814d040"},
-    {file = "streaming_assistants-0.15.0rc3.tar.gz", hash = "sha256:5e4366e654b101804a08568fb9245322ecc152f032aa0f9d3ba6c2dc8e4ec99c"},
+    {file = "streaming_assistants-0.15.3-py3-none-any.whl", hash = "sha256:779b4f2247663a08e8780dde514b236f463b144c033a8f3c09f6611e077128a5"},
+    {file = "streaming_assistants-0.15.3.tar.gz", hash = "sha256:2fa041bf54a30417cc0a8f1bd0c3270571b37931b5b0e7cfd63a2c8406b42eb2"},
 ]
 
 [package.dependencies]
 boto3 = ">=1.34.31,<2.0.0"
 google-generativeai = ">=0.3.2,<0.4.0"
 httpx = ">=0.26.0,<0.27.0"
-litellm = ">=1.20.6,<2.0.0"
+litellm = ">=1.34.18,<2.0.0"
 openai = ">=1.14.0,<2.0.0"
 
 [[package]]
@@ -3563,4 +3563,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10.12,<3.12"
-content-hash = "a23017d16f3755037b1b962114b2143ce5c031a663dd696eea28f9199f80aed9"
+content-hash = "77efebb800e978fafa0e5c33fccefdd6614cb9d5cb5d274c5953483dff861d1c"

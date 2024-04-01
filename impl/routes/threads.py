@@ -35,6 +35,7 @@ from impl.model.list_messages_response import ListMessagesResponse
 from impl.model.list_messages_stream_response import ListMessagesStreamResponse
 from impl.model.message_object import MessageObject
 from impl.model.message_stream_response_object import MessageStreamResponseObject
+from impl.model.modify_message_request import ModifyMessageRequest
 from impl.model.open_ai_file import OpenAIFile
 from impl.model.run_object import RunObject
 from impl.model.submit_tool_outputs_run_request import SubmitToolOutputsRunRequest
@@ -43,6 +44,7 @@ from impl.routes.utils import verify_db_client, get_litellm_kwargs, infer_embedd
 from impl.services.inference_utils import get_chat_completion, get_async_chat_completion_response
 from openapi_server.models.create_message_request import CreateMessageRequest
 from openapi_server.models.create_thread_request import CreateThreadRequest
+from openapi_server.models.delete_message_response import DeleteMessageResponse
 from openapi_server.models.delete_thread_response import DeleteThreadResponse
 from openapi_server.models.list_runs_response import ListRunsResponse
 from openapi_server.models.message_content_delta_object import MessageContentDeltaObject
@@ -51,7 +53,6 @@ from openapi_server.models.message_content_text_object import MessageContentText
 from openapi_server.models.message_content_text_object_text import (
     MessageContentTextObjectText,
 )
-from openapi_server.models.modify_message_request import ModifyMessageRequest
 from openapi_server.models.modify_thread_request import ModifyThreadRequest
 from openapi_server.models.run_object_required_action import RunObjectRequiredAction
 from openapi_server.models.run_object_required_action_submit_tool_outputs import RunObjectRequiredActionSubmitToolOutputs
@@ -184,12 +185,33 @@ async def modify_message(
         object="thread.message",
         created_at=None,
         thread_id=thread_id,
-        role=None,
-        content=None,
+        role=modify_message_request.role,
+        content=[modify_message_request.content],
         assistant_id=None,
         run_id=None,
-        file_ids=None,
+        file_ids=modify_message_request.file_ids,
         metadata=modify_message_request.metadata,
+    )
+
+@router.delete(
+    "/threads/{thread_id}/messages/{message_id}",
+    responses={
+        200: {"model": DeleteMessageResponse, "description": "OK"},
+    },
+    tags=["Assistants"],
+    summary="Delete a message.",
+    response_model_by_alias=True,
+)
+async def delete_message(
+        thread_id: str = Path(..., description="The ID of the thread to delete."),
+        message_id: str = Path(..., description="The ID of the message to delete."),
+        astradb: CassandraClient = Depends(verify_db_client),
+) -> DeleteMessageResponse:
+    astradb.delete_by_pks(table="messages", keys=["id", "thread_id"], values=[message_id, thread_id])
+    return DeleteMessageResponse(
+        id=message_id,
+        object="thread.message.deleted",
+        deleted=True
     )
 
 
@@ -761,9 +783,10 @@ async def process_rag(
 
         if 'gemini' in model:
             async for part in response:
-                text += part.choices[0].delta.content
-                start_time = await maybe_checkpoint(assistant_id, astradb, created_at, file_ids, frequency_in_seconds, message_id,
-                                       run_id, start_time, text, thread_id)
+                if part.choices[0].delta.content is not None:
+                    text += part.choices[0].delta.content
+                    start_time = await maybe_checkpoint(assistant_id, astradb, created_at, file_ids, frequency_in_seconds, message_id,
+                                           run_id, start_time, text, thread_id)
         else:
             done = False
             while not done:
@@ -1391,12 +1414,13 @@ async def message_delta_streamer(message_id, created_at, response, run, astradb)
 
         if 'gemini' in run.model:
             async for part in response:
-                delta = part.choices[0].delta.content
-                event_json = await make_text_delta_event_from_chunk(delta, i, run, message_id, )
-                i += 1
-                yield f"data: {event_json}\n\n"
-                text += delta
-                start_time = await maybe_checkpoint(run.assistant_id, astradb, created_at, run.file_ids, frequency_in_seconds, message_id,
+                if part.choices[0].delta.content is not None:
+                    delta = part.choices[0].delta.content
+                    event_json = await make_text_delta_event_from_chunk(delta, i, run, message_id, )
+                    i += 1
+                    yield f"data: {event_json}\n\n"
+                    text += delta
+                    start_time = await maybe_checkpoint(run.assistant_id, astradb, created_at, run.file_ids, frequency_in_seconds, message_id,
                                                     run.id, start_time, text, run.thread_id)
         else:
             done = False
