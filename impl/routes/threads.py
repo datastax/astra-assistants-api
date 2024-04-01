@@ -1414,12 +1414,13 @@ async def message_delta_streamer(message_id, created_at, response, run, astradb)
 
         if 'gemini' in run.model:
             async for part in response:
-                delta = part.choices[0].delta.content
-                event_json = await make_text_delta_event_from_chunk(delta, i, run, message_id, )
-                i += 1
-                yield f"data: {event_json}\n\n"
-                text += delta
-                start_time = await maybe_checkpoint(run.assistant_id, astradb, created_at, run.file_ids, frequency_in_seconds, message_id,
+                if part.choices[0].delta.content is not None:
+                    delta = part.choices[0].delta.content
+                    event_json = await make_text_delta_event_from_chunk(delta, i, run, message_id, )
+                    i += 1
+                    yield f"data: {event_json}\n\n"
+                    text += delta
+                    start_time = await maybe_checkpoint(run.assistant_id, astradb, created_at, run.file_ids, frequency_in_seconds, message_id,
                                                     run.id, start_time, text, run.thread_id)
         else:
             done = False
