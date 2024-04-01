@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from impl.model.create_assistant_request import CreateAssistantRequest
 from impl.model.create_run_request import CreateRunRequest
 from impl.model.message_object import MessageObject
+from impl.model.modify_message_request import ModifyMessageRequest
 from openapi_server.models.assistant_file_object import AssistantFileObject  # noqa: F401
 from openapi_server.models.assistant_object import AssistantObject  # noqa: F401
 from openapi_server.models.create_assistant_file_request import CreateAssistantFileRequest  # noqa: F401
@@ -22,7 +23,6 @@ from openapi_server.models.list_message_files_response import ListMessageFilesRe
 from openapi_server.models.list_run_steps_response import ListRunStepsResponse  # noqa: F401
 from openapi_server.models.list_runs_response import ListRunsResponse  # noqa: F401
 from openapi_server.models.message_file_object import MessageFileObject  # noqa: F401
-from openapi_server.models.modify_message_request import ModifyMessageRequest  # noqa: F401
 from openapi_server.models.modify_run_request import ModifyRunRequest  # noqa: F401
 from openapi_server.models.modify_thread_request import ModifyThreadRequest  # noqa: F401
 from openapi_server.models.run_object import RunObject  # noqa: F401
@@ -463,6 +463,46 @@ def test_modify_message(client: TestClient):
         "/threads/{thread_id}/messages/{message_id}".format(thread_id=message.thread_id, message_id=message.id),
         headers=headers,
         json=modify_message_request,
+    )
+
+    logger.info(response)
+    # uncomment below to assert the status code of the HTTP response
+    assert response.status_code == 200
+
+def test_modify_message_content(client: TestClient):
+    """Test case for modify_message
+
+    Modifies a message.
+    """
+
+    message = test_create_message(client)
+    modify_message_request = {"metadata":{}, "content": "puppies"}
+
+    headers = get_headers(MODEL)
+    response = client.request(
+        "POST",
+        "/threads/{thread_id}/messages/{message_id}".format(thread_id=message.thread_id, message_id=message.id),
+        headers=headers,
+        json=modify_message_request,
+    )
+
+    logger.info(response)
+    # uncomment below to assert the status code of the HTTP response
+    assert response.status_code == 200
+
+def test_delete_message(client: TestClient):
+    """Test case for delete_message
+
+    Deletes a message.
+    """
+
+    message = test_create_message(client)
+
+    headers = get_headers(MODEL)
+    response = client.request(
+        "DELETE",
+        "/threads/{thread_id}/messages/{message_id}".format(thread_id=message.thread_id, message_id=message.id),
+        headers=headers,
     )
 
     logger.info(response)

@@ -843,6 +843,7 @@ class CassandraClient:
         logger.info(f"parsed assistant from row: {assistant}")
         return assistant
 
+
     def delete_by_pk(self, key, value, table):
         query_string = f"""
         DELETE FROM {CASSANDRA_KEYSPACE}.{table} WHERE {key} = ?;  
@@ -853,6 +854,23 @@ class CassandraClient:
         bound = statement.bind((value,))
         self.session.execute(bound)
         return True
+
+
+    def delete_by_pks(self, keys, values, table):
+        query_string = f"DELETE FROM {CASSANDRA_KEYSPACE}.{table} WHERE "
+        i = 0
+        for key in keys:
+            query_string += f"{key} = ?"
+            if i < len(keys) - 1:
+                query_string += " AND "
+            i += 1
+
+        statement = self.session.prepare(query_string)
+        statement.consistency_level = ConsistencyLevel.QUORUM
+        bound = statement.bind(values)
+        self.session.execute(bound)
+        return True
+
 
     def update_run_status(self, id, thread_id, status):
         query_string = f"""

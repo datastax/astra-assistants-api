@@ -2746,20 +2746,20 @@ full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.7
 
 [[package]]
 name = "streaming-assistants"
-version = "0.15.0rc3"
+version = "0.15.1"
 description = "Streaming enabled Assistants API"
 optional = false
-python-versions = ">=3.10,<4.0"
+python-versions = "<4.0,>=3.10"
 files = [
-    {file = "streaming_assistants-0.15.0rc3-py3-none-any.whl", hash = "sha256:0919ef6f973492d4c4e0c4beda39daa3502c2de45f33b9720584d6514814d040"},
-    {file = "streaming_assistants-0.15.0rc3.tar.gz", hash = "sha256:5e4366e654b101804a08568fb9245322ecc152f032aa0f9d3ba6c2dc8e4ec99c"},
+    {file = "streaming_assistants-0.15.1-py3-none-any.whl", hash = "sha256:bfe3f9e3fa915fa99d25ff1c2c5f53ff547b43e2b304e6426dca76e5f30d18b5"},
+    {file = "streaming_assistants-0.15.1.tar.gz", hash = "sha256:16f9376902175888d2af0bb5e5b10edd2474735d6e34e0e899962f80a50aea08"},
 ]
 
 [package.dependencies]
 boto3 = ">=1.34.31,<2.0.0"
 google-generativeai = ">=0.3.2,<0.4.0"
 httpx = ">=0.26.0,<0.27.0"
-litellm = ">=1.20.6,<2.0.0"
+litellm = ">=1.33.4,<2.0.0"
 openai = ">=1.14.0,<2.0.0"
 
 [[package]]
@@ -3563,4 +3563,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10.12,<3.12"
-content-hash = "a23017d16f3755037b1b962114b2143ce5c031a663dd696eea28f9199f80aed9"
+content-hash = "68321ba48a46f9cb46120239b2f0c67d60a8aeb774787715dcc2eb518f2c6845"
