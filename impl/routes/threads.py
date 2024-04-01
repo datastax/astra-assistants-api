@@ -783,9 +783,10 @@ async def process_rag(
 
         if 'gemini' in model:
             async for part in response:
-                text += part.choices[0].delta.content
-                start_time = await maybe_checkpoint(assistant_id, astradb, created_at, file_ids, frequency_in_seconds, message_id,
-                                       run_id, start_time, text, thread_id)
+                if part.choices[0].delta.content is not None:
+                    text += part.choices[0].delta.content
+                    start_time = await maybe_checkpoint(assistant_id, astradb, created_at, file_ids, frequency_in_seconds, message_id,
+                                           run_id, start_time, text, thread_id)
         else:
             done = False
             while not done:
