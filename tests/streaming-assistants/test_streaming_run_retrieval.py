@@ -91,9 +91,9 @@ def test_run_gpt3_5(patched_openai_client):
     )
     run_with_assistant(gpt3_assistant, patched_openai_client)
 
-@pytest.mark.skip(reason="replace with command-r because context window")
+#@pytest.mark.skip(reason="replace with command-r because context window")
 def test_run_cohere(patched_openai_client):
-    model = "cohere/command"
+    model = "command-r"
     name = f"{model} Math Tutor"
 
     cohere_assistant = patched_openai_client.beta.assistants.create(
