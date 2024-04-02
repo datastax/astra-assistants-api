@@ -89,8 +89,6 @@ async def create_file(
             format=fmt,
             bytes=bytes,
             content=content,
-            model=embedding_model,
-            **litellm_kwargs,
         )
         return openAIFile
 
@@ -105,7 +103,6 @@ async def create_file(
     document = await get_document_from_file(file, file_id)
 
     litellm_kwargs_embedding = litellm_kwargs.copy()
-    embedding_model
     triple = utils.get_llm_provider(embedding_model)
     provider = triple[1]
     if provider != "bedrock":
@@ -135,9 +132,10 @@ async def create_file(
         format=fmt,
         bytes=bytes,
         chunks=chunks,
-        model=embedding_model,
+        embedding_model=embedding_model,
         **litellm_kwargs,
     )
+    logger.info(f"File created {openAIFile}")
     return openAIFile
 
 
@@ -235,6 +233,9 @@ async def retrieve_file(
         status_details = None
         if "status_details" in raw_file:
             status_details= raw_file["status_details"]
+        embedding_model = None
+        if "embedding_model" in raw_file:
+            embedding_model= raw_file["embedding_model"]
 
         return OpenAIFile(
             id=raw_file["id"],
@@ -245,5 +246,6 @@ async def retrieve_file(
             purpose=raw_file["purpose"],
             status=raw_file["status"],
             status_details=status_details,
+            embedding_model=embedding_model,
         )
     raise HTTPException(status_code=404, detail="File not found")

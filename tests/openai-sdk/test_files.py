@@ -1,31 +1,3 @@
-import os
-
-import pytest
-
-#from impl.services import chunks
-
-#FAKE_EMB_LIST = [1] + [0] * 1535
-
-
-#@pytest.fixture(scope="function", autouse=True)
-#def cleanup_asst_table(db_client):
-#    """Cleans up the assistants table after each test."""
-#    db_client.truncate_table("files")
-#    db_client.truncate_table("file_chunks")
-
-
-#@pytest.fixture(scope="function", autouse=True)
-#def mock_embeddings(monkeypatch):
-#    """Mocks the get_embeddings util function"""
-#    def mock_get_embeddings(documents, model):
-#        return [FAKE_EMB_LIST for _ in documents]
-#    monkeypatch.setattr(
-#        chunks,
-#        "get_embeddings",
-#        mock_get_embeddings,
-#    )
-
-
 def test_files_crud(openai_client):
     files = openai_client.files.list().data
 
@@ -36,6 +8,7 @@ def test_files_crud(openai_client):
         )
     assert file.purpose == "assistants"
     assert file.filename == "fake_content.txt"
+    assert file.embedding_model is not None
 
     file = openai_client.files.retrieve(file.id)
     assert file.purpose == "assistants"

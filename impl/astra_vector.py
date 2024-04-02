@@ -519,6 +519,13 @@ class CassandraClient:
                     status text
             );"""
             )
+            try:
+                self.session.execute(
+                    f"""alter TABLE assistant_api.files ADD embedding_model text;"""
+                )
+            except Exception as e:
+                logger.warning(f"alter table attempt: {e}")
+
 
             self.session.execute(
                 f"""create table if not exists {CASSANDRA_KEYSPACE}.file_chunks (
@@ -1157,7 +1164,7 @@ class CassandraClient:
         return message_object
 
     def upsert_content_only_file(
-            self, id, created_at, object, purpose, filename, format, bytes, content, **litellm_kwargs,
+            self, id, created_at, object, purpose, filename, format, bytes, content,
     ):
         self.upsert_chunks_content_only(id, content, created_at)
         status = "uploaded"
@@ -1193,9 +1200,9 @@ class CassandraClient:
         return file
 
     def upsert_file(
-            self, id, created_at, object, purpose, filename, format, bytes, chunks, model, **litellm_kwargs,
+            self, id, created_at, object, purpose, filename, format, bytes, chunks, embedding_model, **litellm_kwargs,
     ):
-        self.upsert_chunks(chunks, model, **litellm_kwargs)
+        self.upsert_chunks(chunks, embedding_model, **litellm_kwargs)
         status = "processed"
 
         query_string = f"""insert into {CASSANDRA_KEYSPACE}.files (
@@ -1206,16 +1213,17 @@ class CassandraClient:
                     filename,
                     format,
                     bytes,
-                    status
+                    status,
+                    embedding_model
             ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?
+            ?, ?, ?, ?, ?, ?, ?, ?, ?
             );"""
 
         statement = self.session.prepare(query_string)
         statement.consistency_level = ConsistencyLevel.QUORUM
         self.session.execute(
             statement,
-            (id, object, purpose, created_at, filename, format, bytes, status),
+            (id, object, purpose, created_at, filename, format, bytes, status, embedding_model),
         )
         file = OpenAIFile(
             id=id,
@@ -1226,6 +1234,7 @@ class CassandraClient:
             format=format,
             bytes=bytes,
             status=status,
+            embedding_model=embedding_model,
         )
         return file
 

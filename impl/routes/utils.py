@@ -179,7 +179,9 @@ def infer_embedding_api_key(
 ) -> str:
     if embedding_model is None:
         return None
-    if embedding_model.startswith("openai/text-embedding-"):
+    triple = get_llm_provider(embedding_model)
+    provider = triple[1]
+    if provider == "openai":
         return openai_token
     else:
         return api_key
