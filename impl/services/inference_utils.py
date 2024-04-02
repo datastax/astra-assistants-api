@@ -1,5 +1,6 @@
 import asyncio
-from typing import Any, Dict, List, Optional, Union, AsyncGenerator
+from typing import Any, Dict, List, Optional, Union, AsyncGenerator, get_type_hints
+
 
 import litellm
 from litellm import (
@@ -90,6 +91,17 @@ async def get_async_chat_completion_response(
     try:
         if model is None:
             model = deployment_id
+
+        type_hints = get_type_hints(acompletion)
+
+        for key, value in litellm_kwargs.items():
+            if value is not None and key in type_hints:
+                type_hint = type_hints[key]
+                # handle optional
+                if hasattr(type_hint, "__origin__") and type_hint.__origin__ == Union:
+                    litellm_kwargs[key] = type_hint.__args__[0](value)
+                else:
+                    litellm_kwargs[key] = type_hints[key](value)
 
         completion = await acompletion(
             model=model,
