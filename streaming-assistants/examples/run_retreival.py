@@ -1,9 +1,32 @@
+import json
 import time
 from openai import OpenAI
 from dotenv import load_dotenv
+from openai.lib.streaming import AssistantEventHandler
+from typing_extensions import override
+
 from streaming_assistants import patch
 
 load_dotenv("./.env")
+
+class EventHandler(AssistantEventHandler):
+    @override
+    def on_run_step_done(self, run_step) -> None:
+        print("retrieval")
+        matches = []
+        for tool_call in run_step.step_details.tool_calls:
+            matches = tool_call.retrieval
+            print(json.dumps(tool_call.retrieval))
+    @override
+    def on_text_created(self, text) -> None:
+        # Increment the counter each time the method is called
+        print(f"\nassistant > {text}", end="", flush=True)
+
+    @override
+    def on_text_delta(self, delta, snapshot):
+        # Increment the counter each time the method is called
+        print(delta.value, end="", flush=True)
+
 
 def run_with_assistant(assistant, client):
     print(f"created assistant: {assistant.name}")
@@ -15,6 +38,7 @@ def run_with_assistant(assistant, client):
             "rb",
         ),
         purpose="assistants",
+        embedding_model="text-embedding-3-large",
     )
     print("adding file id to assistant")
     # Update Assistant
@@ -31,29 +55,16 @@ def run_with_assistant(assistant, client):
     )
     print(f"> {user_message}")
 
-    print(f"creating run")
-    run = client.beta.threads.runs.create(
+    print(f"create and stream run")
+    with client.beta.threads.runs.create_and_stream(
         thread_id=thread.id,
         assistant_id=assistant.id,
-    )
-    # Waiting in a loop
-    while True:
-        if run.status == 'failed':
-            raise ValueError("Run is in failed state")
-        if run.status == 'completed' or run.status == 'generating':
-            print(f"run status: {run.status}")
-            break
-        run = client.beta.threads.runs.retrieve(
-            thread_id=thread.id,
-            run_id=run.id,
-        )
-        time.sleep(0.5)
-    print(f"streaming messages")
-    print("-->", end="")
-    response = client.beta.threads.messages.list(thread_id=thread.id, stream=True)
-    for part in response:
-        print(f"{part.data[0].content[0].delta.value}", end="")
-    print("\n")
+        event_handler=EventHandler(),
+    ) as stream:
+        for part in stream:
+            pass
+        #    print(part)
+
 
 
 client = patch(OpenAI())
@@ -90,7 +101,7 @@ perplexity_assistant = client.beta.assistants.create(
 )
 run_with_assistant(perplexity_assistant, client)
 
-model = "anthropic.claude-v2"
+model = "claude-3-haiku-20240307"
 name = f"{model} Math Tutor"
 
 claude_assistant = client.beta.assistants.create(

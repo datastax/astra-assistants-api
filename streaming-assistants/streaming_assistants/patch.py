@@ -409,11 +409,11 @@ def wrap_create(original_create, client):
             print(assistant_id)
             assistant = client.beta.assistants.retrieve(assistant_id)
             model = assistant.model
-            #if assistant.file_ids is not None and len(assistant.file_ids) > 0:
-            #    file_id = assistant.file_ids[0]
-            #    model = get_file_embedding_model(file_id)
-            #else:
-            #    model = assistant.model
+            if assistant.file_ids is not None and len(assistant.file_ids) > 0:
+                file_id = assistant.file_ids[0]
+                file = client.files.retrieve(file_id)
+                if file.embedding_model is not None:
+                    kwargs["extra_headers"] = {"embedding-model": file.embedding_model}
 
         if model is not None:
             try:
