@@ -52,7 +52,7 @@ def test_chat_completion_perp_mixtral(patched_openai_client):
     print_chat_completion(model, patched_openai_client)
 
 def test_chat_completion_claude(patched_openai_client):
-    model="anthropic.claude-v2"
+    model="claude-3-haiku-20240307"
     print_chat_completion(model, patched_openai_client)
 
 def test_chat_completion_gemini_pro(patched_openai_client):

@@ -46,6 +46,9 @@ export GOOGLE_PROJECT_ID=
 
 #gemini api https://makersuite.google.com/app/apikey
 export GEMINI_API_KEY=
+
+#anthropic claude models https://console.anthropic.com/settings/keys
+export ANTHROPIC_API_KEY=
 ```
 
 Then import and patch your client:

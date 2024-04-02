@@ -85,7 +85,7 @@ def test_run_claude(patched_openai_client):
     claude_assistant = patched_openai_client.beta.assistants.create(
         name="Claude Animal Tutor",
         instructions=instructions,
-        model="anthropic.claude-v2",
+        model="claude-3-haiku-20240307",
     )
     run_with_assistant(claude_assistant, patched_openai_client)
 
