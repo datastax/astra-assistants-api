@@ -13,6 +13,7 @@ def run_with_assistant(assistant, client):
     run = client.beta.threads.runs.create(
         thread_id=thread.id,
         assistant_id=assistant.id,
+        temperature=0,
     )
 
     # Waiting in a loop
