@@ -95,7 +95,7 @@ async def get_async_chat_completion_response(
         type_hints = get_type_hints(acompletion)
 
         for key, value in litellm_kwargs.items():
-            if value is not None and key in type_hints:
+            if value is not None and key in type_hints and isinstance(value, str):
                 type_hint = type_hints[key]
                 # handle optional
                 if hasattr(type_hint, "__origin__") and type_hint.__origin__ == Union:
