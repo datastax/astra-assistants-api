@@ -3,17 +3,20 @@ import os
 import io
 from functools import wraps
 from types import MethodType, FunctionType
-from typing import Callable, Literal, Union, List, Dict, Any, TypedDict
+from typing import Callable, Literal, Union, List, Dict, Any, TypedDict, cast, Optional
 import contextlib
+
+import httpx
 from openai import Stream, OpenAI, AsyncOpenAI
 from openai._base_client import make_request_options
 from openai._models import BaseModel
-from openai._types import NOT_GIVEN
+from openai._types import NOT_GIVEN, Headers, Query, Body, NotGiven
 from openai._utils import maybe_transform
 from openai.pagination import SyncCursorPage
 from openai.types.beta.thread_create_and_run_params import ThreadMessage
 
 from litellm import utils
+from openai.types.beta.threads import message_create_params, Message
 
 LLM_PARAM_AWS_REGION_NAME = "LLM-PARAM-aws-region-name"
 LLM_PARAM_AWS_SECRET_ACCESS_KEY = "LLM-PARAM-aws-secret-access-key"
@@ -25,6 +28,161 @@ def is_async(func: Callable) -> bool:
     return inspect.iscoroutinefunction(func) or (
             hasattr(func, "__wrapped__") and inspect.iscoroutinefunction(func.__wrapped__)
     )
+
+def wrap_update_messages(original_update):
+    @wraps(original_update)
+    def sync_update(self, *args, **kwargs):
+        thread_id = kwargs.get("thread_id")
+        message_id = kwargs.get("message_id")
+        content = kwargs.get("content", NOT_GIVEN)
+        role = kwargs.get("role", NOT_GIVEN)
+        file_ids = kwargs.get("file_ids", NOT_GIVEN)
+        metadata = kwargs.get("metadata", NOT_GIVEN)
+        extra_headers = kwargs.get("extra_headers", None)
+        extra_query = kwargs.get("extra_query", None)
+        extra_body = kwargs.get("extra_body", None)
+        timeout = kwargs.get("timeout", NOT_GIVEN)
+
+
+        return self._post(
+            f"/threads/{thread_id}/messages/{message_id}",
+            body=maybe_transform(
+                {
+                    "content": content,
+                    "role": role,
+                    "file_ids": file_ids,
+                    "metadata": metadata,
+                },
+                message_create_params.MessageCreateParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=Message,
+        )
+
+
+    @wraps(original_update)
+    async def async_update(self, *args, **kwargs):
+        thread_id = kwargs.get("thread_id")
+        message_id = kwargs.get("message_id")
+        content = kwargs.get("content", NOT_GIVEN)
+        role = kwargs.get("role", NOT_GIVEN)
+        file_ids = kwargs.get("file_ids", NOT_GIVEN)
+        metadata = kwargs.get("metadata", NOT_GIVEN)
+        extra_headers = kwargs.get("extra_headers", None)
+        extra_query = kwargs.get("extra_query", None)
+        extra_body = kwargs.get("extra_body", None)
+        timeout = kwargs.get("timeout", NOT_GIVEN)
+
+        return await self._post(
+            f"/threads/{thread_id}/messages/{message_id}",
+            body=maybe_transform(
+                {
+                    "content": content,
+                    "role": role,
+                    "file_ids": file_ids,
+                    "metadata": metadata,
+                },
+                message_create_params.MessageCreateParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=Message,
+        )
+
+
+    # Check if the original function is async and choose the appropriate wrapper
+    func_is_async = is_async(original_update)
+    wrapper_function = async_update if func_is_async else sync_update
+
+    # Set documentation for the wrapper function
+    wrapper_function.__doc__ = original_update.__doc__
+
+    return wrapper_function
+
+class MessageDeleted(BaseModel):
+    id: str
+
+    deleted: bool
+
+    object: Literal["thread.message.deleted"]
+
+
+def sync_delete(
+            self,
+            thread_id: str,
+            message_id: str,
+            *,
+            # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+            # The extra values given here take precedence over values defined on the client or passed to this method.
+            extra_headers: Headers | None = None,
+            extra_query: Query | None = None,
+            extra_body: Body | None = None,
+            timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> MessageDeleted:
+    """Synchronous version of delete"""
+    if not thread_id:
+        raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+    if not message_id:
+        raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+    extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+    url = f"/threads/{thread_id}/messages/{message_id}"
+    return self._delete(
+        url,
+        options=make_request_options(
+            extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+        ),
+        cast_to=MessageDeleted,
+    )
+
+
+async def async_delete(
+        self,
+        thread_id: str,
+        message_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+) -> MessageDeleted:
+    """Synchronous version of delete"""
+    if not thread_id:
+        raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+    if not message_id:
+        raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+    extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+    url = f"/threads/{thread_id}/messages/{message_id}"
+    return await self._delete(
+        url,
+        options=make_request_options(
+            extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+        ),
+        cast_to=MessageDeleted,
+    )
+
+
+def delete(self, thread_id: str, message_id: str, **kwargs):
+    """
+    Delete a message from a thread.
+
+    Args:
+        thread_id (str): The ID of the thread.
+        message_id (str): The ID of the message to delete.
+        **kwargs: Additional keyword arguments to pass to the underlying API call.
+
+    Returns:
+        A response object containing the result of the API call.
+    """
+    url = f"/threads/{thread_id}/messages/{message_id}"
+    if is_async(self.list):
+        return async_delete(self, thread_id, message_id, **kwargs)
+    else:
+        return sync_delete(self, thread_id, message_id, **kwargs)
 
 
 def wrap_list(original_list):
@@ -81,7 +239,11 @@ def wrap_list(original_list):
             return original_list(*args, **kwargs)
 
     @wraps(original_list)
-    async def async_list(self, *args, **kwargs) -> Union[SyncCursorPage[ThreadMessage], Stream[MessageChunk]]:
+    async def async_list(
+            self,
+            *args,
+            **kwargs
+    ) -> Union[SyncCursorPage[ThreadMessage], Stream[MessageChunk]]:
         thread_id = kwargs.get("thread_id")
         after = kwargs.get("after", NOT_GIVEN)
         before = kwargs.get("before", NOT_GIVEN)
@@ -129,6 +291,9 @@ def wrap_list(original_list):
     wrapper_function.__doc__ = original_list.__doc__
 
     return wrapper_function
+
+
+
 class Delta(BaseModel):
     value: str
 
@@ -159,6 +324,7 @@ class DataMessageChunk(BaseModel):
     """metadata"""
 
 
+
 class MessageChunk(BaseModel):
     object: Literal["list"]
     """The object type, which is always `list`."""
@@ -174,6 +340,7 @@ class MessageChunk(BaseModel):
     last_id: str
     """message id of the last message in the stream
     """
+
 
 class MessageListWithStreamingParams(TypedDict, total=False):
     after: str
@@ -207,6 +374,29 @@ class MessageListWithStreamingParams(TypedDict, total=False):
     """
     streaming: bool
 
+param_list = [
+    "temperature",
+    "top_p",
+    "stop",
+    "max_tokens",
+    "presence_penalty",
+    "frequency_penalty",
+    "logit_bias",
+    "user",
+    "response_format",
+    "seed",
+    "logprobs",
+    "top_logprobs",
+    "model_list",
+]
+
+def extract_llm_param_headers(kwargs, client):
+    for param in param_list:
+        value = kwargs.pop(param, None)
+        if value is not None:
+            header_key = f"LLM-PARAM-{param.replace('_', '-')}"
+            header_value = str(value)
+            client._custom_headers[header_key] = header_value
 
 def wrap_create(original_create, client):
     @wraps(original_create)
@@ -219,12 +409,21 @@ def wrap_create(original_create, client):
             print(assistant_id)
             assistant = client.beta.assistants.retrieve(assistant_id)
             model = assistant.model
+            #if assistant.file_ids is not None and len(assistant.file_ids) > 0:
+            #    file_id = assistant.file_ids[0]
+            #    model = get_file_embedding_model(file_id)
+            #else:
+            #    model = assistant.model
 
         if model is not None:
             try:
                 assign_key_based_on_model(model, client)
             except Exception as e:
                 raise RuntimeError(f"Invalid model {model} or key. Make sure you set the right environment variable.") from None
+
+        # Only for run creation, pop off LLM parameters from kwargs and add them to the client headers
+        if "beta.threads.runs" in str(type(self)):
+            extract_llm_param_headers(kwargs, client)
 
         # Call the original "create" method
         result = original_create(*args, **kwargs)
@@ -262,6 +461,8 @@ def assign_key_based_on_model(model, client):
         triple = utils.get_llm_provider(model)
         provider = triple[1]
         dynamic_key = triple[2]
+        if provider == "cohere_chat":
+            provider = "cohere"
         if provider == "bedrock":
             if os.getenv("AWS_ACCESS_KEY_ID") is None or os.getenv("AWS_SECRET_ACCESS_KEY") is None or os.getenv("AWS_REGION_NAME") is None:
                 raise Exception("For bedrock models you must set the AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION_NAME environment variables")
@@ -349,10 +550,12 @@ def patch_methods(obj, client, visited=None):
 
 def patch(client: Union[OpenAI, AsyncOpenAI]):
 
-    base_url = os.getenv("base_url", "https://open-assistant-ai.astra.datastax.com/v1")
-    client.base_url=base_url
 
-    print(f"Patching OpenAI client, it will now communicate to Astra Assistants API: {base_url}\nLearn more about Astra at: https://docs.datastax.com/en/astra/astra-db-vector/integrations/astra-assistants-api.html")
+    if client.base_url == "https://api.openai.com/v1/":
+        base_url = os.getenv("base_url") or os.getenv("BASE_URL", "https://open-assistant-ai.astra.datastax.com/v1")
+        client.base_url=base_url
+
+    print(f"Patching OpenAI client, it will now communicate to Astra Assistants API: {client.base_url}\nLearn more about Astra at: https://docs.datastax.com/en/astra/astra-db-vector/integrations/astra-assistants-api.html")
 
     # for astra headers
     patch_methods(client.beta,client)
@@ -367,6 +570,7 @@ def patch(client: Union[OpenAI, AsyncOpenAI]):
         client.chat.completions.create,
         client.embeddings.create,
         client.beta.threads.runs.create,
+        client.beta.threads.runs.create_and_stream,
     ]
     for original_method in methods_to_wrap_with_model_arg:
         bound_instance = original_method.__self__
@@ -376,5 +580,11 @@ def patch(client: Union[OpenAI, AsyncOpenAI]):
 
     # fancy model / embedding_model derivation for files
     client.files.create = MethodType(wrap_file_create(client.files.create, client), client.files.create)
+
+    # support message deletion
+    client.beta.threads.messages.delete = MethodType(delete, client.beta.threads.messages)
+
+    # Wrap client.beta.threads.messages.update
+    client.beta.threads.messages.update = MethodType(wrap_update_messages(client.beta.threads.messages.update), client.beta.threads.messages)
 
     return client
