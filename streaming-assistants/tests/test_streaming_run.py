@@ -12,7 +12,7 @@ def run_with_assistant(assistant, client):
         thread_id=thread.id,
         assistant_id=assistant.id,
         stream=True,
-        temperature="0",
+        temperature=0,
     )
 
     i=0
