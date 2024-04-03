@@ -1,5 +1,7 @@
+import hashlib
 import time
 import logging
+import uuid
 from datetime import datetime
 from typing import Any, Dict
 from uuid import uuid1
@@ -39,6 +41,15 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
+def spooled_file_to_uuid_str(spooled_file):
+    spooled_file.seek(0)
+    file_data = spooled_file.read()
+    sha256_hash = hashlib.sha256(file_data).hexdigest()
+    hash_as_uuid = uuid.UUID(sha256_hash[:32])
+    spooled_file.seek(0)
+
+    return str(hash_as_uuid)
+
 @router.post(
     "/files",
     responses={
@@ -69,10 +80,10 @@ async def create_file(
         else:
             raise NotImplementedError("File upload is currently only supported for OpenAI")
 
+    file_id = spooled_file_to_uuid_str(file.file)
     if purpose in ["auth"]:
         created_at = int(time.mktime(datetime.now().timetuple()))
         obj = "file"
-        file_id = str(uuid1())
         filename = file.filename
         fmt = file.content_type
         bytes = len(file.file.read())
@@ -94,49 +105,54 @@ async def create_file(
 
     created_at = int(time.mktime(datetime.now().timetuple()))
     obj = "file"
-    file_id = str(uuid1())
     filename = file.filename
     fmt = file.content_type
     bytes = len(file.file.read())
     file.file.seek(0)
 
-    document = await get_document_from_file(file, file_id)
+    try:
+        existing_file = await retrieve_file(file_id, astradb)
+        return existing_file
+    except HTTPException as e:
+        if e.status_code != 404:
+            raise e
+        document = await get_document_from_file(file, file_id)
 
-    litellm_kwargs_embedding = litellm_kwargs.copy()
-    triple = utils.get_llm_provider(embedding_model)
-    provider = triple[1]
-    if provider != "bedrock":
-        if litellm_kwargs_embedding.get("aws_access_key_id") is not None:
-            litellm_kwargs_embedding.pop("aws_access_key_id")
-        if litellm_kwargs_embedding.get("aws_secret_access_key") is not None:
-            litellm_kwargs_embedding.pop("aws_secret_access_key")
-        if litellm_kwargs_embedding.get("aws_region_name") is not None:
-            litellm_kwargs_embedding.pop("aws_region_name")
-    logger.info("getting chunks")
-    format = file.filename.format()
-    chunks = get_document_chunks(
-        documents=[document],
-        chunk_token_size=None,
-        embedding_model=embedding_model,
-        format=format,
-        **litellm_kwargs_embedding,
-    )
-    # TODO: make this a background task
-    logger.info("upserting file and chunks")
-    openAIFile = astradb.upsert_file(
-        id=file_id,
-        object=obj,
-        purpose=purpose,
-        created_at=created_at,
-        filename=filename,
-        format=fmt,
-        bytes=bytes,
-        chunks=chunks,
-        embedding_model=embedding_model,
-        **litellm_kwargs,
-    )
-    logger.info(f"File created {openAIFile}")
-    return openAIFile
+        litellm_kwargs_embedding = litellm_kwargs.copy()
+        triple = utils.get_llm_provider(embedding_model)
+        provider = triple[1]
+        if provider != "bedrock":
+            if litellm_kwargs_embedding.get("aws_access_key_id") is not None:
+                litellm_kwargs_embedding.pop("aws_access_key_id")
+            if litellm_kwargs_embedding.get("aws_secret_access_key") is not None:
+                litellm_kwargs_embedding.pop("aws_secret_access_key")
+            if litellm_kwargs_embedding.get("aws_region_name") is not None:
+                litellm_kwargs_embedding.pop("aws_region_name")
+        logger.info("getting chunks")
+        format = file.filename.format()
+        chunks = get_document_chunks(
+            documents=[document],
+            chunk_token_size=None,
+            embedding_model=embedding_model,
+            format=format,
+            **litellm_kwargs_embedding,
+        )
+        # TODO: make this a background task
+        logger.info("upserting file and chunks")
+        openAIFile = astradb.upsert_file(
+            id=file_id,
+            object=obj,
+            purpose=purpose,
+            created_at=created_at,
+            filename=filename,
+            format=fmt,
+            bytes=bytes,
+            chunks=chunks,
+            embedding_model=embedding_model,
+            **litellm_kwargs,
+        )
+        logger.info(f"File created {openAIFile}")
+        return openAIFile
 
 
 @router.delete(
