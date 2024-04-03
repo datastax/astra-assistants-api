@@ -557,9 +557,10 @@ def patch(client: Union[OpenAI, AsyncOpenAI]):
 
     print(f"Patching OpenAI client, it will now communicate to Astra Assistants API: {client.base_url}\nLearn more about Astra at: https://docs.datastax.com/en/astra/astra-db-vector/integrations/astra-assistants-api.html")
 
-    # for astra headers
+    # for astra headers (all beta endpoints)
     patch_methods(client.beta,client)
-    client.files.create = MethodType(wrap_file_create_method(client.files.create, client), client.files.create)
+    # for astra headers (file endpoints (not beta))
+    patch_methods(client.files,client)
 
     # for stream
     client.beta.threads.messages.list = MethodType(wrap_list(client.beta.threads.messages.list), client.beta.threads.messages)
