@@ -11,6 +11,12 @@ import pytest
 def test_assistants_crud(openai_client):
     assistants = openai_client.beta.assistants.list().data
 
+    try:
+        openai_client.beta.assistants.retrieve("invalid-assistant-id")
+        assert False, "Expected an error"
+    except Exception as e:
+        assert e.status_code == 404
+
     asst = openai_client.beta.assistants.create(
         name="Math Tutor",
         instructions="You are a personal math tutor. Answer questions briefly, in a sentence or less.",

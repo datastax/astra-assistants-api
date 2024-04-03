@@ -267,6 +267,8 @@ async def get_assistant(
     astradb: CassandraClient = Depends(verify_db_client),
 ) -> AssistantObject:
     assistant = astradb.get_assistant(id=assistant_id)
+    if assistant is None:
+        raise HTTPException(status_code=404, detail="Assistant not found.")
     return assistant
 
 
