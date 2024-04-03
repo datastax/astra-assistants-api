@@ -75,12 +75,11 @@ async def get_document_from_file(file: UploadFile, file_id: str) -> Document:
 
 def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None) -> str:
     """Return the text content of a file given its filepath."""
-
-    #get extension from filepath for example /tmp/pytest.ini
-    extension = os.path.splitext(filepath)[1]
     if mimetype is None or mimetype == "application/octet-stream":
         # Get the mimetype of the file based on its extension
         mimetype, _ = mimetypes.guess_type(filepath)
+    #get extension from filepath for example /tmp/pytest.ini, safe because splittext returns a tuple
+    extension = os.path.splitext(filepath)[1]
     if not mimetype:
         # when there's no mimetype, treat other valid extensions as text/plain, including files without extensions (i.e. Dockerfile)
         if extension not in exclude_exts:

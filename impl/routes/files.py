@@ -41,9 +41,10 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-def spooled_file_to_uuid_str(spooled_file):
+def upload_file_to_uuid_str(upload_file):
+    spooled_file = upload_file.file
     spooled_file.seek(0)
-    file_data = spooled_file.read()
+    file_data = upload_file.filename.encode('utf-8') + spooled_file.read()
     sha256_hash = hashlib.sha256(file_data).hexdigest()
     hash_as_uuid = uuid.UUID(sha256_hash[:32])
     spooled_file.seek(0)
@@ -80,7 +81,7 @@ async def create_file(
         else:
             raise NotImplementedError("File upload is currently only supported for OpenAI")
 
-    file_id = spooled_file_to_uuid_str(file.file)
+    file_id = upload_file_to_uuid_str(file)
     if purpose in ["auth"]:
         created_at = int(time.mktime(datetime.now().timetuple()))
         obj = "file"
@@ -113,6 +114,7 @@ async def create_file(
     try:
         existing_file = await retrieve_file(file_id, astradb)
         return existing_file
+
     except HTTPException as e:
         if e.status_code != 404:
             raise e
