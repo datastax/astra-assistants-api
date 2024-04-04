@@ -729,6 +729,7 @@ async def process_rag(
             model=model,
             **litellm_kwargs,
         )).content
+        logger.debug(f"ANN search_string {search_string}")
 
 
         # TODO incorporate file_ids into the search using where in
@@ -875,7 +876,7 @@ async def maybe_checkpoint(assistant_id, astradb, created_at, file_ids, frequenc
     current_time = time.time()
     if current_time - start_time >= frequency_in_seconds:
         logger.info("Checkpointing message")
-        logger.info(f"text: {text}")
+        logger.debug(f"text: {text}")
 
         astradb.upsert_message(
             id=message_id,
