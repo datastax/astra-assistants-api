@@ -336,10 +336,10 @@ async def run_event_stream(run, message_id, astradb):
         yield f"data: {event_json}\n\n"
 
 
-    async for event in stream_message_events(astradb, run.thread_id, None, "desc", None, None):
+    async for event in stream_message_events(astradb, run.thread_id, None, "desc", None, None, run):
         yield event
 
-async def stream_message_events(astradb, thread_id, limit, order, after, before):
+async def stream_message_events(astradb, thread_id, limit, order, after, before, run):
     logger.debug(background_task_set)
     logger.info(f"fetching messages for thread {thread_id}")
     messages = await get_and_process_assistant_messages(astradb, thread_id, limit, order, after, before)
