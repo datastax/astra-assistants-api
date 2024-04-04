@@ -319,8 +319,11 @@ async def run_event_stream(run, message_id, astradb):
         #    tool_call = RetrievalToolCallDelta(**run_tool_call.dict(), index=index)
         #    index += 1
         #    retrieval_tool_call_deltas.append(tool_call)
-
         #tool_call_delta_object = ToolCallDeltaObject(type="tool_calls", tool_calls=retrieval_tool_call_deltas)
+
+        while run_step.status != "completed":
+            run_step = astradb.get_run_step(run_id=run.id, id=message_id)
+            await asyncio.sleep(1)
         tool_call_delta_object = ToolCallDeltaObject(type="tool_calls", tool_calls=None)
         step_delta = RunStepDelta(step_details=tool_call_delta_object)
         run_step_delta = RunStepDeltaEvent(id=run_step.id, delta=step_delta, object="thread.run.step.delta")
@@ -531,6 +534,7 @@ async def create_run(
             file_ids=file_ids,
             metadata={},
         )
+
         bkd_task = process_rag(
             run_id,
             thread_id,
@@ -568,8 +572,31 @@ async def create_run(
                file_ids=file_ids,
                metadata={},
            )
-           # async calls to rag
+           # create run_step
+           run_step = RunStep(
+               id = message_id,
+               assistant_id = assistant.id,
+               created_at = created_at,
+               object = "thread.run.step",
+               run_id = run_id,
+               status = "in_progress",
+               thread_id = thread_id,
+               type = "tool_calls",
+               step_details = ToolCallsStepDetails(
+                   type="tool_calls",
+                   tool_calls = [
+                       RetrievalToolCall(
+                           id = message_id,
+                           type = "retrieval",
+                           retrieval = {},
+                       ),
+                   ],
+               )
+           )
+           logger.info(f"creating run_step {run_step}")
+           astradb.upsert_run_step(run_step)
 
+           # async calls to rag
            bkd_task = process_rag(
                run_id,
                thread_id,
@@ -687,13 +714,30 @@ async def process_rag(
         logger.info(f"Processing RAG {run_id}")
         # TODO: Deal with run status better
         message_string, message_content = summarize_message_content(instructions, messages)
+
+        search_string_messages = message_content.copy()
+
+        # TODO: enforce this with instructor?
+        search_string_prompt = "There's a corpus of files that are relevant to your task. You can search these with semantic search. Based on the conversation so far what search string would you search for to better inform your next response (REPLY ONLY WITH THE SEARCH STRING)?"
+
+        # dummy assistant message because some models don't allow two user messages back to back
+        search_string_messages.append({"role": "assistant", "content": "I need more information to generate a good response."})
+        search_string_messages.append({"role": "user", "content": search_string_prompt})
+
+        search_string = (await get_chat_completion(
+            messages=search_string_messages,
+            model=model,
+            **litellm_kwargs,
+        )).content
+
+
         # TODO incorporate file_ids into the search using where in
         if len(file_ids) > 0:
             created_at = int(time.mktime(datetime.now().timetuple()))
             context_json = astradb.annSearch(
                 table="file_chunks",
                 vector_index_column="embedding",
-                search_string=message_string,
+                search_string=search_string,
                 partitions=file_ids,
                 litellm_kwargs=litellm_kwargs,
                 embedding_model=embedding_model,
@@ -709,7 +753,8 @@ async def process_rag(
                 file_object = {
                     "file_name" : file.filename,
                     "file_id" : file.id,
-                    "bytes" : file.bytes
+                    "bytes" : file.bytes,
+                    "search_string": search_string,
                 }
                 file_meta[file_id] = file_object
 
