@@ -340,40 +340,43 @@ async def run_event_stream(run, message_id, astradb):
         yield event
 
 async def stream_message_events(astradb, thread_id, limit, order, after, before, run):
-    logger.debug(background_task_set)
-    logger.info(f"fetching messages for thread {thread_id}")
-    messages = await get_and_process_assistant_messages(astradb, thread_id, limit, order, after, before)
-
-    first_id = messages[0].id
-    last_id = messages[len(messages) - 1].id
-
-    current_message = None
-    last_message_length=0
-
-    if len(messages)>0:
-        message_holder = Message(**messages[0].dict(), status="in_progress")
-        event = ThreadMessageCreated(data=message_holder, event="thread.message.created")
-        event_json = event.json()
-        yield f"data: {event_json}\n\n"
-        event = ThreadMessageInProgress(data=message_holder, event="thread.message.in_progress")
-        event_json = event.json()
-        yield f"data: {event_json}\n\n"
-
-
-    i=0
-    for message in messages:
-        current_message = message
-        if len(message.content) == 0:
-            break
-        json_data, last_message_length = await package_message(first_id, last_id, message, thread_id, last_message_length)
-        event_json = await make_text_delta_event(i, json_data, message, run)
-        yield f"data: {event_json}\n\n"
-
-    last_message = current_message
-    run_id = last_message.run_id
-    if run_id == "None":
-        run_id = messages[0].run_id
     try:
+        logger.debug(background_task_set)
+        logger.info(f"fetching messages for thread {thread_id}")
+        messages = await get_and_process_assistant_messages(astradb, thread_id, limit, order, after, before)
+
+        first_id = messages[0].id
+        last_id = messages[len(messages) - 1].id
+
+        current_message = None
+        last_message_length=0
+
+        if len(messages)>0:
+            # if the message already has content, clear it for the created and in progress event. It will flow in the deltas.
+            message  = messages[0].dict().copy()
+            message['content'] = []
+            message_holder = Message(**message, status="in_progress")
+            event = ThreadMessageCreated(data=message_holder, event="thread.message.created")
+            event_json = event.json()
+            yield f"data: {event_json}\n\n"
+            event = ThreadMessageInProgress(data=message_holder, event="thread.message.in_progress")
+            event_json = event.json()
+            yield f"data: {event_json}\n\n"
+
+
+        i=0
+        for message in messages:
+            current_message = message
+            if len(message.content) == 0:
+                break
+            json_data, last_message_length = await package_message(first_id, last_id, message, thread_id, last_message_length)
+            event_json = await make_text_delta_event(i, json_data, message, run)
+            yield f"data: {event_json}\n\n"
+
+        last_message = current_message
+        run_id = last_message.run_id
+        if run_id == "None":
+            run_id = messages[0].run_id
         while True:
             message = await get_message(thread_id, last_message.id, astradb)
             if message.content != last_message.content:

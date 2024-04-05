@@ -49,7 +49,7 @@ def run_with_assistant(assistant, client):
             for tool_call in run_step.step_details.tool_calls:
                 matches = tool_call.retrieval
                 print(json.dumps(tool_call.retrieval))
-            assert len(matches) > 0
+            assert len(matches) > 0, "No matches found"
 
         @override
         def on_text_created(self, text) -> None:
@@ -74,8 +74,8 @@ def run_with_assistant(assistant, client):
         for part in stream:
             print(part)
 
-    assert event_handler.on_text_created_count > 0
-    assert event_handler.on_text_delta_count > 0
+    assert event_handler.on_text_created_count > 0, "No text created"
+    assert event_handler.on_text_delta_count > 0, "No text delta"
 
 
 instructions = "You are a personal math tutor. Answer thoroughly. The system will provide relevant context from files, use the context to respond."
@@ -91,7 +91,6 @@ def test_run_gpt3_5(patched_openai_client):
     )
     run_with_assistant(gpt3_assistant, patched_openai_client)
 
-#@pytest.mark.skip(reason="replace with command-r because context window")
 def test_run_cohere(patched_openai_client):
     model = "command-r"
     name = f"{model} Math Tutor"
