@@ -612,7 +612,8 @@ async def create_run(
                embedding_model,
                assistant.id,
                message_id,
-               embedding_api_key
+               embedding_api_key,
+               run_step.id
            )
            await add_background_task(function=bkd_task, run_id=run_id, thread_id=thread_id, astradb=astradb)
 
@@ -711,109 +712,113 @@ def summarize_message_content(instructions, messages):
     return message_string, message_content # maybe trim message history?
 
 async def process_rag(
-    run_id, thread_id, file_ids, messages, model, instructions, astradb, litellm_kwargs, embedding_model, assistant_id, message_id, embedding_api_key
+    run_id, thread_id, file_ids, messages, model, instructions, astradb, litellm_kwargs, embedding_model, assistant_id, message_id, embedding_api_key, run_step_id = None
 ):
     try:
         logger.info(f"Processing RAG {run_id}")
         # TODO: Deal with run status better
         message_string, message_content = summarize_message_content(instructions, messages)
 
-        search_string_messages = message_content.copy()
+        if run_step_id is not None:
+            search_string_messages = message_content.copy()
 
-        # TODO: enforce this with instructor?
-        search_string_prompt = "There's a corpus of files that are relevant to your task. You can search these with semantic search. Based on the conversation so far what search string would you search for to better inform your next response (REPLY ONLY WITH THE SEARCH STRING)?"
+            # TODO: enforce this with instructor?
+            search_string_prompt = "There's a corpus of files that are relevant to your task. You can search these with semantic search. Based on the conversation so far what search string would you search for to better inform your next response (REPLY ONLY WITH THE SEARCH STRING)?"
 
-        # dummy assistant message because some models don't allow two user messages back to back
-        search_string_messages.append({"role": "assistant", "content": "I need more information to generate a good response."})
-        search_string_messages.append({"role": "user", "content": search_string_prompt})
+            # dummy assistant message because some models don't allow two user messages back to back
+            search_string_messages.append({"role": "assistant", "content": "I need more information to generate a good response."})
+            search_string_messages.append({"role": "user", "content": search_string_prompt})
 
-        search_string = (await get_chat_completion(
-            messages=search_string_messages,
-            model=model,
-            **litellm_kwargs,
-        )).content
-        logger.debug(f"ANN search_string {search_string}")
+            search_string = (await get_chat_completion(
+                messages=search_string_messages,
+                model=model,
+                **litellm_kwargs,
+            )).content
+            logger.debug(f"ANN search_string {search_string}")
 
 
-        # TODO incorporate file_ids into the search using where in
-        if len(file_ids) > 0:
-            created_at = int(time.mktime(datetime.now().timetuple()))
-            context_json = astradb.annSearch(
-                table="file_chunks",
-                vector_index_column="embedding",
-                search_string=search_string,
-                partitions=file_ids,
-                litellm_kwargs=litellm_kwargs,
-                embedding_model=embedding_model,
-                embedding_api_key=embedding_api_key,
-            )
-
-            # get the unique file_ids from the context_json
-            file_ids = list(set([chunk["file_id"] for chunk in context_json]))
-
-            file_meta = {}
-            for file_id in file_ids:
-                file : OpenAIFile = await retrieve_file(file_id, astradb)
-                file_object = {
-                    "file_name" : file.filename,
-                    "file_id" : file.id,
-                    "bytes" : file.bytes,
-                    "search_string": search_string,
-                }
-                file_meta[file_id] = file_object
-
-            # add file metadata from file_meta to context_json
-            context_json_meta = [{**chunk, **file_meta[chunk['file_id']]} for chunk in context_json if chunk['file_id'] in file_meta]
-
-            completed_at = int(time.mktime(datetime.now().timetuple()))
-
-            # TODO: consider [optionally?] excluding the content payload because it can be big
-            details = ToolCallsStepDetails(
-                type="tool_calls",
-                tool_calls = [
-                    RetrievalToolCall(
-                        id = message_id,
-                        type = "retrieval",
-                        retrieval = context_json_meta,
-                    ),
-                ],
-            )
-
-            run_step = RunStep(
-                id = message_id,
-                assistant_id = assistant_id,
-                completed_at = completed_at,
-                created_at = created_at,
-                object = "thread.run.step",
-                run_id = run_id,
-                status = "completed",
-                step_details = details,
-                thread_id = thread_id,
-                type = "tool_calls",
-            )
-            logger.info(f"creating run_step {run_step}")
-            astradb.upsert_run_step(run_step)
-
-            user_message = message_content.pop()
-            message_content.append({"role": "system", "content": "Important, ALWAYS use the following information to craft your responses. Include the relevant file_name and chunk_id references in parenthesis as part of your response i.e. (chunk_id dbd94b44-cb13-11ee-a868-fd1abaa6ff88_18)."})
-            for context in context_json_meta:
-                # TODO improve citations https://platform.openai.com/docs/guides/prompt-engineering/six-strategies-for-getting-better-results
-                content = (
-                    "the information below comes from file_name - "
-                    + context["file_name"]
-                    + " and chunk_id - "
-                    + context["chunk_id"]
-                    + ":\n"
-                    + context["content"]
-                    + ":\n"
+            # TODO incorporate file_ids into the search using where in
+            if len(file_ids) > 0:
+                created_at = int(time.mktime(datetime.now().timetuple()))
+                context_json = astradb.annSearch(
+                    table="file_chunks",
+                    vector_index_column="embedding",
+                    search_string=search_string,
+                    partitions=file_ids,
+                    litellm_kwargs=litellm_kwargs,
+                    embedding_model=embedding_model,
+                    embedding_api_key=embedding_api_key,
                 )
-                message_content.append({"role": "system", "content": content})
-            message_content.append(user_message)
+
+                # get the unique file_ids from the context_json
+                file_ids = list(set([chunk["file_id"] for chunk in context_json]))
+
+                file_meta = {}
+                for file_id in file_ids:
+                    file : OpenAIFile = await retrieve_file(file_id, astradb)
+                    file_object = {
+                        "file_name" : file.filename,
+                        "file_id" : file.id,
+                        "bytes" : file.bytes,
+                        "search_string": search_string,
+                    }
+                    file_meta[file_id] = file_object
+
+                # add file metadata from file_meta to context_json
+                context_json_meta = [{**chunk, **file_meta[chunk['file_id']]} for chunk in context_json if chunk['file_id'] in file_meta]
+
+                completed_at = int(time.mktime(datetime.now().timetuple()))
+
+                # TODO: consider [optionally?] excluding the content payload because it can be big
+                details = ToolCallsStepDetails(
+                    type="tool_calls",
+                    tool_calls = [
+                        RetrievalToolCall(
+                            id = message_id,
+                            type = "retrieval",
+                            retrieval = context_json_meta,
+                        ),
+                    ],
+                )
+
+                run_step = RunStep(
+                    id = message_id,
+                    assistant_id = assistant_id,
+                    completed_at = completed_at,
+                    created_at = created_at,
+                    object = "thread.run.step",
+                    run_id = run_id,
+                    status = "completed",
+                    step_details = details,
+                    thread_id = thread_id,
+                    type = "tool_calls",
+                )
+                logger.info(f"creating run_step {run_step}")
+                astradb.upsert_run_step(run_step)
+
+                user_message = message_content.pop()
+                message_content.append({"role": "system", "content": "Important, ALWAYS use the following information to craft your responses. Include the relevant file_name and chunk_id references in parenthesis as part of your response i.e. (chunk_id dbd94b44-cb13-11ee-a868-fd1abaa6ff88_18)."})
+                for context in context_json_meta:
+                    # TODO improve citations https://platform.openai.com/docs/guides/prompt-engineering/six-strategies-for-getting-better-results
+                    content = (
+                        "the information below comes from file_name - "
+                        + context["file_name"]
+                        + " and chunk_id - "
+                        + context["chunk_id"]
+                        + ":\n"
+                        + context["content"]
+                        + ":\n"
+                    )
+                    message_content.append({"role": "system", "content": content})
+                message_content.append(user_message)
 
         litellm_kwargs["stream"] = True
 
         logger.info(f"generating for message_content: {message_content}")
 
+        for message in message_content:
+            if message["content"] == "":
+                message_content.remove(message)
         response = await get_async_chat_completion_response(
             messages=message_content,
             model=model,
