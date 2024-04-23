@@ -56,6 +56,7 @@ logger = logging.getLogger(__name__)
 CASSANDRA_KEYSPACE = os.getenv("CASSANDRA_KEYSPACE", "assistant_api")
 CASSANDRA_USER = "token"
 DEFAULT_DB_NAME = "assistant_api_db"
+ASTRA_URL = os.getenv("ASTRA_URL", "https://api.astra.datastax.com/v2/databases")
 
 TOKEN_AUTH_FAILURE_MESSAGE = """
 Unauthorized to connect to AstraDB. Please ensure you're passing a token starting with `ASTRACS:...` from https://astra.datastax.com and ensure it has the right scope.
@@ -221,7 +222,7 @@ class CassandraClient:
         logger.info("get or create db")
         token = self.token
 
-        url = f"https://api.astra.datastax.com/v2/databases"
+        url = ASTRA_URL
 
         headers = {
             "Authorization": f"Bearer {token}",
@@ -302,7 +303,7 @@ class CassandraClient:
             # Forward the auth error to return from FastAPI
             return HandledResponse(
                 status_code=401,
-                detail=f"{TOKEN_AUTH_FAILURE_MESSAGE}\nCould not access url: {e.response.url}. Detail: {e.response.text}",
+                detail=f"{TOKEN_AUTH_FAILURE_MESSAGE}\nCould not access url: {response.url}. Detail: {response.text}",
                 retryable=False,
             )
         elif response.status_code == 409:
