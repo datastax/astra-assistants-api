@@ -18,6 +18,7 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -53,6 +54,7 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -88,6 +90,7 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -124,6 +127,7 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -160,6 +164,7 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -195,6 +200,7 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -230,6 +236,7 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -265,6 +272,7 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -300,6 +308,7 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -335,6 +344,7 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -370,6 +380,7 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -405,6 +416,7 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -440,6 +452,7 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
 
     steps:
