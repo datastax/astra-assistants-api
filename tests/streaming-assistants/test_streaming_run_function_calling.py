@@ -39,6 +39,10 @@ def test_function_calling_gemini(patched_openai_client):
     model="gemini/gemini-pro"
     function_calling(model, patched_openai_client)
 
+def test_function_calling_groq_llama3(patched_openai_client):
+    model="groq/llama3-8b-8192"
+    function_calling(model, patched_openai_client)
+
 @pytest.mark.skip(reason="llama does not consistently work with function calling, skip")
 def test_function_calling_llama(patched_openai_client):
     model = "meta.llama2-13b-chat-v1"

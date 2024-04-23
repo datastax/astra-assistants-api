@@ -43,6 +43,10 @@ def test_chat_completion_gpt3_5(patched_openai_client):
     model="gpt-3.5-turbo"
     print_chat_completion(model, patched_openai_client)
 
+def test_chat_completion_groq_llama3(patched_openai_client):
+    model="groq/llama3-8b-8192"
+    print_chat_completion(model, patched_openai_client)
+
 def test_chat_completion_cohere(patched_openai_client):
     model="cohere/command"
     print_chat_completion(model, patched_openai_client)

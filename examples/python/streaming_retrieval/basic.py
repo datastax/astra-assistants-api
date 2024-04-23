@@ -58,6 +58,17 @@ gpt3_assistant = client.beta.assistants.create(
 )
 run_with_assistant(gpt3_assistant, client)
 
+model = "llama3-8b-8192"
+name = f"{model} Math Tutor"
+
+groq_assistant = client.beta.assistants.create(
+    name=name,
+    instructions=instructions,
+    model=model,
+)
+run_with_assistant(groq_assistant, client)
+
+
 model = "cohere/command"
 name = f"{model} Math Tutor"
 
