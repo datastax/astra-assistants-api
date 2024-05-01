@@ -23,7 +23,7 @@ from openai.types.beta.assistant_stream_event import ThreadRunCreated, ThreadRun
     ThreadRunStepCreated, ThreadRunStepInProgress, ThreadRunStepCompleted
 from openai.types.beta.threads import Message, MessageDeltaEvent, MessageDelta, TextDeltaBlock, TextDelta
 from openai.types.beta.threads.runs import RunStepDeltaEvent, RunStepDelta, ToolCallsStepDetails, FunctionToolCallDelta, \
-    ToolCallDeltaObject, RunStep, MessageCreationStepDetails, RetrievalToolCall, RetrievalToolCallDelta
+    ToolCallDeltaObject, RunStep, MessageCreationStepDetails, RetrievalToolCall
 from openai.types.beta.threads.runs.message_creation_step_details import MessageCreation
 from starlette.responses import StreamingResponse
 
