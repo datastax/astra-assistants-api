@@ -12,6 +12,8 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_fastapi_instrumentator.metrics import Info
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 from impl.background import background_task_set
 from impl.rate_limiter import get_dbid, limiter
@@ -25,17 +27,17 @@ logging.basicConfig(level=logging.DEBUG,
 logger = logging.getLogger('cassandra')
 logger.setLevel(logging.WARN)
 
-
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Astra Assistants API",
-    description="Drop in replacement for OpenAI Assistants API. .",
+    description="Drop in replacement for OpenAI Assistants API.",
     version="2.0.0",
 )
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -53,6 +55,24 @@ app.include_router(files.router, prefix="/v1")
 app.include_router(health.router, prefix="/v1")
 app.include_router(stateless.router, prefix="/v1")
 app.include_router(threads.router, prefix="/v1")
+
+
+class APIVersionMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        version_header = request.headers.get("OpenAI-Beta")
+
+        original_path = request.url.path
+        if version_header is None or version_header == "assistants=v1":
+            request.scope['path'] = original_path
+            response = await call_next(request)
+            return response
+        else:
+            return Response(
+                "Unsupported version, please use openai SDK compatible with: OpenAI-Beta: assistants=v1 (python sdk openai 1.21.0 or older)",
+                status_code=400)
+
+
+app.add_middleware(APIVersionMiddleware)
 
 
 def count_dbid(
@@ -130,7 +150,6 @@ def count_dbid(
             info.modified_duration
         )
 
-
     return instrumentation
 
 
@@ -182,6 +201,5 @@ async def unimplemented(request: Request, full_path: str):
         status_code=501, content={"message": "This feature is not yet implemented"}
     )
 
-
-#if __name__ == "__main__":
+# if __name__ == "__main__":
 #    uvicorn.run(app, host="0.0.0.0", port=8000)
