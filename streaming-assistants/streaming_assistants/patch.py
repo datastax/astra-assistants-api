@@ -18,6 +18,12 @@ from openai.types.beta.thread_create_and_run_params import ThreadMessage
 from litellm import utils
 from openai.types.beta.threads import message_create_params, Message
 
+from dotenv import load_dotenv
+
+load_dotenv("./.env")
+
+
+
 LLM_PARAM_AWS_REGION_NAME = "LLM-PARAM-aws-region-name"
 LLM_PARAM_AWS_SECRET_ACCESS_KEY = "LLM-PARAM-aws-secret-access-key"
 LLM_PARAM_AWS_ACCESS_KEY_ID = "LLM-PARAM-aws-access-key-id"

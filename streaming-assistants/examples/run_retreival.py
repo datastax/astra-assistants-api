@@ -1,13 +1,10 @@
 import json
 import time
 from openai import OpenAI
-from dotenv import load_dotenv
 from openai.lib.streaming import AssistantEventHandler
 from typing_extensions import override
 
 from streaming_assistants import patch
-
-load_dotenv("./.env")
 
 class EventHandler(AssistantEventHandler):
     @override
