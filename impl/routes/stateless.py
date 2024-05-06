@@ -110,6 +110,7 @@ async def _completion_from_request(
         kwargs["user"] = chat_request.user
 
     response = await get_async_chat_completion_response(**kwargs)
+    # TODO - throw error if response fails
 
     choices = []
     if chat_request.stream is not None and chat_request.stream:

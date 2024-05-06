@@ -15,7 +15,27 @@ def test_create_chat_completion(client: TestClient):
     create_chat_completion_request = {
         "logit_bias":{"11":-6},
         "seed":2147483647,
-        "functions":[],
+        "tools":[
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_current_weather",
+                    "description": "Get the current weather in a given location",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "location": {
+                                "type": "string",
+                                "description": "The city and state, e.g. San Francisco, CA",
+                            },
+                            "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+                        },
+                        "required": ["location"],
+                    },
+                },
+            }
+        ],
+        "tool_choice":"auto",
         "max_tokens":1,
         "presence_penalty":0.38485356667327286,
         "n":2,
