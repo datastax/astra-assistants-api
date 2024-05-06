@@ -3,13 +3,35 @@ import logging
 logger = logging.getLogger(__name__)
 
 def print_chat_completion(model, client):
-    prompt="Draw your favorite animal."
+    prompt="Draw your favorite animal using today's weather in NY."
     response = client.chat.completions.create(
         model=model,
         messages=[
             {"role": "system", "content": "You are an amazing ascii art generator bot, no text just art."},
             {"role": "user", "content": prompt}
-        ]
+        ],
+        tools=[{
+            "type": "function",
+            "function": {
+                "name": "get_current_weather",
+                "description": "Get the current weather in a given location",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "location": {
+                            "type": "string",
+                            "description": "The city and state, e.g. San Francisco, CA",
+                        },
+                        "unit": {
+                            "type": "string",
+                            "enum": ["celsius", "fahrenheit"],
+                        },
+                    },
+                    "required": ["location"],
+                },
+            },
+        }],
+        tool_choice='auto'
     )
     logger.info(f'prompt> {prompt}')
     logger.info(f'artist-{model}>\n{response.choices[0].message.content}')

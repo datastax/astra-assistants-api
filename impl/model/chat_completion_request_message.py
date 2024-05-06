@@ -31,7 +31,7 @@ class ChatCompletionRequestMessage(BaseModel):
         tool_call_id: The tool_call_id of this ChatCompletionRequestMessage.
     """
 
-    content: str = Field(alias="content")
+    content: Optional[str] = Field(alias="content")
     role: str = Field(alias="role")
     name: Optional[str] = Field(alias="name", default=None)
     tool_calls: Optional[List[ChatCompletionMessageToolCall]] = Field(alias="tool_calls", default=None)

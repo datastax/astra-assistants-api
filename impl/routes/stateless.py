@@ -98,6 +98,11 @@ async def _completion_from_request(
     if functions:
         kwargs["functions"] = functions
 
+    # workaround for https://github.com/BerriAI/litellm/pull/3439
+    #if "function" not in kwargs and "tools" in kwargs:
+    #    kwargs["functions"] = kwargs["tools"]
+    #    kwargs.pop("tools")
+
     if chat_request.logit_bias is not None:
         kwargs["logit_bias"] = chat_request.logit_bias
 
@@ -437,6 +442,22 @@ async def cancel_fine_tuning_job(
     using_openai: bool = Depends(check_if_using_openai),
 ) -> StreamingResponse:
     return await maybe_forward_request(request, using_openai)
+
+
+@router.get(
+    "/fine_tuning/jobs/{fine_tuning_job_id}/checkpoints",
+    responses={'200': {'description': 'OK', 'content': {'application/json': {'schema': {'$ref': '#/components/schemas/ListFineTuningJobCheckpointsResponse'}}}}},
+    tags=['Fine-tuning'],
+    summary="""List checkpoints for a fine-tuning job.
+""",
+    response_model_by_alias=True
+)
+async def list_fine_tuning_job_checkpoints(
+        request: Request,
+        using_openai: bool = Depends(check_if_using_openai),
+) -> StreamingResponse:
+    return await maybe_forward_request(request, using_openai)
+
 
 
 @router.post(
