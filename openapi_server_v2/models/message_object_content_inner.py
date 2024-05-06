@@ -22,8 +22,8 @@ import re  # noqa: F401
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, ValidationError, field_validator
 from typing import Any, List, Optional
-from openapi_server.models.message_content_image_file_object import MessageContentImageFileObject
-from openapi_server.models.message_content_text_object import MessageContentTextObject
+from openapi_server_v2.models.message_content_image_file_object import MessageContentImageFileObject
+from openapi_server_v2.models.message_content_text_object import MessageContentTextObject
 from typing import Union, Any, List, TYPE_CHECKING, Optional, Dict
 from typing_extensions import Literal
 from pydantic import StrictStr, Field

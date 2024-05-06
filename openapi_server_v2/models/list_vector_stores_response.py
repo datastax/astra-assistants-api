@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict, StrictBool, StrictStr
 from typing import Any, ClassVar, Dict, List
-from openapi_server.models.vector_store_object import VectorStoreObject
+from openapi_server_v2.models.vector_store_object import VectorStoreObject
 try:
     from typing import Self
 except ImportError:

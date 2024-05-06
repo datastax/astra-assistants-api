@@ -4,7 +4,7 @@ from typing import Dict, List  # noqa: F401
 import importlib
 import pkgutil
 
-from openapi_server.apis.images_api_base import BaseImagesApi
+from openapi_server_v2.apis.images_api_base import BaseImagesApi
 import impl
 
 from fastapi import (  # noqa: F401
@@ -21,11 +21,11 @@ from fastapi import (  # noqa: F401
     status,
 )
 
-from openapi_server.models.extra_models import TokenModel  # noqa: F401
-from openapi_server.models.create_image_edit_request_model import CreateImageEditRequestModel
-from openapi_server.models.create_image_request import CreateImageRequest
-from openapi_server.models.images_response import ImagesResponse
-from openapi_server.security_api import get_token_ApiKeyAuth
+from openapi_server_v2.models.extra_models import TokenModel  # noqa: F401
+from openapi_server_v2.models.create_image_edit_request_model import CreateImageEditRequestModel
+from openapi_server_v2.models.create_image_request import CreateImageRequest
+from openapi_server_v2.models.images_response import ImagesResponse
+from openapi_server_v2.security_api import get_token_ApiKeyAuth
 
 router = APIRouter()
 

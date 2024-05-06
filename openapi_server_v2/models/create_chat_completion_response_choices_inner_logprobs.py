@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Any, ClassVar, Dict, List, Optional
-from openapi_server.models.chat_completion_token_logprob import ChatCompletionTokenLogprob
+from openapi_server_v2.models.chat_completion_token_logprob import ChatCompletionTokenLogprob
 try:
     from typing import Self
 except ImportError:

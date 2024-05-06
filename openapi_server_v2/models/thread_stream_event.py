@@ -22,7 +22,7 @@ import re  # noqa: F401
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, ValidationError, field_validator
 from typing import Any, List, Optional
-from openapi_server.models.thread_stream_event_one_of import ThreadStreamEventOneOf
+from openapi_server_v2.models.thread_stream_event_one_of import ThreadStreamEventOneOf
 from typing import Union, Any, List, TYPE_CHECKING, Optional, Dict
 from typing_extensions import Literal
 from pydantic import StrictStr, Field

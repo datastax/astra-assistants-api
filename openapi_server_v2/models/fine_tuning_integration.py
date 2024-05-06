@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List
-from openapi_server.models.create_fine_tuning_job_request_integrations_inner_wandb import CreateFineTuningJobRequestIntegrationsInnerWandb
+from openapi_server_v2.models.create_fine_tuning_job_request_integrations_inner_wandb import CreateFineTuningJobRequestIntegrationsInnerWandb
 try:
     from typing import Self
 except ImportError:

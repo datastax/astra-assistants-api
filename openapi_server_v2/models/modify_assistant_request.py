@@ -23,9 +23,9 @@ import json
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional, Union
 from typing_extensions import Annotated
-from openapi_server.models.assistant_object_tools_inner import AssistantObjectToolsInner
-from openapi_server.models.assistants_api_response_format_option import AssistantsApiResponseFormatOption
-from openapi_server.models.modify_assistant_request_tool_resources import ModifyAssistantRequestToolResources
+from openapi_server_v2.models.assistant_object_tools_inner import AssistantObjectToolsInner
+from openapi_server_v2.models.assistants_api_response_format_option import AssistantsApiResponseFormatOption
+from openapi_server_v2.models.modify_assistant_request_tool_resources import ModifyAssistantRequestToolResources
 try:
     from typing import Self
 except ImportError:

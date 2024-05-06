@@ -4,7 +4,7 @@ from typing import Dict, List  # noqa: F401
 import importlib
 import pkgutil
 
-from openapi_server.apis.batch_api_base import BaseBatchApi
+from openapi_server_v2.apis.batch_api_base import BaseBatchApi
 import impl
 
 from fastapi import (  # noqa: F401
@@ -21,11 +21,11 @@ from fastapi import (  # noqa: F401
     status,
 )
 
-from openapi_server.models.extra_models import TokenModel  # noqa: F401
-from openapi_server.models.batch import Batch
-from openapi_server.models.create_batch_request import CreateBatchRequest
-from openapi_server.models.list_batches_response import ListBatchesResponse
-from openapi_server.security_api import get_token_ApiKeyAuth
+from openapi_server_v2.models.extra_models import TokenModel  # noqa: F401
+from openapi_server_v2.models.batch import Batch
+from openapi_server_v2.models.create_batch_request import CreateBatchRequest
+from openapi_server_v2.models.list_batches_response import ListBatchesResponse
+from openapi_server_v2.security_api import get_token_ApiKeyAuth
 
 router = APIRouter()
 

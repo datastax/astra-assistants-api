@@ -23,7 +23,7 @@ import json
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List
 from typing_extensions import Annotated
-from openapi_server.models.message_content_text_annotations_file_path_object_file_path import MessageContentTextAnnotationsFilePathObjectFilePath
+from openapi_server_v2.models.message_content_text_annotations_file_path_object_file_path import MessageContentTextAnnotationsFilePathObjectFilePath
 try:
     from typing import Self
 except ImportError:

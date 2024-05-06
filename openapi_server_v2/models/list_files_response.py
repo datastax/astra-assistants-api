@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List
-from openapi_server.models.open_ai_file import OpenAIFile
+from openapi_server_v2.models.open_ai_file import OpenAIFile
 try:
     from typing import Self
 except ImportError:

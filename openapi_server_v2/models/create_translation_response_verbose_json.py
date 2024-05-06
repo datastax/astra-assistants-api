@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
-from openapi_server.models.transcription_segment import TranscriptionSegment
+from openapi_server_v2.models.transcription_segment import TranscriptionSegment
 try:
     from typing import Self
 except ImportError:

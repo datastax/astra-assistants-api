@@ -22,8 +22,8 @@ import re  # noqa: F401
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, ValidationError, field_validator
 from typing import Any, List, Optional
-from openapi_server.models.create_translation_response_json import CreateTranslationResponseJson
-from openapi_server.models.create_translation_response_verbose_json import CreateTranslationResponseVerboseJson
+from openapi_server_v2.models.create_translation_response_json import CreateTranslationResponseJson
+from openapi_server_v2.models.create_translation_response_verbose_json import CreateTranslationResponseVerboseJson
 from typing import Union, Any, List, TYPE_CHECKING, Optional, Dict
 from typing_extensions import Literal
 from pydantic import StrictStr, Field

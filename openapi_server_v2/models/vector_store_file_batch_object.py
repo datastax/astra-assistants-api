@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List
-from openapi_server.models.vector_store_file_batch_object_file_counts import VectorStoreFileBatchObjectFileCounts
+from openapi_server_v2.models.vector_store_file_batch_object_file_counts import VectorStoreFileBatchObjectFileCounts
 try:
     from typing import Self
 except ImportError:

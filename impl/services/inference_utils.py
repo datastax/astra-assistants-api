@@ -88,37 +88,38 @@ async def get_async_chat_completion_response(
     if model is None and deployment_id is None:
         raise ValueError("Must provide either a model or a deployment id")
 
-    try:
-        if model is None:
-            model = deployment_id
+    #try:
+    if model is None:
+        model = deployment_id
 
-        type_hints = get_type_hints(acompletion)
+    type_hints = get_type_hints(acompletion)
 
-        for key, value in litellm_kwargs.items():
-            if value is not None and key in type_hints and isinstance(value, str):
-                type_hint = type_hints[key]
-                # handle optional
-                if hasattr(type_hint, "__origin__") and type_hint.__origin__ == Union:
-                    litellm_kwargs[key] = type_hint.__args__[0](value)
-                else:
-                    litellm_kwargs[key] = type_hints[key](value)
+    for key, value in litellm_kwargs.items():
+        if value is not None and key in type_hints and isinstance(value, str):
+            type_hint = type_hints[key]
+            # handle optional
+            if hasattr(type_hint, "__origin__") and type_hint.__origin__ == Union:
+                litellm_kwargs[key] = type_hint.__args__[0](value)
+            else:
+                litellm_kwargs[key] = type_hints[key](value)
 
-        completion = await acompletion(
-            model=model,
-            messages=messages,
-            deployment_id=deployment_id,
-            **litellm_kwargs
-        )
-        return completion
-    except Exception as e:
-        if "LLM Provider NOT provided" in e.args[0]:
-            logger.error(f"Error: error {model} is not currently supported")
-            raise ValueError(f"Model {model} is not currently supported")
-        logger.error(f"Error: {e}")
-        raise ValueError(f"Error: {e}")
-    except asyncio.CancelledError:
-        logger.error("litellm call cancelled")
-        raise RuntimeError("litellm call cancelled")
+    litellm.set_verbose=True
+    completion = await acompletion(
+        model=model,
+        messages=messages,
+        deployment_id=deployment_id,
+        **litellm_kwargs
+    )
+    return completion
+    #except Exception as e:
+    #    if "LLM Provider NOT provided" in e.args[0]:
+    #        logger.error(f"Error: error {model} is not currently supported")
+    #        raise ValueError(f"Model {model} is not currently supported")
+    #    logger.error(f"Error: {e}")
+    #    raise ValueError(f"Error: {e}")
+    #except asyncio.CancelledError:
+    #    logger.error("litellm call cancelled")
+    #    raise RuntimeError("litellm call cancelled")
 
 
 async def get_chat_completion(

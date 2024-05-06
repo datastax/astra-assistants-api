@@ -4,7 +4,7 @@ from typing import Dict, List  # noqa: F401
 import importlib
 import pkgutil
 
-from openapi_server.apis.embeddings_api_base import BaseEmbeddingsApi
+from openapi_server_v2.apis.embeddings_api_base import BaseEmbeddingsApi
 import impl
 
 from fastapi import (  # noqa: F401
@@ -21,10 +21,10 @@ from fastapi import (  # noqa: F401
     status,
 )
 
-from openapi_server.models.extra_models import TokenModel  # noqa: F401
-from openapi_server.models.create_embedding_request import CreateEmbeddingRequest
-from openapi_server.models.create_embedding_response import CreateEmbeddingResponse
-from openapi_server.security_api import get_token_ApiKeyAuth
+from openapi_server_v2.models.extra_models import TokenModel  # noqa: F401
+from openapi_server_v2.models.create_embedding_request import CreateEmbeddingRequest
+from openapi_server_v2.models.create_embedding_response import CreateEmbeddingResponse
+from openapi_server_v2.security_api import get_token_ApiKeyAuth
 
 router = APIRouter()
 

@@ -23,9 +23,9 @@ import json
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
 from typing_extensions import Annotated
-from openapi_server.models.create_fine_tuning_job_request_hyperparameters import CreateFineTuningJobRequestHyperparameters
-from openapi_server.models.create_fine_tuning_job_request_integrations_inner import CreateFineTuningJobRequestIntegrationsInner
-from openapi_server.models.create_fine_tuning_job_request_model import CreateFineTuningJobRequestModel
+from openapi_server_v2.models.create_fine_tuning_job_request_hyperparameters import CreateFineTuningJobRequestHyperparameters
+from openapi_server_v2.models.create_fine_tuning_job_request_integrations_inner import CreateFineTuningJobRequestIntegrationsInner
+from openapi_server_v2.models.create_fine_tuning_job_request_model import CreateFineTuningJobRequestModel
 try:
     from typing import Self
 except ImportError:

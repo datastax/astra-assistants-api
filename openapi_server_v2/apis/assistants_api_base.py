@@ -2,29 +2,29 @@
 
 from typing import ClassVar, Dict, List, Tuple  # noqa: F401
 
-from openapi_server.models.assistant_object import AssistantObject
-from openapi_server.models.create_assistant_request import CreateAssistantRequest
-from openapi_server.models.create_message_request import CreateMessageRequest
-from openapi_server.models.create_run_request import CreateRunRequest
-from openapi_server.models.create_thread_and_run_request import CreateThreadAndRunRequest
-from openapi_server.models.create_thread_request import CreateThreadRequest
-from openapi_server.models.delete_assistant_response import DeleteAssistantResponse
-from openapi_server.models.delete_message_response import DeleteMessageResponse
-from openapi_server.models.delete_thread_response import DeleteThreadResponse
-from openapi_server.models.list_assistants_response import ListAssistantsResponse
-from openapi_server.models.list_messages_response import ListMessagesResponse
-from openapi_server.models.list_run_steps_response import ListRunStepsResponse
-from openapi_server.models.list_runs_response import ListRunsResponse
-from openapi_server.models.message_object import MessageObject
-from openapi_server.models.modify_assistant_request import ModifyAssistantRequest
-from openapi_server.models.modify_message_request import ModifyMessageRequest
-from openapi_server.models.modify_run_request import ModifyRunRequest
-from openapi_server.models.modify_thread_request import ModifyThreadRequest
-from openapi_server.models.run_object import RunObject
-from openapi_server.models.run_step_object import RunStepObject
-from openapi_server.models.submit_tool_outputs_run_request import SubmitToolOutputsRunRequest
-from openapi_server.models.thread_object import ThreadObject
-from openapi_server.security_api import get_token_ApiKeyAuth
+from openapi_server_v2.models.assistant_object import AssistantObject
+from openapi_server_v2.models.create_assistant_request import CreateAssistantRequest
+from openapi_server_v2.models.create_message_request import CreateMessageRequest
+from openapi_server_v2.models.create_run_request import CreateRunRequest
+from openapi_server_v2.models.create_thread_and_run_request import CreateThreadAndRunRequest
+from openapi_server_v2.models.create_thread_request import CreateThreadRequest
+from openapi_server_v2.models.delete_assistant_response import DeleteAssistantResponse
+from openapi_server_v2.models.delete_message_response import DeleteMessageResponse
+from openapi_server_v2.models.delete_thread_response import DeleteThreadResponse
+from openapi_server_v2.models.list_assistants_response import ListAssistantsResponse
+from openapi_server_v2.models.list_messages_response import ListMessagesResponse
+from openapi_server_v2.models.list_run_steps_response import ListRunStepsResponse
+from openapi_server_v2.models.list_runs_response import ListRunsResponse
+from openapi_server_v2.models.message_object import MessageObject
+from openapi_server_v2.models.modify_assistant_request import ModifyAssistantRequest
+from openapi_server_v2.models.modify_message_request import ModifyMessageRequest
+from openapi_server_v2.models.modify_run_request import ModifyRunRequest
+from openapi_server_v2.models.modify_thread_request import ModifyThreadRequest
+from openapi_server_v2.models.run_object import RunObject
+from openapi_server_v2.models.run_step_object import RunStepObject
+from openapi_server_v2.models.submit_tool_outputs_run_request import SubmitToolOutputsRunRequest
+from openapi_server_v2.models.thread_object import ThreadObject
+from openapi_server_v2.security_api import get_token_ApiKeyAuth
 
 class BaseAssistantsApi:
     subclasses: ClassVar[Tuple] = ()

@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing import Any, ClassVar, Dict, List
-from openapi_server.models.create_moderation_response_results_inner import CreateModerationResponseResultsInner
+from openapi_server_v2.models.create_moderation_response_results_inner import CreateModerationResponseResultsInner
 try:
     from typing import Self
 except ImportError:

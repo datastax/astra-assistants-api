@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List
-from openapi_server.models.message_content_image_file_object_image_file import MessageContentImageFileObjectImageFile
+from openapi_server_v2.models.message_content_image_file_object_image_file import MessageContentImageFileObjectImageFile
 try:
     from typing import Self
 except ImportError:

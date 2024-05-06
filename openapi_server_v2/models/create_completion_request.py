@@ -23,9 +23,9 @@ import json
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional, Union
 from typing_extensions import Annotated
-from openapi_server.models.create_completion_request_model import CreateCompletionRequestModel
-from openapi_server.models.create_completion_request_prompt import CreateCompletionRequestPrompt
-from openapi_server.models.create_completion_request_stop import CreateCompletionRequestStop
+from openapi_server_v2.models.create_completion_request_model import CreateCompletionRequestModel
+from openapi_server_v2.models.create_completion_request_prompt import CreateCompletionRequestPrompt
+from openapi_server_v2.models.create_completion_request_stop import CreateCompletionRequestStop
 try:
     from typing import Self
 except ImportError:

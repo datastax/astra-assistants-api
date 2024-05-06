@@ -22,8 +22,8 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
-from openapi_server.models.batch_request_output_error import BatchRequestOutputError
-from openapi_server.models.batch_request_output_response import BatchRequestOutputResponse
+from openapi_server_v2.models.batch_request_output_error import BatchRequestOutputError
+from openapi_server_v2.models.batch_request_output_response import BatchRequestOutputResponse
 try:
     from typing import Self
 except ImportError:

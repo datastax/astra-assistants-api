@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict
 from typing import Any, ClassVar, Dict, List
-from openapi_server.models.fine_tuning_job_hyperparameters_n_epochs import FineTuningJobHyperparametersNEpochs
+from openapi_server_v2.models.fine_tuning_job_hyperparameters_n_epochs import FineTuningJobHyperparametersNEpochs
 try:
     from typing import Self
 except ImportError:

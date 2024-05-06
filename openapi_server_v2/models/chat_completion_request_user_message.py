@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
-from openapi_server.models.chat_completion_request_user_message_content import ChatCompletionRequestUserMessageContent
+from openapi_server_v2.models.chat_completion_request_user_message_content import ChatCompletionRequestUserMessageContent
 try:
     from typing import Self
 except ImportError:

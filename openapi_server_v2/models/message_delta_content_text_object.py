@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
-from openapi_server.models.message_delta_content_text_object_text import MessageDeltaContentTextObjectText
+from openapi_server_v2.models.message_delta_content_text_object_text import MessageDeltaContentTextObjectText
 try:
     from typing import Self
 except ImportError:

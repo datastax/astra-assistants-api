@@ -22,8 +22,8 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictBool
 from typing import Any, ClassVar, Dict, List
-from openapi_server.models.create_moderation_response_results_inner_categories import CreateModerationResponseResultsInnerCategories
-from openapi_server.models.create_moderation_response_results_inner_category_scores import CreateModerationResponseResultsInnerCategoryScores
+from openapi_server_v2.models.create_moderation_response_results_inner_categories import CreateModerationResponseResultsInnerCategories
+from openapi_server_v2.models.create_moderation_response_results_inner_category_scores import CreateModerationResponseResultsInnerCategoryScores
 try:
     from typing import Self
 except ImportError:

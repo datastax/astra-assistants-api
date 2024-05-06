@@ -22,8 +22,8 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List
-from openapi_server.models.create_embedding_response_usage import CreateEmbeddingResponseUsage
-from openapi_server.models.embedding import Embedding
+from openapi_server_v2.models.create_embedding_response_usage import CreateEmbeddingResponseUsage
+from openapi_server_v2.models.embedding import Embedding
 try:
     from typing import Self
 except ImportError:

@@ -2,9 +2,9 @@
 
 from typing import ClassVar, Dict, List, Tuple  # noqa: F401
 
-from openapi_server.models.create_completion_request import CreateCompletionRequest
-from openapi_server.models.create_completion_response import CreateCompletionResponse
-from openapi_server.security_api import get_token_ApiKeyAuth
+from openapi_server_v2.models.create_completion_request import CreateCompletionRequest
+from openapi_server_v2.models.create_completion_response import CreateCompletionResponse
+from openapi_server_v2.security_api import get_token_ApiKeyAuth
 
 class BaseCompletionsApi:
     subclasses: ClassVar[Tuple] = ()

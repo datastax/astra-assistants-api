@@ -22,8 +22,8 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
-from openapi_server.models.vector_store_expiration_after import VectorStoreExpirationAfter
-from openapi_server.models.vector_store_object_file_counts import VectorStoreObjectFileCounts
+from openapi_server_v2.models.vector_store_expiration_after import VectorStoreExpirationAfter
+from openapi_server_v2.models.vector_store_object_file_counts import VectorStoreObjectFileCounts
 try:
     from typing import Self
 except ImportError:

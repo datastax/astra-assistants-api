@@ -22,9 +22,9 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
-from openapi_server.models.run_step_completion_usage import RunStepCompletionUsage
-from openapi_server.models.run_step_object_last_error import RunStepObjectLastError
-from openapi_server.models.run_step_object_step_details import RunStepObjectStepDetails
+from openapi_server_v2.models.run_step_completion_usage import RunStepCompletionUsage
+from openapi_server_v2.models.run_step_object_last_error import RunStepObjectLastError
+from openapi_server_v2.models.run_step_object_step_details import RunStepObjectStepDetails
 try:
     from typing import Self
 except ImportError:

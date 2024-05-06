@@ -22,9 +22,9 @@ import re  # noqa: F401
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, ValidationError, field_validator
 from typing import Any, List, Optional
-from openapi_server.models.run_step_details_tool_calls_code_object import RunStepDetailsToolCallsCodeObject
-from openapi_server.models.run_step_details_tool_calls_file_search_object import RunStepDetailsToolCallsFileSearchObject
-from openapi_server.models.run_step_details_tool_calls_function_object import RunStepDetailsToolCallsFunctionObject
+from openapi_server_v2.models.run_step_details_tool_calls_code_object import RunStepDetailsToolCallsCodeObject
+from openapi_server_v2.models.run_step_details_tool_calls_file_search_object import RunStepDetailsToolCallsFileSearchObject
+from openapi_server_v2.models.run_step_details_tool_calls_function_object import RunStepDetailsToolCallsFunctionObject
 from typing import Union, Any, List, TYPE_CHECKING, Optional, Dict
 from typing_extensions import Literal
 from pydantic import StrictStr, Field

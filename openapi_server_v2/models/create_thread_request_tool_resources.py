@@ -22,8 +22,8 @@ import json
 
 from pydantic import BaseModel, ConfigDict
 from typing import Any, ClassVar, Dict, List, Optional
-from openapi_server.models.create_assistant_request_tool_resources_code_interpreter import CreateAssistantRequestToolResourcesCodeInterpreter
-from openapi_server.models.create_thread_request_tool_resources_file_search import CreateThreadRequestToolResourcesFileSearch
+from openapi_server_v2.models.create_assistant_request_tool_resources_code_interpreter import CreateAssistantRequestToolResourcesCodeInterpreter
+from openapi_server_v2.models.create_thread_request_tool_resources_file_search import CreateThreadRequestToolResourcesFileSearch
 try:
     from typing import Self
 except ImportError:

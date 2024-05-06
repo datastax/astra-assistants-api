@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict, StrictBool, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
-from openapi_server.models.fine_tuning_job_checkpoint import FineTuningJobCheckpoint
+from openapi_server_v2.models.fine_tuning_job_checkpoint import FineTuningJobCheckpoint
 try:
     from typing import Self
 except ImportError:

@@ -22,8 +22,8 @@ import json
 
 from pydantic import BaseModel, ConfigDict
 from typing import Any, ClassVar, Dict, List, Optional
-from openapi_server.models.create_moderation_request_input import CreateModerationRequestInput
-from openapi_server.models.create_moderation_request_model import CreateModerationRequestModel
+from openapi_server_v2.models.create_moderation_request_input import CreateModerationRequestInput
+from openapi_server_v2.models.create_moderation_request_model import CreateModerationRequestModel
 try:
     from typing import Self
 except ImportError:

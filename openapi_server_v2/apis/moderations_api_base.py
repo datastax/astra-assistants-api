@@ -2,9 +2,9 @@
 
 from typing import ClassVar, Dict, List, Tuple  # noqa: F401
 
-from openapi_server.models.create_moderation_request import CreateModerationRequest
-from openapi_server.models.create_moderation_response import CreateModerationResponse
-from openapi_server.security_api import get_token_ApiKeyAuth
+from openapi_server_v2.models.create_moderation_request import CreateModerationRequest
+from openapi_server_v2.models.create_moderation_response import CreateModerationResponse
+from openapi_server_v2.security_api import get_token_ApiKeyAuth
 
 class BaseModerationsApi:
     subclasses: ClassVar[Tuple] = ()

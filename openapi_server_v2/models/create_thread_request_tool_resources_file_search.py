@@ -23,7 +23,7 @@ import json
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
 from typing_extensions import Annotated
-from openapi_server.models.create_assistant_request_tool_resources_file_search_vector_stores_inner import CreateAssistantRequestToolResourcesFileSearchVectorStoresInner
+from openapi_server_v2.models.create_assistant_request_tool_resources_file_search_vector_stores_inner import CreateAssistantRequestToolResourcesFileSearchVectorStoresInner
 try:
     from typing import Self
 except ImportError:

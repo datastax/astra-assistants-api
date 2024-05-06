@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List
-from openapi_server.models.run_step_details_tool_calls_object_tool_calls_inner import RunStepDetailsToolCallsObjectToolCallsInner
+from openapi_server_v2.models.run_step_details_tool_calls_object_tool_calls_inner import RunStepDetailsToolCallsObjectToolCallsInner
 try:
     from typing import Self
 except ImportError:

@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List
-from openapi_server.models.chat_completion_request_message_content_part_image_image_url import ChatCompletionRequestMessageContentPartImageImageUrl
+from openapi_server_v2.models.chat_completion_request_message_content_part_image_image_url import ChatCompletionRequestMessageContentPartImageImageUrl
 try:
     from typing import Self
 except ImportError:

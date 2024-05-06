@@ -4,7 +4,7 @@ from typing import Dict, List  # noqa: F401
 import importlib
 import pkgutil
 
-from openapi_server.apis.vector_stores_api_base import BaseVectorStoresApi
+from openapi_server_v2.apis.vector_stores_api_base import BaseVectorStoresApi
 import impl
 
 from fastapi import (  # noqa: F401
@@ -21,19 +21,19 @@ from fastapi import (  # noqa: F401
     status,
 )
 
-from openapi_server.models.extra_models import TokenModel  # noqa: F401
-from openapi_server.models.create_vector_store_file_batch_request import CreateVectorStoreFileBatchRequest
-from openapi_server.models.create_vector_store_file_request import CreateVectorStoreFileRequest
-from openapi_server.models.create_vector_store_request import CreateVectorStoreRequest
-from openapi_server.models.delete_vector_store_file_response import DeleteVectorStoreFileResponse
-from openapi_server.models.delete_vector_store_response import DeleteVectorStoreResponse
-from openapi_server.models.list_vector_store_files_response import ListVectorStoreFilesResponse
-from openapi_server.models.list_vector_stores_response import ListVectorStoresResponse
-from openapi_server.models.update_vector_store_request import UpdateVectorStoreRequest
-from openapi_server.models.vector_store_file_batch_object import VectorStoreFileBatchObject
-from openapi_server.models.vector_store_file_object import VectorStoreFileObject
-from openapi_server.models.vector_store_object import VectorStoreObject
-from openapi_server.security_api import get_token_ApiKeyAuth
+from openapi_server_v2.models.extra_models import TokenModel  # noqa: F401
+from openapi_server_v2.models.create_vector_store_file_batch_request import CreateVectorStoreFileBatchRequest
+from openapi_server_v2.models.create_vector_store_file_request import CreateVectorStoreFileRequest
+from openapi_server_v2.models.create_vector_store_request import CreateVectorStoreRequest
+from openapi_server_v2.models.delete_vector_store_file_response import DeleteVectorStoreFileResponse
+from openapi_server_v2.models.delete_vector_store_response import DeleteVectorStoreResponse
+from openapi_server_v2.models.list_vector_store_files_response import ListVectorStoreFilesResponse
+from openapi_server_v2.models.list_vector_stores_response import ListVectorStoresResponse
+from openapi_server_v2.models.update_vector_store_request import UpdateVectorStoreRequest
+from openapi_server_v2.models.vector_store_file_batch_object import VectorStoreFileBatchObject
+from openapi_server_v2.models.vector_store_file_object import VectorStoreFileObject
+from openapi_server_v2.models.vector_store_object import VectorStoreObject
+from openapi_server_v2.security_api import get_token_ApiKeyAuth
 
 router = APIRouter()
 

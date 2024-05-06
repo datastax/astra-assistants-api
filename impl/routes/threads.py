@@ -43,6 +43,7 @@ from impl.routes.files import retrieve_file
 from impl.routes.utils import verify_db_client, get_litellm_kwargs, infer_embedding_model, infer_embedding_api_key
 from impl.services.inference_utils import get_chat_completion, get_async_chat_completion_response
 from openapi_server.models.create_message_request import CreateMessageRequest
+from openapi_server.models.create_thread_and_run_request import CreateThreadAndRunRequest
 from openapi_server.models.create_thread_request import CreateThreadRequest
 from openapi_server.models.delete_message_response import DeleteMessageResponse
 from openapi_server.models.delete_thread_response import DeleteThreadResponse
@@ -1532,3 +1533,41 @@ async def make_text_delta_event_from_chunk(chunk, i, run, message_id):
     event = ThreadMessageDelta(data=message_delta_event, event="thread.message.delta")
     event_json = event.json()
     return event_json
+
+@router.post(
+    "/threads/runs",
+    responses={
+        200: {"model": RunObject, "description": "OK"},
+    },
+    tags=["Assistants"],
+    summary="Create a thread and run it in one request.",
+    response_model_by_alias=True,
+)
+async def create_thread_and_run(
+        create_thread_and_run_request: CreateThreadAndRunRequest = Body(None, description=""),
+        astradb: CassandraClient = Depends(verify_db_client),
+        embedding_model: str = Depends(infer_embedding_model),
+        embedding_api_key: str = Depends(infer_embedding_api_key),
+        litellm_kwargs: Dict[str, Any] = Depends(get_litellm_kwargs),
+) -> RunObject:
+    create_thread_request = create_thread_and_run_request.thread
+    if create_thread_request is None:
+        raise HTTPException(status_code=400, detail="thread is required.")
+
+    thread = await create_thread(create_thread_request, astradb)
+
+    create_run_request = CreateRunRequest(
+        assistant_id=create_thread_and_run_request.assistant_id,
+        model=create_thread_and_run_request.model,
+        instructions=create_thread_and_run_request.instructions,
+        tools=create_thread_and_run_request.tools,
+        metadata=create_thread_and_run_request.metadata
+    )
+    return await create_run(
+        thread_id=thread.id,
+        create_run_request=create_run_request,
+        astradb=astradb,
+        embedding_model=embedding_model,
+        embedding_api_key=embedding_api_key,
+        litellm_kwargs=litellm_kwargs,
+    )

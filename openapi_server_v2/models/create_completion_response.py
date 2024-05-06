@@ -22,8 +22,8 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
-from openapi_server.models.completion_usage import CompletionUsage
-from openapi_server.models.create_completion_response_choices_inner import CreateCompletionResponseChoicesInner
+from openapi_server_v2.models.completion_usage import CompletionUsage
+from openapi_server_v2.models.create_completion_response_choices_inner import CreateCompletionResponseChoicesInner
 try:
     from typing import Self
 except ImportError:

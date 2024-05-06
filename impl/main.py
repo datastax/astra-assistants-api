@@ -4,20 +4,20 @@ from typing import Callable, Sequence, Union
 
 import httpx
 import openai
-import uvicorn
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from prometheus_client import Counter, Summary, Histogram
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_fastapi_instrumentator.metrics import Info
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
 from impl.background import background_task_set
-from impl.rate_limiter import get_dbid, limiter
-from impl.routes import assistants, files, health, stateless, threads
+from impl.rate_limiter import limiter
+from impl.routes import stateless, assistants, files, health, threads
+from impl.routes_v2 import assistants_v2, threads_v2
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG,
@@ -50,12 +50,17 @@ async def shutdown_event():
             pass  # Handle cancellation if needed
 
 
+app.include_router(stateless.router, prefix="/v1")
 app.include_router(assistants.router, prefix="/v1")
 app.include_router(files.router, prefix="/v1")
 app.include_router(health.router, prefix="/v1")
-app.include_router(stateless.router, prefix="/v1")
 app.include_router(threads.router, prefix="/v1")
 
+app.include_router(stateless.router, prefix="/v2")
+app.include_router(assistants_v2.router, prefix="/v2")
+app.include_router(files.router, prefix="/v2")
+app.include_router(health.router, prefix="/v2")
+app.include_router(threads_v2.router, prefix="/v2")
 
 class APIVersionMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):

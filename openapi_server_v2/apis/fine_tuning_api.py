@@ -4,7 +4,7 @@ from typing import Dict, List  # noqa: F401
 import importlib
 import pkgutil
 
-from openapi_server.apis.fine_tuning_api_base import BaseFineTuningApi
+from openapi_server_v2.apis.fine_tuning_api_base import BaseFineTuningApi
 import impl
 
 from fastapi import (  # noqa: F401
@@ -21,13 +21,13 @@ from fastapi import (  # noqa: F401
     status,
 )
 
-from openapi_server.models.extra_models import TokenModel  # noqa: F401
-from openapi_server.models.create_fine_tuning_job_request import CreateFineTuningJobRequest
-from openapi_server.models.fine_tuning_job import FineTuningJob
-from openapi_server.models.list_fine_tuning_job_checkpoints_response import ListFineTuningJobCheckpointsResponse
-from openapi_server.models.list_fine_tuning_job_events_response import ListFineTuningJobEventsResponse
-from openapi_server.models.list_paginated_fine_tuning_jobs_response import ListPaginatedFineTuningJobsResponse
-from openapi_server.security_api import get_token_ApiKeyAuth
+from openapi_server_v2.models.extra_models import TokenModel  # noqa: F401
+from openapi_server_v2.models.create_fine_tuning_job_request import CreateFineTuningJobRequest
+from openapi_server_v2.models.fine_tuning_job import FineTuningJob
+from openapi_server_v2.models.list_fine_tuning_job_checkpoints_response import ListFineTuningJobCheckpointsResponse
+from openapi_server_v2.models.list_fine_tuning_job_events_response import ListFineTuningJobEventsResponse
+from openapi_server_v2.models.list_paginated_fine_tuning_jobs_response import ListPaginatedFineTuningJobsResponse
+from openapi_server_v2.security_api import get_token_ApiKeyAuth
 
 router = APIRouter()
 

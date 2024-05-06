@@ -22,11 +22,11 @@ import re  # noqa: F401
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, ValidationError, field_validator
 from typing import Any, List, Optional
-from openapi_server.models.message_stream_event_one_of import MessageStreamEventOneOf
-from openapi_server.models.message_stream_event_one_of1 import MessageStreamEventOneOf1
-from openapi_server.models.message_stream_event_one_of2 import MessageStreamEventOneOf2
-from openapi_server.models.message_stream_event_one_of3 import MessageStreamEventOneOf3
-from openapi_server.models.message_stream_event_one_of4 import MessageStreamEventOneOf4
+from openapi_server_v2.models.message_stream_event_one_of import MessageStreamEventOneOf
+from openapi_server_v2.models.message_stream_event_one_of1 import MessageStreamEventOneOf1
+from openapi_server_v2.models.message_stream_event_one_of2 import MessageStreamEventOneOf2
+from openapi_server_v2.models.message_stream_event_one_of3 import MessageStreamEventOneOf3
+from openapi_server_v2.models.message_stream_event_one_of4 import MessageStreamEventOneOf4
 from typing import Union, Any, List, TYPE_CHECKING, Optional, Dict
 from typing_extensions import Literal
 from pydantic import StrictStr, Field

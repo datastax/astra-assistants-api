@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
-from openapi_server.models.message_delta_content_image_file_object_image_file import MessageDeltaContentImageFileObjectImageFile
+from openapi_server_v2.models.message_delta_content_image_file_object_image_file import MessageDeltaContentImageFileObjectImageFile
 try:
     from typing import Self
 except ImportError:

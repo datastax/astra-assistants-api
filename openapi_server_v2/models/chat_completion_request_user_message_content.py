@@ -23,7 +23,7 @@ import re  # noqa: F401
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, ValidationError, field_validator
 from typing import Any, List, Optional
 from typing_extensions import Annotated
-from openapi_server.models.chat_completion_request_message_content_part import ChatCompletionRequestMessageContentPart
+from openapi_server_v2.models.chat_completion_request_message_content_part import ChatCompletionRequestMessageContentPart
 from typing import Union, Any, List, TYPE_CHECKING, Optional, Dict
 from typing_extensions import Literal
 from pydantic import StrictStr, Field

@@ -2,11 +2,11 @@
 
 from typing import ClassVar, Dict, List, Tuple  # noqa: F401
 
-from openapi_server.models.create_speech_request import CreateSpeechRequest
-from openapi_server.models.create_transcription200_response import CreateTranscription200Response
-from openapi_server.models.create_transcription_request_model import CreateTranscriptionRequestModel
-from openapi_server.models.create_translation200_response import CreateTranslation200Response
-from openapi_server.security_api import get_token_ApiKeyAuth
+from openapi_server_v2.models.create_speech_request import CreateSpeechRequest
+from openapi_server_v2.models.create_transcription200_response import CreateTranscription200Response
+from openapi_server_v2.models.create_transcription_request_model import CreateTranscriptionRequestModel
+from openapi_server_v2.models.create_translation200_response import CreateTranslation200Response
+from openapi_server_v2.security_api import get_token_ApiKeyAuth
 
 class BaseAudioApi:
     subclasses: ClassVar[Tuple] = ()

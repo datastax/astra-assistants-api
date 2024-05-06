@@ -2,10 +2,10 @@
 
 from typing import ClassVar, Dict, List, Tuple  # noqa: F401
 
-from openapi_server.models.create_image_edit_request_model import CreateImageEditRequestModel
-from openapi_server.models.create_image_request import CreateImageRequest
-from openapi_server.models.images_response import ImagesResponse
-from openapi_server.security_api import get_token_ApiKeyAuth
+from openapi_server_v2.models.create_image_edit_request_model import CreateImageEditRequestModel
+from openapi_server_v2.models.create_image_request import CreateImageRequest
+from openapi_server_v2.models.images_response import ImagesResponse
+from openapi_server_v2.security_api import get_token_ApiKeyAuth
 
 class BaseImagesApi:
     subclasses: ClassVar[Tuple] = ()

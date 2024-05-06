@@ -23,7 +23,7 @@ import json
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
 from typing_extensions import Annotated
-from openapi_server.models.message_object_attachments_inner import MessageObjectAttachmentsInner
+from openapi_server_v2.models.message_object_attachments_inner import MessageObjectAttachmentsInner
 try:
     from typing import Self
 except ImportError:

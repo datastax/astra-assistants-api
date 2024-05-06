@@ -23,7 +23,7 @@ import json
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional, Union
 from typing_extensions import Annotated
-from openapi_server.models.create_speech_request_model import CreateSpeechRequestModel
+from openapi_server_v2.models.create_speech_request_model import CreateSpeechRequestModel
 try:
     from typing import Self
 except ImportError:

@@ -22,8 +22,8 @@ import json
 
 from pydantic import BaseModel, ConfigDict
 from typing import Any, ClassVar, Dict, List, Optional
-from openapi_server.models.assistant_object_tool_resources_code_interpreter import AssistantObjectToolResourcesCodeInterpreter
-from openapi_server.models.assistant_object_tool_resources_file_search import AssistantObjectToolResourcesFileSearch
+from openapi_server_v2.models.assistant_object_tool_resources_code_interpreter import AssistantObjectToolResourcesCodeInterpreter
+from openapi_server_v2.models.assistant_object_tool_resources_file_search import AssistantObjectToolResourcesFileSearch
 try:
     from typing import Self
 except ImportError:

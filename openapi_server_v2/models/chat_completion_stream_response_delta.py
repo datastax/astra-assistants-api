@@ -22,8 +22,8 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
-from openapi_server.models.chat_completion_message_tool_call_chunk import ChatCompletionMessageToolCallChunk
-from openapi_server.models.chat_completion_stream_response_delta_function_call import ChatCompletionStreamResponseDeltaFunctionCall
+from openapi_server_v2.models.chat_completion_message_tool_call_chunk import ChatCompletionMessageToolCallChunk
+from openapi_server_v2.models.chat_completion_stream_response_delta_function_call import ChatCompletionStreamResponseDeltaFunctionCall
 try:
     from typing import Self
 except ImportError:

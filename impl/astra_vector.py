@@ -509,6 +509,23 @@ class CassandraClient:
             )
 
             self.session.execute(
+                f"""create table if not exists {CASSANDRA_KEYSPACE}.assistants_v2 (
+                    id text primary key,
+                    object text,
+                    created_at timestamp,
+                    name text,
+                    description text,
+                    model text,
+                    instructions text,
+                    tools List<text>,
+                    metadata Map<text, text>,
+                    top_p float,
+                    temperature float,
+                    response_format text
+            );"""
+            )
+
+            self.session.execute(
                 f"""create table if not exists {CASSANDRA_KEYSPACE}.files(
                     id text primary key,
                     object text,
@@ -563,6 +580,13 @@ class CassandraClient:
             );"""
             )
 
+            try:
+                self.session.execute(
+                    f"""alter TABLE {CASSANDRA_KEYSPACE}.threads ADD tool_resources Map<text,text>;"""
+                )
+            except Exception as e:
+                logger.warning(f"alter table attempt: {e}")
+
             self.session.execute(
                 f"""create table if not exists {CASSANDRA_KEYSPACE}.messages (
                     id text,
@@ -574,6 +598,22 @@ class CassandraClient:
                     assistant_id text,
                     run_id text,
                     file_ids List<text>,
+                    metadata Map<text, text>,
+                    PRIMARY KEY ((thread_id), id)
+            );"""
+            )
+
+            self.session.execute(
+                f"""create table if not exists {CASSANDRA_KEYSPACE}.messages_v2 (
+                    id text,
+                    object text,
+                    created_at timestamp,
+                    assistant_id text,
+                    thread_id text,
+                    run_id text,
+                    role text,
+                    content List<text>,
+                    attachments List<text>,
                     metadata Map<text, text>,
                     PRIMARY KEY ((thread_id), id)
             );"""
@@ -602,6 +642,38 @@ class CassandraClient:
                 PRIMARY KEY((thread_id), id)
             ); """
             )
+
+            self.session.execute(
+                f"""create table if not exists {CASSANDRA_KEYSPACE}.runs_v2(
+                id text,
+                object text,
+                created_at timestamp,
+                assistant_id text,
+                thread_id text,
+                status text,
+                started_at timestamp,
+                expires_at timestamp,
+                cancelled_at timestamp,
+                failed_at timestamp,
+                completed_at timestamp,
+                last_error text,
+                model text,
+                instructions text,
+                tools list<text>,
+                metadata map<text, text>,
+                incomplete_details text,
+                usage text,
+                temperature float,
+                top_p float,
+                max_prompt_tokens int,
+                max_completion_tokens int,
+                truncation_strategy text,
+                response_format text,
+                tool_choice text,
+                PRIMARY KEY((thread_id), id)
+            ); """
+            )
+
 
             self.session.execute(
                 f"""create table if not exists {CASSANDRA_KEYSPACE}.run_steps(
@@ -1311,7 +1383,6 @@ class CassandraClient:
             metadata,
             object,
     ):
-        # TODO: figure out how to parse tools
         logger.info(f"going to upsert assistant with id: {id} and model:{model}")
         query_string = f"""insert into {CASSANDRA_KEYSPACE}.assistants (
                     id,

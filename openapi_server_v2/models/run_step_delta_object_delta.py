@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict
 from typing import Any, ClassVar, Dict, List, Optional
-from openapi_server.models.run_step_delta_object_delta_step_details import RunStepDeltaObjectDeltaStepDetails
+from openapi_server_v2.models.run_step_delta_object_delta_step_details import RunStepDeltaObjectDeltaStepDetails
 try:
     from typing import Self
 except ImportError:

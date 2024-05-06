@@ -22,8 +22,8 @@ import re  # noqa: F401
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, ValidationError, field_validator
 from typing import Any, List, Optional
-from openapi_server.models.run_step_delta_step_details_tool_calls_code_output_image_object import RunStepDeltaStepDetailsToolCallsCodeOutputImageObject
-from openapi_server.models.run_step_delta_step_details_tool_calls_code_output_logs_object import RunStepDeltaStepDetailsToolCallsCodeOutputLogsObject
+from openapi_server_v2.models.run_step_delta_step_details_tool_calls_code_output_image_object import RunStepDeltaStepDetailsToolCallsCodeOutputImageObject
+from openapi_server_v2.models.run_step_delta_step_details_tool_calls_code_output_logs_object import RunStepDeltaStepDetailsToolCallsCodeOutputLogsObject
 from typing import Union, Any, List, TYPE_CHECKING, Optional, Dict
 from typing_extensions import Literal
 from pydantic import StrictStr, Field

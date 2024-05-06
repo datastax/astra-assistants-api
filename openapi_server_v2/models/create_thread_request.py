@@ -22,8 +22,8 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Any, ClassVar, Dict, List, Optional
-from openapi_server.models.create_message_request import CreateMessageRequest
-from openapi_server.models.create_thread_request_tool_resources import CreateThreadRequestToolResources
+from openapi_server_v2.models.create_message_request import CreateMessageRequest
+from openapi_server_v2.models.create_thread_request_tool_resources import CreateThreadRequestToolResources
 try:
     from typing import Self
 except ImportError:

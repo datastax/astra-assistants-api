@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
-from openapi_server.models.thread_object_tool_resources import ThreadObjectToolResources
+from openapi_server_v2.models.thread_object_tool_resources import ThreadObjectToolResources
 try:
     from typing import Self
 except ImportError:

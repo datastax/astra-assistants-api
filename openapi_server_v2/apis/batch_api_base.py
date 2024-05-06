@@ -2,10 +2,10 @@
 
 from typing import ClassVar, Dict, List, Tuple  # noqa: F401
 
-from openapi_server.models.batch import Batch
-from openapi_server.models.create_batch_request import CreateBatchRequest
-from openapi_server.models.list_batches_response import ListBatchesResponse
-from openapi_server.security_api import get_token_ApiKeyAuth
+from openapi_server_v2.models.batch import Batch
+from openapi_server_v2.models.create_batch_request import CreateBatchRequest
+from openapi_server_v2.models.list_batches_response import ListBatchesResponse
+from openapi_server_v2.security_api import get_token_ApiKeyAuth
 
 class BaseBatchApi:
     subclasses: ClassVar[Tuple] = ()

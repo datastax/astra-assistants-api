@@ -23,7 +23,7 @@ import json
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
 from typing_extensions import Annotated
-from openapi_server.models.create_image_request_model import CreateImageRequestModel
+from openapi_server_v2.models.create_image_request_model import CreateImageRequestModel
 try:
     from typing import Self
 except ImportError:

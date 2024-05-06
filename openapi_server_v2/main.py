@@ -14,18 +14,18 @@
 
 from fastapi import FastAPI
 
-from openapi_server.apis.assistants_api import router as AssistantsApiRouter
-from openapi_server.apis.audio_api import router as AudioApiRouter
-from openapi_server.apis.batch_api import router as BatchApiRouter
-from openapi_server.apis.chat_api import router as ChatApiRouter
-from openapi_server.apis.completions_api import router as CompletionsApiRouter
-from openapi_server.apis.embeddings_api import router as EmbeddingsApiRouter
-from openapi_server.apis.files_api import router as FilesApiRouter
-from openapi_server.apis.fine_tuning_api import router as FineTuningApiRouter
-from openapi_server.apis.images_api import router as ImagesApiRouter
-from openapi_server.apis.models_api import router as ModelsApiRouter
-from openapi_server.apis.moderations_api import router as ModerationsApiRouter
-from openapi_server.apis.vector_stores_api import router as VectorStoresApiRouter
+from openapi_server_v2.apis.assistants_api import router as AssistantsApiRouter
+from openapi_server_v2.apis.audio_api import router as AudioApiRouter
+from openapi_server_v2.apis.batch_api import router as BatchApiRouter
+from openapi_server_v2.apis.chat_api import router as ChatApiRouter
+from openapi_server_v2.apis.completions_api import router as CompletionsApiRouter
+from openapi_server_v2.apis.embeddings_api import router as EmbeddingsApiRouter
+from openapi_server_v2.apis.files_api import router as FilesApiRouter
+from openapi_server_v2.apis.fine_tuning_api import router as FineTuningApiRouter
+from openapi_server_v2.apis.images_api import router as ImagesApiRouter
+from openapi_server_v2.apis.models_api import router as ModelsApiRouter
+from openapi_server_v2.apis.moderations_api import router as ModerationsApiRouter
+from openapi_server_v2.apis.vector_stores_api import router as VectorStoresApiRouter
 
 app = FastAPI(
     title="OpenAI API",

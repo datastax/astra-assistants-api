@@ -22,7 +22,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List
-from openapi_server.models.error import Error
+from openapi_server_v2.models.error import Error
 try:
     from typing import Self
 except ImportError:

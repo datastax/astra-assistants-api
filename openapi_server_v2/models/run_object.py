@@ -23,14 +23,14 @@ import json
 from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional, Union
 from typing_extensions import Annotated
-from openapi_server.models.assistant_object_tools_inner import AssistantObjectToolsInner
-from openapi_server.models.assistants_api_response_format_option import AssistantsApiResponseFormatOption
-from openapi_server.models.assistants_api_tool_choice_option import AssistantsApiToolChoiceOption
-from openapi_server.models.run_completion_usage import RunCompletionUsage
-from openapi_server.models.run_object_incomplete_details import RunObjectIncompleteDetails
-from openapi_server.models.run_object_last_error import RunObjectLastError
-from openapi_server.models.run_object_required_action import RunObjectRequiredAction
-from openapi_server.models.truncation_object import TruncationObject
+from openapi_server_v2.models.assistant_object_tools_inner import AssistantObjectToolsInner
+from openapi_server_v2.models.assistants_api_response_format_option import AssistantsApiResponseFormatOption
+from openapi_server_v2.models.assistants_api_tool_choice_option import AssistantsApiToolChoiceOption
+from openapi_server_v2.models.run_completion_usage import RunCompletionUsage
+from openapi_server_v2.models.run_object_incomplete_details import RunObjectIncompleteDetails
+from openapi_server_v2.models.run_object_last_error import RunObjectLastError
+from openapi_server_v2.models.run_object_required_action import RunObjectRequiredAction
+from openapi_server_v2.models.truncation_object import TruncationObject
 try:
     from typing import Self
 except ImportError:

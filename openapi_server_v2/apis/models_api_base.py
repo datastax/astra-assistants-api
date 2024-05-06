@@ -2,10 +2,10 @@
 
 from typing import ClassVar, Dict, List, Tuple  # noqa: F401
 
-from openapi_server.models.delete_model_response import DeleteModelResponse
-from openapi_server.models.list_models_response import ListModelsResponse
-from openapi_server.models.model import Model
-from openapi_server.security_api import get_token_ApiKeyAuth
+from openapi_server_v2.models.delete_model_response import DeleteModelResponse
+from openapi_server_v2.models.list_models_response import ListModelsResponse
+from openapi_server_v2.models.model import Model
+from openapi_server_v2.security_api import get_token_ApiKeyAuth
 
 class BaseModelsApi:
     subclasses: ClassVar[Tuple] = ()
