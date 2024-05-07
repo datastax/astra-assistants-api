@@ -1,4 +1,5 @@
 """The stateless endpoints that do not depend on information from DB"""
+import logging
 import time
 import uuid
 from typing import Any, Dict
@@ -6,7 +7,8 @@ from fastapi.encoders import jsonable_encoder
 import json
 
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, HTTPException
+from litellm import APIError
 from starlette.responses import StreamingResponse, JSONResponse
 
 from openapi_server.models.chat_completion_stream_response_delta import ChatCompletionStreamResponseDelta
@@ -28,8 +30,12 @@ from ..model.embedding import Embedding
 router = APIRouter()
 
 
+logger = logging.getLogger(__name__)
+
+
 async def _completion_from_request(
     chat_request: CreateChatCompletionRequest,
+    using_openai: bool,
     **litellm_kwargs: Any,
 ) -> CreateChatCompletionResponse | StreamingResponse:
     # NOTE: litellm_kwargs should contain auth
@@ -55,6 +61,11 @@ async def _completion_from_request(
             message_dict["name"] = message.name
 
         messages.append(message_dict)
+
+    tools = []
+    if chat_request.tools is not None:
+        for tool in chat_request.tools:
+            tools.append(tool.to_dict())
 
     functions = []
     if chat_request.functions is not None:
@@ -98,6 +109,10 @@ async def _completion_from_request(
     if functions:
         kwargs["functions"] = functions
 
+    if tools:
+        kwargs["tools"] = tools
+
+
     # workaround for https://github.com/BerriAI/litellm/pull/3439
     #if "function" not in kwargs and "tools" in kwargs:
     #    kwargs["functions"] = kwargs["tools"]
@@ -107,10 +122,9 @@ async def _completion_from_request(
         kwargs["logit_bias"] = chat_request.logit_bias
 
     if chat_request.user is not None:
-        kwargs["user"] = chat_request.user
+        kwargs["user"] = chat_request.usefunctionsr
 
     response = await get_async_chat_completion_response(**kwargs)
-    # TODO - throw error if response fails
 
     choices = []
     if chat_request.stream is not None and chat_request.stream:
@@ -221,8 +235,9 @@ async def create_moderation(
 async def create_chat_completion(
     create_chat_completion_request: CreateChatCompletionRequest,
     litellm_kwargs: Dict[str, Any] = Depends(get_litellm_kwargs),
+    using_openai: bool = Depends(check_if_using_openai),
 ) -> Any:
-    return await _completion_from_request(create_chat_completion_request, **litellm_kwargs)
+    return await _completion_from_request(create_chat_completion_request, using_openai, **litellm_kwargs)
 
 
 @router.post(
