@@ -3,12 +3,14 @@ import logging
 import time
 import uuid
 from typing import Any, Dict
+
+import litellm
 from fastapi.encoders import jsonable_encoder
 import json
 
 
 from fastapi import APIRouter, Depends, Request, HTTPException
-from litellm import APIError
+from litellm import ModelResponse
 from starlette.responses import StreamingResponse, JSONResponse
 
 from openapi_server.models.chat_completion_stream_response_delta import ChatCompletionStreamResponseDelta
@@ -106,17 +108,12 @@ async def _completion_from_request(
         **litellm_kwargs,
     }
 
-    if functions:
+    if len(functions) > 0:
         kwargs["functions"] = functions
 
-    if tools:
+    if len(tools) > 0:
         kwargs["tools"] = tools
 
-
-    # workaround for https://github.com/BerriAI/litellm/pull/3439
-    #if "function" not in kwargs and "tools" in kwargs:
-    #    kwargs["functions"] = kwargs["tools"]
-    #    kwargs.pop("tools")
 
     if chat_request.logit_bias is not None:
         kwargs["logit_bias"] = chat_request.logit_bias
@@ -124,7 +121,12 @@ async def _completion_from_request(
     if chat_request.user is not None:
         kwargs["user"] = chat_request.user
 
+    #litellm.verbose_logger = True
     response = await get_async_chat_completion_response(**kwargs)
+
+    # TODO fix this
+    if response is not ModelResponse:
+        logger.error("Internal Error calling liteLLM")
 
     choices = []
     if chat_request.stream is not None and chat_request.stream:
