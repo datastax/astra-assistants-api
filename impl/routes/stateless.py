@@ -122,7 +122,7 @@ async def _completion_from_request(
         kwargs["logit_bias"] = chat_request.logit_bias
 
     if chat_request.user is not None:
-        kwargs["user"] = chat_request.usefunctionsr
+        kwargs["user"] = chat_request.user
 
     response = await get_async_chat_completion_response(**kwargs)
 
