@@ -1532,13 +1532,13 @@ rediscluster = ["redis (>=4.2.0,!=4.5.2,!=4.5.3)"]
 
 [[package]]
 name = "litellm"
-version = "1.36.1"
+version = "1.36.2"
 description = "Library to easily interface with LLM API providers"
 optional = false
 python-versions = "!=2.7.*,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,!=3.7.*,>=3.8"
 files = [
-    {file = "litellm-1.36.1-py3-none-any.whl", hash = "sha256:3a41db4c139989ef24171a69eba72b814b1ac60591af2da7ed689e57bd62b015"},
-    {file = "litellm-1.36.1.tar.gz", hash = "sha256:709cb3a9f31186a093c191c01e0df162e5b08c8cc257a2b746668f29fa99a628"},
+    {file = "litellm-1.36.2-py3-none-any.whl", hash = "sha256:541b954e070b0ecb7406a57127d52661e54b0d9394a0a8d85f8cfd86256e5d36"},
+    {file = "litellm-1.36.2.tar.gz", hash = "sha256:6554d298473efc9d80b127c0ded4cd47cf23e16aaef21004fd16420f84d91975"},
 ]
 
 [package.dependencies]
@@ -3642,4 +3642,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10.12,<3.12"
-content-hash = "a4052be960f3e576b4042505b2cdec2ebe90997a07fc79db885392cdcdebb280"
+content-hash = "877aa47539650bdecc081ce279a0ddc148a653edb5161cdb004ce3383d4dfddf"

@@ -13,6 +13,8 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 litellm.add_function_to_prompt=True
 litellm.telemetry = False
 litellm.drop_params = True
+#litellm.verbose_logger.setLevel("DEBUG")
+#litellm.set_verbose = True
 litellm.verbose_logger.setLevel("WARN")
 
 # TODO: Make these async
@@ -103,7 +105,6 @@ async def get_async_chat_completion_response(
                 else:
                     litellm_kwargs[key] = type_hints[key](value)
 
-        #litellm.set_verbose = True
         completion = await acompletion(
             model=model,
             messages=messages,
