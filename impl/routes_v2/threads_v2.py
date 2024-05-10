@@ -11,6 +11,7 @@ from cassandra.query import UNSET_VALUE
 
 from fastapi import APIRouter, Body, Depends, Path, HTTPException, Query
 from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel
 from starlette.responses import StreamingResponse
 
 from impl.astra_vector import CassandraClient
@@ -241,21 +242,24 @@ def extractFunctionName(content: str, candidates: [str]):
     else:
         raise ValueError("Could not extract function name from LLM response, may not have been properly formatted")
 
+def make_event(data: BaseModel, event: str) -> AssistantStreamEvent:
+    event = AssistantStreamEvent(data=data.to_dict(), event=event)
+    return event
 
 async def run_event_stream(run, message_id, astradb):
     # copy run
     run_holder = RunObject(**run.dict())
     run_holder.required_action = None
     run_holder.status = "created"
-    event = AssistantStreamEvent(data=run_holder, event=f"thread.run.{run_holder.status}")
+    event = make_event(data=run_holder, event=f"thread.run.{run_holder.status}")
     event_json = event.json()
     yield f"data: {event_json}\n\n"
     run_holder.status = "queued"
-    event = AssistantStreamEvent(data=run_holder, event=f"thread.run.{run_holder.status}")
+    event = make_event(data=run_holder, event=f"thread.run.{run_holder.status}")
     event_json = event.json()
     yield f"data: {event_json}\n\n"
     run_holder.status = "in_progress"
-    event = AssistantStreamEvent(data=run_holder, event=f"thread.run.{run_holder.status}")
+    event = make_event(data=run_holder, event=f"thread.run.{run_holder.status}")
     event_json = event.json()
     yield f"data: {event_json}\n\n"
 
@@ -275,11 +279,11 @@ async def run_event_stream(run, message_id, astradb):
             step_details=step_details,
             object="thread.run.step",
         )
-        event = AssistantStreamEvent(data=run_step, event=f"thread.run.step.created")
+        event = make_event(data=run_step, event=f"thread.run.step.created")
         event_json = event.json()
         yield f"data: {event_json}\n\n"
 
-        event = AssistantStreamEvent(data=run_step, event=f"thread.run.step.in_progress")
+        event = make_event(data=run_step, event=f"thread.run.step.in_progress")
         event_json = event.json()
         yield f"data: {event_json}\n\n"
 
@@ -293,7 +297,7 @@ async def run_event_stream(run, message_id, astradb):
         step_delta = RunStepDeltaObjectDelta(step_details=step_details)
         # TODO: maybe change this ID.
         run_step_delta = RunStepDeltaObject(id=run.id, delta=step_delta, object="thread.run.step.delta")
-        event = AssistantStreamEvent(data=run_step_delta, event="thread.run.step.delta")
+        event = make_event(data=run_step_delta, event="thread.run.step.delta")
         event_json = event.json()
         yield f"data: {event_json}\n\n"
 
@@ -301,7 +305,7 @@ async def run_event_stream(run, message_id, astradb):
         astradb.upsert_run_step(run_step)
 
         run_holder = RunObject(**run.dict())
-        event = AssistantStreamEvent(data=run_holder, event=f"thread.run.{run_holder.status}")
+        event = make_event(data=run_holder, event=f"thread.run.{run_holder.status}")
         event_json = event.json()
         yield f"data: {event_json}\n\n"
         return
@@ -309,10 +313,10 @@ async def run_event_stream(run, message_id, astradb):
     # this works because we make the run_step id the same as the message_id
     run_step = astradb.get_run_step(run_id=run.id, id=message_id)
     if run_step is not None:
-        event = AssistantStreamEvent(data=run_step, event=f"thread.run.step.created")
+        event = make_event(data=run_step, event=f"thread.run.step.created")
         event_json = event.json()
         yield f"data: {event_json}\n\n"
-        event = AssistantStreamEvent(data=run_step, event=f"thread.run.step.in_progress")
+        event = make_event(data=run_step, event=f"thread.run.step.in_progress")
         event_json = event.json()
         yield f"data: {event_json}\n\n"
 
@@ -330,11 +334,11 @@ async def run_event_stream(run, message_id, astradb):
         tool_call_delta_object = RunStepDeltaStepDetailsToolCallsObject(type="tool_calls", tool_calls=None)
         step_delta = RunStepDeltaObjectDelta(step_details=tool_call_delta_object)
         run_step_delta = RunStepDeltaObject(id=run_step.id, delta=step_delta, object="thread.run.step.delta")
-        event = AssistantStreamEvent(data=run_step_delta, event="thread.run.step.delta")
+        event = make_event(data=run_step_delta, event="thread.run.step.delta")
         event_json = event.json()
         yield f"data: {event_json}\n\n"
 
-        event = AssistantStreamEvent(data=run_step, event=f"thread.run.step.completed")
+        event = make_event(data=run_step, event=f"thread.run.step.completed")
         event_json = event.json()
         yield f"data: {event_json}\n\n"
 
@@ -359,10 +363,10 @@ async def stream_message_events(astradb, thread_id, limit, order, after, before,
             message  = messages[0].dict().copy()
             message['content'] = []
             message_holder = MessageObject(**message, status="in_progress")
-            event = AssistantStreamEvent(data=message_holder, event="thread.message.created")
+            event = make_event(data=message_holder, event="thread.message.created")
             event_json = event.json()
             yield f"data: {event_json}\n\n"
-            event = AssistantStreamEvent(data=message_holder, event="thread.message.in_progress")
+            event = make_event(data=message_holder, event="thread.message.in_progress")
             event_json = event.json()
             yield f"data: {event_json}\n\n"
 
@@ -424,7 +428,7 @@ async def make_text_delta_event(i, json_data, message, run):
         id=message.id,
         object="thread.message.delta"
     )
-    event = AssistantStreamEvent(data=message_delta_event, event="thread.message.delta")
+    event = make_event(data=message_delta_event, event="thread.message.delta")
     event_json = event.json()
     return event_json
 
@@ -1379,11 +1383,11 @@ async def message_delta_streamer(message_id, created_at, response, run, astradb)
         run_holder = RunObject(**run.dict())
         run_holder.required_action = None
         run_holder.status = "queued"
-        event = AssistantStreamEvent(data=run_holder, event=f"thread.run.{run_holder.status}")
+        event = make_event(data=run_holder, event=f"thread.run.{run_holder.status}")
         event_json = event.json()
         yield f"data: {event_json}\n\n"
         run_holder.status = "in_progress"
-        event = AssistantStreamEvent(data=run_holder, event=f"thread.run.{run_holder.status}")
+        event = make_event(data=run_holder, event=f"thread.run.{run_holder.status}")
         event_json = event.json()
         yield f"data: {event_json}\n\n"
 
@@ -1400,10 +1404,10 @@ async def message_delta_streamer(message_id, created_at, response, run, astradb)
             step_details=step_details,
             object="thread.run.step",
         )
-        event = AssistantStreamEvent(data=run_step, event=f"thread.run.step.created")
+        event = make_event(data=run_step, event=f"thread.run.step.created")
         event_json = event.json()
         yield f"data: {event_json}\n\n"
-        event = AssistantStreamEvent(data=run_step, event=f"thread.run.step.in_progress")
+        event = make_event(data=run_step, event=f"thread.run.step.in_progress")
         event_json = event.json()
         yield f"data: {event_json}\n\n"
 
@@ -1420,10 +1424,10 @@ async def message_delta_streamer(message_id, created_at, response, run, astradb)
             thread_id=run.thread_id,
             status="in_progress",
         )
-        event = AssistantStreamEvent(data=message_holder, event="thread.message.created")
+        event = make_event(data=message_holder, event="thread.message.created")
         event_json = event.json()
         yield f"data: {event_json}\n\n"
-        event = AssistantStreamEvent(data=message_holder, event="thread.message.in_progress")
+        event = make_event(data=message_holder, event="thread.message.in_progress")
         event_json = event.json()
         yield f"data: {event_json}\n\n"
 
@@ -1495,7 +1499,7 @@ async def make_text_delta_event_from_chunk(chunk, i, run, message_id):
         id=message_id,
         object="thread.message.delta"
     )
-    event = AssistantStreamEvent(data=message_delta_event, event="thread.message.delta")
+    event = make_event(data=message_delta_event, event="thread.message.delta")
     event_json = event.json()
     return event_json
 
