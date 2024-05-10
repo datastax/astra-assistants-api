@@ -564,7 +564,7 @@ async def create_run(
            created_at = int(time.mktime(datetime.now().timetuple()))
 
            # initialize message
-           astradb.upsert_messageprocess_rag(
+           astradb.upsert_message(
                id=message_id,
                object="thread.message",
                created_at=created_at,
