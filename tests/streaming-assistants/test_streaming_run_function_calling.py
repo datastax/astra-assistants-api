@@ -34,6 +34,7 @@ def test_function_calling_claude(patched_openai_client):
     model="claude-3-haiku-20240307"
     function_calling(model, patched_openai_client)
 
+@pytest.mark.skip(reason="litellm does not use the latest gemini tool support yet and gemini refuses without it, skip")
 def test_function_calling_gemini(patched_openai_client):
     model="gemini/gemini-pro"
     function_calling(model, patched_openai_client)
