@@ -255,8 +255,8 @@ async def run_event_stream(run, message_id, astradb):
     # copy run
     run_holder = RunObject(**run.dict())
     run_holder.required_action = None
-    run_holder.status = "created"
-    event = AssistantStreamEvent(data=run_holder, event=f"thread.run.{run_holder.status}")
+    run_holder.status = "queued"
+    event = AssistantStreamEvent(data=run_holder, event=f"thread.run.created") # yes the event is created and the run is queued, that's how it goes
     event_json = event.json()
     yield f"data: {event_json}\n\n"
     run_holder.status = "queued"
