@@ -1,7 +1,7 @@
 from typing import Optional
 
 from pydantic import StrictStr, Field, field_validator
-from openapi_server.models.open_ai_file import OpenAIFile as OpenAIFileGenerated
+from openapi_server_v2.models.open_ai_file import OpenAIFile as OpenAIFileGenerated
 
 
 class OpenAIFile(OpenAIFileGenerated):

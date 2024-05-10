@@ -43,6 +43,7 @@ from impl.routes.files import retrieve_file
 from impl.routes.utils import verify_db_client, get_litellm_kwargs, infer_embedding_model, infer_embedding_api_key
 from impl.services.inference_utils import get_chat_completion, get_async_chat_completion_response
 from openapi_server.models.create_message_request import CreateMessageRequest
+from openapi_server.models.create_thread_and_run_request import CreateThreadAndRunRequest
 from openapi_server.models.create_thread_request import CreateThreadRequest
 from openapi_server.models.delete_message_response import DeleteMessageResponse
 from openapi_server.models.delete_thread_response import DeleteThreadResponse
@@ -223,8 +224,8 @@ def extractFunctionArguments(content):
         return extracted_text
     else:
         try:
-            json.loads(content)
-            return content
+            content_obj = json.loads(content)
+            return content_obj['arguments']
         except Exception as e:
             logger.error(e)
             raise ValueError("Could not extract function arguments from LLM response, may have not been properly formatted. Consider retrying or use a different model.")
@@ -619,48 +620,74 @@ async def create_run(
 
            status = "generating"
        if tool.type == "function":
-            toolsJson.append(tool.function.dict())
+            #toolsJson.append(tool.function.dict())
+            toolsJson.append(tool.dict())
 
 
     required_action=None
 
     if len(toolsJson) > 0:
-        litellm_kwargs["functions"] = toolsJson
+        litellm_kwargs["tools"] = toolsJson
+        litellm_kwargs["tool_choice"] = "auto"
         message_string, message_content = summarize_message_content(instructions, messages.data)
         message = await get_chat_completion(messages=message_content, model=model, **litellm_kwargs)
 
         tool_call_object_id = str(uuid1())
         run_tool_calls = []
         if message.content is None:
-            function_call = RunToolCallObjectFunction(name=message.function_call.name, arguments=message.function_call.arguments)
+            for tool_call in message.tool_calls:
+                tool_call_object_function = RunToolCallObjectFunction(name=tool_call.function.name, arguments=tool_call.function.arguments)
+                run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=tool_call_object_function))
         else:
-            arguments = extractFunctionArguments(message.content)
+            #TODO: most models formally support tools now, maybe remove this logic
+            try:
+                arguments = extractFunctionArguments(message.content)
+                candidates = [tool['function']['name'] for tool in toolsJson]
+                name = extractFunctionName(message.content, candidates)
 
-            candidates = [tool['name'] for tool in toolsJson]
-            name = extractFunctionName(message.content, candidates)
+                tool_call_object_function = RunToolCallObjectFunction(name=name, arguments=str(arguments))
+                run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=tool_call_object_function))
+            except Exception as e:
+                logger.info("did not find function call in message content")
+                status = "completed"
+                message_id = str(uuid1())
+                created_at = int(time.mktime(datetime.now().timetuple()))
 
-            function_call = RunToolCallObjectFunction(name=name, arguments=arguments)
-        run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=function_call))
-        tool_outputs = RunObjectRequiredActionSubmitToolOutputs(tool_calls=run_tool_calls)
-        required_action = RunObjectRequiredAction(type='submit_tool_outputs', submit_tool_outputs=tool_outputs).json()
-        status = "requires_action"
+                # persist message
+                astradb.upsert_message(
+                    id=message_id,
+                    object="thread.message",
+                    created_at=created_at,
+                    thread_id=thread_id,
+                    role=message.role,
+                    content=[message.content],
+                    assistant_id=assistant.id,
+                    run_id=run_id,
+                    file_ids=file_ids,
+                    metadata={},
+                )
 
-        message_id = str(uuid1())
-        created_at = int(time.mktime(datetime.now().timetuple()))
+        if len(run_tool_calls) > 0:
+            tool_outputs = RunObjectRequiredActionSubmitToolOutputs(tool_calls=run_tool_calls)
+            required_action = RunObjectRequiredAction(type='submit_tool_outputs', submit_tool_outputs=tool_outputs).json()
+            status = "requires_action"
 
-        # persist message
-        astradb.upsert_message(
-            id=message_id,
-            object="thread.message",
-            created_at=created_at,
-            thread_id=thread_id,
-            role=message.role,
-            content=[message.content],
-            assistant_id=assistant.id,
-            run_id=run_id,
-            file_ids=file_ids,
-            metadata={},
-        )
+            message_id = str(uuid1())
+            created_at = int(time.mktime(datetime.now().timetuple()))
+
+            # persist message
+            astradb.upsert_message(
+                id=message_id,
+                object="thread.message",
+                created_at=created_at,
+                thread_id=thread_id,
+                role=message.role,
+                content=[message.content],
+                assistant_id=assistant.id,
+                run_id=run_id,
+                file_ids=file_ids,
+                metadata={},
+            )
 
     run = astradb.upsert_run(
         id=run_id,
@@ -1271,6 +1298,44 @@ async def get_thread(
         ) -> ThreadObject:
     return astradb.get_thread(thread_id)
 
+# NOTE: this method must be defined before /threads/{thread_id}
+@router.post(
+    "/threads/runs",
+    responses={
+        200: {"model": RunObject, "description": "OK"},
+    },
+    tags=["Assistants"],
+    summary="Create a thread and run it in one request.",
+    response_model_by_alias=True,
+)
+async def create_thread_and_run(
+        create_thread_and_run_request: CreateThreadAndRunRequest = Body(None, description=""),
+        astradb: CassandraClient = Depends(verify_db_client),
+        embedding_model: str = Depends(infer_embedding_model),
+        embedding_api_key: str = Depends(infer_embedding_api_key),
+        litellm_kwargs: Dict[str, Any] = Depends(get_litellm_kwargs),
+) -> RunObject:
+    create_thread_request = create_thread_and_run_request.thread
+    if create_thread_request is None:
+        raise HTTPException(status_code=400, detail="thread is required.")
+
+    thread = await create_thread(create_thread_request, astradb)
+
+    create_run_request = CreateRunRequest(
+        assistant_id=create_thread_and_run_request.assistant_id,
+        model=create_thread_and_run_request.model,
+        instructions=create_thread_and_run_request.instructions,
+        tools=create_thread_and_run_request.tools,
+        metadata=create_thread_and_run_request.metadata
+    )
+    return await create_run(
+        thread_id=thread.id,
+        create_run_request=create_run_request,
+        astradb=astradb,
+        embedding_model=embedding_model,
+        embedding_api_key=embedding_api_key,
+        litellm_kwargs=litellm_kwargs,
+    )
 
 @router.post(
     "/threads/{thread_id}",
@@ -1532,3 +1597,4 @@ async def make_text_delta_event_from_chunk(chunk, i, run, message_id):
     event = ThreadMessageDelta(data=message_delta_event, event="thread.message.delta")
     event_json = event.json()
     return event_json
+

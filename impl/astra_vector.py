@@ -85,42 +85,6 @@ class AstraVectorDataStore:
         await self.client.async_setup()
         return self.client
 
-    async def _query(self, queries: List[QueryWithEmbedding]) -> List[QueryResult]:
-        """
-        Takes in a list of queries with embeddings and filters and returns a list of query results with matching document chunks and scores.
-        """
-        query_results: List[QueryResult] = []
-        for query in queries:
-            if not query.top_k:
-                query.top_k = 10
-            data = await self.client.runQuery(query)
-
-            if data is None:
-                query_results.append(QueryResult(query=query.query, results=[]))
-            else:
-                results: List[DocumentChunkWithScore] = []
-                for row in data:
-                    doc_metadata = DocumentChunkMetadata(
-                        source=row.source,
-                        source_id=row.source_id,
-                        document_id=row.document_id,
-                        url=row.url,
-                        created_at=row.created_at.isoformat(),
-                        author=row.author,
-                    )
-                    document_chunk = DocumentChunkWithScore(
-                        id=row.id,
-                        text=row.content,
-                        # TODO: add embedding to the response ?
-                        # embedding=row.embedding,
-                        score=float(row.score),
-                        # score=float(1),
-                        metadata=doc_metadata,
-                    )
-                    results.append(document_chunk)
-                query_results.append(QueryResult(query=query.query, results=results))
-        return query_results
-
     async def delete(
             self,
             ids: Optional[List[str]] = None,
@@ -479,7 +443,7 @@ class CassandraClient:
                 f"""alter TABLE assistant_api.file_chunks ADD embedding_{model_string} VECTOR<float, {dims}>;"""
             )
         except Exception as e:
-            logger.warning(f"Exception adding column: {e}")
+            logger.info(f"Exception adding column: {e}")
         try:
             statement = SimpleStatement(
                 f"CREATE CUSTOM INDEX IF NOT EXISTS ON {CASSANDRA_KEYSPACE}.file_chunks (embedding_{model_string}) USING 'StorageAttachedIndex';",
@@ -487,7 +451,7 @@ class CassandraClient:
             )
             self.session.execute(statement)
         except Exception as e:
-            logger.warning(f"Exception adding index for column: {e}")
+            logger.info(f"Exception adding index for column: {e}")
 
     async def create_table(self):
         try:
@@ -509,6 +473,23 @@ class CassandraClient:
             )
 
             self.session.execute(
+                f"""create table if not exists {CASSANDRA_KEYSPACE}.assistants_v2 (
+                    id text primary key,
+                    object text,
+                    created_at timestamp,
+                    name text,
+                    description text,
+                    model text,
+                    instructions text,
+                    tools List<text>,
+                    metadata Map<text, text>,
+                    top_p float,
+                    temperature float,
+                    response_format text
+            );"""
+            )
+
+            self.session.execute(
                 f"""create table if not exists {CASSANDRA_KEYSPACE}.files(
                     id text primary key,
                     object text,
@@ -525,7 +506,7 @@ class CassandraClient:
                     f"""alter TABLE assistant_api.files ADD embedding_model text;"""
                 )
             except Exception as e:
-                logger.warning(f"alter table attempt: {e}")
+                logger.info(f"alter table attempt: {e}")
 
 
             self.session.execute(
@@ -544,7 +525,7 @@ class CassandraClient:
                     f"""alter TABLE assistant_api.file_chunks ADD embedding_openai_text_embedding_ada_002 VECTOR<float, 1536>;"""
                 )
             except Exception as e:
-                logger.warning(f"alter table attempt: {e}")
+                logger.info(f"alter table attempt: {e}")
             try:
                 statement = SimpleStatement(
                     f"CREATE CUSTOM INDEX IF NOT EXISTS ON {CASSANDRA_KEYSPACE}.file_chunks (embedding_openai_text_embedding_ada_002) USING 'StorageAttachedIndex';",
@@ -552,7 +533,7 @@ class CassandraClient:
                 )
                 self.session.execute(statement)
             except Exception as e:
-                logger.warning(f"index creation attempt: {e}")
+                logger.info(f"index creation attempt: {e}")
 
             self.session.execute(
                 f"""create table if not exists {CASSANDRA_KEYSPACE}.threads (
@@ -562,6 +543,13 @@ class CassandraClient:
                     metadata Map<text, text>
             );"""
             )
+
+            try:
+                self.session.execute(
+                    f"""alter TABLE {CASSANDRA_KEYSPACE}.threads ADD tool_resources Map<text,text>;"""
+                )
+            except Exception as e:
+                logger.info(f"alter table attempt: {e}")
 
             self.session.execute(
                 f"""create table if not exists {CASSANDRA_KEYSPACE}.messages (
@@ -574,6 +562,22 @@ class CassandraClient:
                     assistant_id text,
                     run_id text,
                     file_ids List<text>,
+                    metadata Map<text, text>,
+                    PRIMARY KEY ((thread_id), id)
+            );"""
+            )
+
+            self.session.execute(
+                f"""create table if not exists {CASSANDRA_KEYSPACE}.messages_v2 (
+                    id text,
+                    object text,
+                    created_at timestamp,
+                    assistant_id text,
+                    thread_id text,
+                    run_id text,
+                    role text,
+                    content List<text>,
+                    attachments List<text>,
                     metadata Map<text, text>,
                     PRIMARY KEY ((thread_id), id)
             );"""
@@ -602,6 +606,38 @@ class CassandraClient:
                 PRIMARY KEY((thread_id), id)
             ); """
             )
+
+            self.session.execute(
+                f"""create table if not exists {CASSANDRA_KEYSPACE}.runs_v2(
+                id text,
+                object text,
+                created_at timestamp,
+                assistant_id text,
+                thread_id text,
+                status text,
+                started_at timestamp,
+                expires_at timestamp,
+                cancelled_at timestamp,
+                failed_at timestamp,
+                completed_at timestamp,
+                last_error text,
+                model text,
+                instructions text,
+                tools list<text>,
+                metadata map<text, text>,
+                incomplete_details text,
+                usage text,
+                temperature float,
+                top_p float,
+                max_prompt_tokens int,
+                max_completion_tokens int,
+                truncation_strategy text,
+                response_format text,
+                tool_choice text,
+                PRIMARY KEY((thread_id), id)
+            ); """
+            )
+
 
             self.session.execute(
                 f"""create table if not exists {CASSANDRA_KEYSPACE}.run_steps(
@@ -633,7 +669,7 @@ class CassandraClient:
             self.session.execute(statement)
 
         except Exception as e:
-            logger.warning(f"Exception creating table or index: {e}")
+            logger.info(f"Exception creating table or index: {e}")
             raise e
 
     def delete_assistant(self, id):
@@ -1311,7 +1347,6 @@ class CassandraClient:
             metadata,
             object,
     ):
-        # TODO: figure out how to parse tools
         logger.info(f"going to upsert assistant with id: {id} and model:{model}")
         query_string = f"""insert into {CASSANDRA_KEYSPACE}.assistants (
                     id,
@@ -1412,47 +1447,6 @@ class CassandraClient:
         self.session.row_factory = named_tuple_factory
         return json_rows
 
-    async def runQuery(self, query):
-        filters = ""
-        if query.filter:
-            filter = query.filter
-            # TODO, change to WHERE when syntax changes
-            filters = " WHERE "
-            if filter.document_id:
-                filters += f" document_id = '{filter.document_id}' AND"
-            if filter.source:
-                filters += f" source = '{filter.source}' AND"
-            if filter.source_id:
-                filters += f" source_id = '{filter.source_id}' AND"
-            if filter.author:
-                filters += f" author = '{filter.author}' AND"
-            if filter.start_date:
-                filters += f" created_at >= '{filter.start_date}' AND"
-            if filter.end_date:
-                filters += f" created_at <= '{filter.end_date}' AND"
-            filters = filters[:-4]
-
-        try:
-            self.session.row_factory = named_tuple_factory
-            queryString = f"""SELECT id, content, embedding, document_id, 
-            source, source_id, url, author, created_at, 
-            similarity_cosine(?, embedding) as score
-            from {CASSANDRA_KEYSPACE}.documents {filters} 
-            ORDER BY embedding ann of {query.embedding} 
-            LIMIT {query.top_k};"""
-            statement = self.session.prepare(queryString)
-            statement.consistency_level = ConsistencyLevel.QUORUM
-            boundStatement = statement.bind([query.embedding])
-            resultset = self.session.execute(boundStatement)
-            return resultset
-
-        except Exception as e:
-            logger.warning(f"Exception during query (retrying): {e}")
-            raise
-            # TODO: Do we want this instead?
-            # sleep 10 seconds and retry
-            # time.sleep(10)
-            # await self.runQuery(query)
 
     def upsert_chunks(self, chunks: Dict[str, List[DocumentChunk]], model: str, **litellm_kwargs: Any) -> List[str]:
         """

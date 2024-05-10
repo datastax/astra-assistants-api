@@ -34,7 +34,7 @@ print(my_thread)
 assistant = client.beta.assistants.create(
     name="Math Tutor",
     instructions="You are a personal math tutor. Answer questions briefly, in a sentence or less.",
-    model="cohere/command",
+    model="cohere_chat/command-r"
     #model="gpt-3.5-turbo",
 )
 

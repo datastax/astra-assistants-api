@@ -2,23 +2,16 @@ import asyncio
 import time
 import logging
 from datetime import datetime
-from typing import Any, Dict
 from uuid import uuid1
 from fastapi import APIRouter, Body, Depends, Path, Query, HTTPException
-from starlette.background import BackgroundTasks
 from impl.astra_vector import CassandraClient
-from openapi_server.models.create_thread_and_run_request import CreateThreadAndRunRequest
 from openapi_server.models.delete_assistant_response import DeleteAssistantResponse
 from openapi_server.models.list_assistants_response import ListAssistantsResponse
-from openapi_server.models.run_object import RunObject
-from .threads import create_thread, create_run
 
-from .utils import verify_db_client, verify_openai_token, infer_embedding_model, infer_embedding_api_key, \
-    get_litellm_kwargs
+from .utils import verify_db_client, verify_openai_token
 from ..model.assistant_object import AssistantObject
 from ..model.assistant_object_tools_inner import AssistantObjectToolsInner
 from ..model.create_assistant_request import CreateAssistantRequest
-from ..model.create_run_request import CreateRunRequest
 from ..model.modify_assistant_request import ModifyAssistantRequest
 
 router = APIRouter()
@@ -270,62 +263,3 @@ async def get_assistant(
     if assistant is None:
         raise HTTPException(status_code=404, detail="Assistant not found.")
     return assistant
-
-
-@router.post(
-    "/threads/runs",
-    responses={
-        200: {"model": RunObject, "description": "OK"},
-    },
-    tags=["Assistants"],
-    summary="Create a thread and run it in one request.",
-    response_model_by_alias=True,
-)
-async def create_thread_and_run(
-        create_thread_and_run_request: CreateThreadAndRunRequest = Body(None, description=""),
-        astradb: CassandraClient = Depends(verify_db_client),
-        embedding_model: str = Depends(infer_embedding_model),
-        embedding_api_key: str = Depends(infer_embedding_api_key),
-        litellm_kwargs: Dict[str, Any] = Depends(get_litellm_kwargs),
-) -> RunObject:
-    create_thread_request = create_thread_and_run_request.thread
-    if create_thread_request is None:
-        raise HTTPException(status_code=400, detail="thread is required.")
-
-    thread = await create_thread(create_thread_request, astradb)
-
-    create_run_request = CreateRunRequest(
-        assistant_id=create_thread_and_run_request.assistant_id,
-        model=create_thread_and_run_request.model,
-        instructions=create_thread_and_run_request.instructions,
-        tools=create_thread_and_run_request.tools,
-        metadata=create_thread_and_run_request.metadata
-    )
-    return await create_run(
-        thread_id=thread.id,
-        create_run_request=create_run_request,
-        astradb=astradb,
-        embedding_model=embedding_model,
-        embedding_api_key=embedding_api_key,
-        litellm_kwargs=litellm_kwargs,
-    )
-
-
-
-#@router.post(
-#    "/assistants/{assistant_id}/files",
-#    responses={
-#        200: {"model": AssistantFileObject, "description": "OK"},
-#    },
-#    tags=["Assistants"],
-#    summary="Create an assistant file by attaching a [File](/docs/api-reference/files) to an [assistant](/docs/api-reference/assistants).",
-#    response_model_by_alias=True,
-#)
-#async def create_assistant_file(
-#        assistant_id: str = Path(..., description="The ID of the assistant for which to create a File. ")
-#        ,
-#        create_assistant_file_request: CreateAssistantFileRequest = Body(None, description="")
-#        ,
-#        openai_token: str = Depends(verify_openai_token),
-#        astradb: CassandraClient = Depends(verify_db_client),
-#) -> AssistantFileObject:
