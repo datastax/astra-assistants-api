@@ -35,10 +35,11 @@ def print_chat_completion(client, model, prompt):
 model="anthropic/claude-3-sonnet-20240229"
 #model="gpt-4-1106-preview"
 #model="gpt-3.5-turbo"
-#model="cohere/command"
+#model="cohere_chat/command-r"
 #model="perplexity/mixtral-8x7b-instruct"
 #model="perplexity/pplx-70b-online"
 #model="anthropic.claude-v2"
+#model="groq/llama3-8b-8192"
 #model="gemini/gemini-pro"
 #model = "meta.llama2-13b-chat-v1"
 

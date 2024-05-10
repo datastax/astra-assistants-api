@@ -69,7 +69,15 @@ def test_run_cohere(patched_openai_client):
     cohere_assistant = patched_openai_client.beta.assistants.create(
         name="Cohere Animal Tutor",
         instructions=instructions,
-        model="cohere/command",
+        model="cohere_chat/command-r"
+    )
+    run_with_assistant(cohere_assistant, patched_openai_client)
+
+def test_run_groq(patched_openai_client):
+    cohere_assistant = patched_openai_client.beta.assistants.create(
+        name="Groq Animal Tutor",
+        instructions=instructions,
+        model="groq/llama3-8b-8192"
     )
     run_with_assistant(cohere_assistant, patched_openai_client)
 

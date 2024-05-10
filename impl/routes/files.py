@@ -23,8 +23,8 @@ from slowapi import Limiter
 from impl.astra_vector import CassandraClient
 from impl.services.chunks import get_document_chunks
 from impl.services.file import get_document_from_file
-from openapi_server.models.delete_file_response import DeleteFileResponse
-from openapi_server.models.list_files_response import ListFilesResponse
+from openapi_server_v2.models.delete_file_response import DeleteFileResponse
+from openapi_server_v2.models.list_files_response import ListFilesResponse
 
 from .utils import (
     verify_db_client,

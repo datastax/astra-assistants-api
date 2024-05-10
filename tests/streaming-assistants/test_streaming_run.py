@@ -75,7 +75,7 @@ def test_run_cohere(patched_openai_client):
     cohere_assistant = patched_openai_client.beta.assistants.create(
         name="Cohere Animal Tutor",
         instructions=instructions,
-        model="cohere/command",
+        model="cohere_chat/command-r"
     )
     run_with_assistant(cohere_assistant, patched_openai_client)
 
