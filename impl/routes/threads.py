@@ -564,7 +564,7 @@ async def create_run(
            created_at = int(time.mktime(datetime.now().timetuple()))
 
            # initialize message
-           astradb.upsert_message(
+           astradb.upsert_messageprocess_rag(
                id=message_id,
                object="thread.message",
                created_at=created_at,
@@ -620,28 +620,34 @@ async def create_run(
 
            status = "generating"
        if tool.type == "function":
-            toolsJson.append(tool.function.dict())
+            #toolsJson.append(tool.function.dict())
+            toolsJson.append(tool.dict())
 
 
     required_action=None
 
     if len(toolsJson) > 0:
-        litellm_kwargs["functions"] = toolsJson
+        litellm_kwargs["tools"] = toolsJson
+        litellm_kwargs["tool_choice"] = "auto"
         message_string, message_content = summarize_message_content(instructions, messages.data)
         message = await get_chat_completion(messages=message_content, model=model, **litellm_kwargs)
 
         tool_call_object_id = str(uuid1())
         run_tool_calls = []
         if message.content is None:
-            function_call = RunToolCallObjectFunction(name=message.function_call.name, arguments=message.function_call.arguments)
+            for tool_call in message.tool_calls:
+                tool_call_object_function = RunToolCallObjectFunction(name=tool_call.function.name, arguments=tool_call.function.arguments)
+                run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=tool_call_object_function))
         else:
+            # TODO: check what happens when there are no tool calls (tool_choice auto) or multiple tool calls (parallel tool calling)
             arguments = extractFunctionArguments(message.content)
 
             candidates = [tool['name'] for tool in toolsJson]
             name = extractFunctionName(message.content, candidates)
 
-            function_call = RunToolCallObjectFunction(name=name, arguments=arguments)
-        run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=function_call))
+            tool_call_object_function = RunToolCallObjectFunction(name=name, arguments=arguments)
+            run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=tool_call_object_function))
+
         tool_outputs = RunObjectRequiredActionSubmitToolOutputs(tool_calls=run_tool_calls)
         required_action = RunObjectRequiredAction(type='submit_tool_outputs', submit_tool_outputs=tool_outputs).json()
         status = "requires_action"
