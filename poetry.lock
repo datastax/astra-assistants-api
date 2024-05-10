@@ -1969,13 +1969,13 @@ files = [
 
 [[package]]
 name = "openai"
-version = "1.20.0"
+version = "1.21.0"
 description = "The official Python library for the openai API"
 optional = false
 python-versions = ">=3.7.1"
 files = [
-    {file = "openai-1.20.0-py3-none-any.whl", hash = "sha256:9fcc75256b2425393800e358cd520b02b5ab1a8731921e45aa7ae6aec3ee8187"},
-    {file = "openai-1.20.0.tar.gz", hash = "sha256:d7c0e824b7da3c043731943965c737595cf9631c913b7a1464c502fdf492b9a9"},
+    {file = "openai-1.21.0-py3-none-any.whl", hash = "sha256:7da39d0bbc849fae00a0045f5486666f16d76a5f170c59e79c93cf426661053d"},
+    {file = "openai-1.21.0.tar.gz", hash = "sha256:943f51c9186f97fd4a870c49996a614e43f85639b75c4302e2f35aee2f65e6eb"},
 ]
 
 [package.dependencies]
@@ -2820,13 +2820,13 @@ full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.7
 
 [[package]]
 name = "streaming-assistants"
-version = "0.16.0"
+version = "0.15.9"
 description = "Streaming enabled Assistants API"
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "streaming_assistants-0.16.0-py3-none-any.whl", hash = "sha256:a107400ce685eee4e48a90c8858526e5824024990d27866b4dfc550bd09d39e1"},
-    {file = "streaming_assistants-0.16.0.tar.gz", hash = "sha256:927949b6b78adb66c32fb730d053aaad81ca72ac404cf1d302131567ce9df26b"},
+    {file = "streaming_assistants-0.15.9-py3-none-any.whl", hash = "sha256:ff4ccf5b1188934d8720fce63dd6a4702afd7ed6bdb2584b43d4dd950cbd6eba"},
+    {file = "streaming_assistants-0.15.9.tar.gz", hash = "sha256:9ce6cdb481519a806c3f2ab16e192daad3063f4fcfd805c3dae6c8a3699c0330"},
 ]
 
 [package.dependencies]
@@ -2834,7 +2834,7 @@ boto3 = ">=1.34.31,<2.0.0"
 google-generativeai = ">=0.4.1,<0.5.0"
 httpx = ">=0.26.0,<0.27.0"
 litellm = ">=1.34.18,<2.0.0"
-openai = ">=1.14.0,<1.21.0"
+openai = ">=1.14.0,<2.0.0"
 
 [[package]]
 name = "tenacity"
@@ -3642,4 +3642,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10.12,<3.12"
-content-hash = "877aa47539650bdecc081ce279a0ddc148a653edb5161cdb004ce3383d4dfddf"
+content-hash = "131633915b55982f15d21a226f60e634fef8a68fd1e00f1efa269fc1db18b491"
