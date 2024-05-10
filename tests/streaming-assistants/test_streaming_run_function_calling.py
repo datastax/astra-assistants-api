@@ -16,9 +16,8 @@ def test_function_calling_gpt_3_5(patched_openai_client):
     model="gpt-3.5-turbo"
     function_calling(model, patched_openai_client)
 
-@pytest.mark.skip(reason="claude does not consistently work with function calling, skip")
 def test_function_calling_cohere(patched_openai_client):
-    model="cohere/command"
+    model="cohere_chat/command-r"
     function_calling(model, patched_openai_client)
 
 def test_function_calling_pplx_mix(patched_openai_client):

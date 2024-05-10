@@ -22,7 +22,7 @@ client = OpenAI(
     }
 )
 
-model="cohere/command"
+model="cohere_chat/command-r"
 
 prompt = "Draw an ASCII art kitten eating icecream"
 response = client.chat.completions.create(

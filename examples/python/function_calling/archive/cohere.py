@@ -22,7 +22,7 @@ client = OpenAI(
     }
 )
 
-model="cohere/command"
+model="cohere_chat/command-r"
 
 print("generating assistants")
 assistant = client.beta.assistants.create(

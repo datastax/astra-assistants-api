@@ -82,7 +82,7 @@ You can pass different models, just make sure you have the right corresponding a
 ```
 model="gpt-4-1106-preview"
 #model="gpt-3.5-turbo"
-#model="cohere/command"
+#model="cohere_chat/command-r"
 #model="perplexity/mixtral-8x7b-instruct"
 #model="perplexity/pplx-70b-online"
 #model="anthropic.claude-v2"

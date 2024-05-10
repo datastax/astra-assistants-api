@@ -71,9 +71,8 @@ def test_chat_completion_groq_llama3(patched_openai_client):
     model="groq/llama3-8b-8192"
     print_chat_completion(model, patched_openai_client)
 
-@pytest.mark.skip(reason="cohere fails due to https://github.com/BerriAI/litellm/pull/3439")
 def test_chat_completion_cohere(patched_openai_client):
-    model="cohere/command-r"
+    model="cohere_chat/command-r"
     print_chat_completion(model, patched_openai_client)
 
 def test_chat_completion_perp_mixtral(patched_openai_client):
