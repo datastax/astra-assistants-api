@@ -29,6 +29,7 @@ RUN poetry install --no-root --no-dev
 
 # Copy the rest of your application files into the container
 COPY ./openapi_server ./openapi_server
+COPY ./openapi_server_v2 ./openapi_server_v2
 COPY ./impl ./impl
 COPY ./tests ./tests
 
