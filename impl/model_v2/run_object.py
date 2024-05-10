@@ -3,8 +3,8 @@ from typing import Optional, Annotated, List, Literal
 from pydantic import Field
 
 from impl.model.assistant_object_tools_inner import AssistantObjectToolsInner
-from openapi_server.models.run_completion_usage import RunCompletionUsage
-from openapi_server.models.run_object import RunObject as RunObjectGenerated
+from openapi_server_v2.models.run_completion_usage import RunCompletionUsage
+from openapi_server_v2.models.run_object import RunObject as RunObjectGenerated
 
 
 class RunObject(RunObjectGenerated):
