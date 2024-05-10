@@ -224,8 +224,8 @@ def extractFunctionArguments(content):
         return extracted_text
     else:
         try:
-            json.loads(content)
-            return content
+            content_obj = json.loads(content)
+            return content_obj['arguments']
         except Exception as e:
             logger.error(e)
             raise ValueError("Could not extract function arguments from LLM response, may have not been properly formatted. Consider retrying or use a different model.")
@@ -642,10 +642,10 @@ async def create_run(
             # TODO: check what happens when there are no tool calls (tool_choice auto) or multiple tool calls (parallel tool calling)
             arguments = extractFunctionArguments(message.content)
 
-            candidates = [tool['name'] for tool in toolsJson]
+            candidates = [tool['function']['name'] for tool in toolsJson]
             name = extractFunctionName(message.content, candidates)
 
-            tool_call_object_function = RunToolCallObjectFunction(name=name, arguments=arguments)
+            tool_call_object_function = RunToolCallObjectFunction(name=name, arguments=str(arguments))
             run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=tool_call_object_function))
 
         tool_outputs = RunObjectRequiredActionSubmitToolOutputs(tool_calls=run_tool_calls)
