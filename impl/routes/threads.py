@@ -639,35 +639,55 @@ async def create_run(
                 tool_call_object_function = RunToolCallObjectFunction(name=tool_call.function.name, arguments=tool_call.function.arguments)
                 run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=tool_call_object_function))
         else:
-            # TODO: check what happens when there are no tool calls (tool_choice auto) or multiple tool calls (parallel tool calling)
-            arguments = extractFunctionArguments(message.content)
+            #TODO: most models formally support tools now, maybe remove this logic
+            try:
+                arguments = extractFunctionArguments(message.content)
+                candidates = [tool['function']['name'] for tool in toolsJson]
+                name = extractFunctionName(message.content, candidates)
 
-            candidates = [tool['function']['name'] for tool in toolsJson]
-            name = extractFunctionName(message.content, candidates)
+                tool_call_object_function = RunToolCallObjectFunction(name=name, arguments=str(arguments))
+                run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=tool_call_object_function))
+            except Exception as e:
+                logger.info("did not find function call in message content")
+                status = "completed"
+                message_id = str(uuid1())
+                created_at = int(time.mktime(datetime.now().timetuple()))
 
-            tool_call_object_function = RunToolCallObjectFunction(name=name, arguments=str(arguments))
-            run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=tool_call_object_function))
+                # persist message
+                astradb.upsert_message(
+                    id=message_id,
+                    object="thread.message",
+                    created_at=created_at,
+                    thread_id=thread_id,
+                    role=message.role,
+                    content=[message.content],
+                    assistant_id=assistant.id,
+                    run_id=run_id,
+                    file_ids=file_ids,
+                    metadata={},
+                )
 
-        tool_outputs = RunObjectRequiredActionSubmitToolOutputs(tool_calls=run_tool_calls)
-        required_action = RunObjectRequiredAction(type='submit_tool_outputs', submit_tool_outputs=tool_outputs).json()
-        status = "requires_action"
+        if len(run_tool_calls) > 0:
+            tool_outputs = RunObjectRequiredActionSubmitToolOutputs(tool_calls=run_tool_calls)
+            required_action = RunObjectRequiredAction(type='submit_tool_outputs', submit_tool_outputs=tool_outputs).json()
+            status = "requires_action"
 
-        message_id = str(uuid1())
-        created_at = int(time.mktime(datetime.now().timetuple()))
+            message_id = str(uuid1())
+            created_at = int(time.mktime(datetime.now().timetuple()))
 
-        # persist message
-        astradb.upsert_message(
-            id=message_id,
-            object="thread.message",
-            created_at=created_at,
-            thread_id=thread_id,
-            role=message.role,
-            content=[message.content],
-            assistant_id=assistant.id,
-            run_id=run_id,
-            file_ids=file_ids,
-            metadata={},
-        )
+            # persist message
+            astradb.upsert_message(
+                id=message_id,
+                object="thread.message",
+                created_at=created_at,
+                thread_id=thread_id,
+                role=message.role,
+                content=[message.content],
+                assistant_id=assistant.id,
+                run_id=run_id,
+                file_ids=file_ids,
+                metadata={},
+            )
 
     run = astradb.upsert_run(
         id=run_id,
