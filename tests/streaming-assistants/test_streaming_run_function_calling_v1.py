@@ -8,8 +8,8 @@ from typing_extensions import override
 
 logger = logging.getLogger(__name__)
 
-def test_function_calling_gpt_4(patched_openai_client):
-    model="gpt-4-1106-preview"
+def test_function_calling_gpt_4o(patched_openai_client):
+    model="gpt-4o"
     function_calling(model, patched_openai_client)
 
 def test_function_calling_gpt_3_5(patched_openai_client):

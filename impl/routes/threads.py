@@ -76,6 +76,8 @@ from openapi_server_v2.models.run_step_delta_step_details_tool_calls_function_ob
     RunStepDeltaStepDetailsToolCallsFunctionObject
 from openapi_server_v2.models.run_step_delta_step_details_tool_calls_object import \
     RunStepDeltaStepDetailsToolCallsObject
+from openapi_server_v2.models.run_step_delta_step_details_tool_calls_object_tool_calls_inner import \
+    RunStepDeltaStepDetailsToolCallsObjectToolCallsInner
 
 router = APIRouter()
 
@@ -295,6 +297,13 @@ async def run_event_stream(run, message_id, astradb):
             assistant_id=run.assistant_id,
             step_details=step_details,
             object="thread.run.step",
+            last_error=None,
+            expired_at=None,
+            cancelled_at=None,
+            failed_at=None,
+            completed_at=None,
+            metadata=None,
+            usage=None,
         )
         event = make_event(data=run_step, event=f"thread.run.step.created")
         event_json = event.json()
@@ -307,10 +316,14 @@ async def run_event_stream(run, message_id, astradb):
         tool_calls = []
         index = 0
         for run_tool_call in run.required_action.submit_tool_outputs.tool_calls:
-            tool_call = RunStepDeltaStepDetailsToolCallsFunctionObject(**run_tool_call.dict(), index=index)
+            tool_call = RunStepDeltaStepDetailsToolCallsObjectToolCallsInner(
+                actual_instance=RunStepDeltaStepDetailsToolCallsFunctionObject(**run_tool_call.dict(), index=index)
+            )
             index += 1
             tool_calls.append(tool_call)
-        step_details = RunStepDeltaStepDetailsToolCallsObject(tool_calls=tool_calls, type="tool_calls")
+        step_details = RunStepDeltaObjectDeltaStepDetails(
+            actual_instance=RunStepDeltaStepDetailsToolCallsObject(tool_calls=tool_calls, type="tool_calls")
+        )
         step_delta = RunStepDeltaObjectDelta(step_details=step_details)
         # TODO: maybe change this ID.
         run_step_delta = RunStepDeltaObject(id=run.id, delta=step_delta, object="thread.run.step.delta")
@@ -321,7 +334,7 @@ async def run_event_stream(run, message_id, astradb):
         # persist run step
         astradb.upsert_run_step(run_step)
 
-        run_holder = Run(**run.dict())
+        run_holder = RunObject(**run.dict())
         event = make_event(data=run_holder, event=f"thread.run.{run_holder.status}")
         event_json = event.json()
         yield f"data: {event_json}\n\n"
@@ -1480,7 +1493,7 @@ async def submit_tool_ouputs_to_run(
 
 async def message_delta_streamer(message_id, created_at, response, run, astradb):
     try:
-        run_holder = Run(**run.dict())
+        run_holder = RunObject(**run.dict())
         run_holder.required_action = None
         run_holder.status = "queued"
         event = make_event(data=run_holder, event=f"thread.run.{run_holder.status}")
@@ -1492,7 +1505,9 @@ async def message_delta_streamer(message_id, created_at, response, run, astradb)
         yield f"data: {event_json}\n\n"
 
         message_creation = RunStepDetailsMessageCreationObjectMessageCreation(message_id=message_id)
-        step_details = RunStepDetailsMessageCreationObject(type="message_creation", message_creation=message_creation)
+        step_details = RunStepObjectStepDetails(
+            actual_instance=RunStepDetailsMessageCreationObject(type="message_creation", message_creation=message_creation)
+        )
         run_step = RunStepObject(
             type="message_creation",
             thread_id=run.thread_id,
@@ -1503,6 +1518,14 @@ async def message_delta_streamer(message_id, created_at, response, run, astradb)
             assistant_id=run.assistant_id,
             step_details=step_details,
             object="thread.run.step",
+            last_error=None,
+            expired_at=None,
+            cancelled_at=None,
+            failed_at=None,
+            completed_at=None,
+            metadata=None,
+            usage=None,
+
         )
         event = make_event(data=run_step, event=f"thread.run.step.created")
         event_json = event.json()
@@ -1523,6 +1546,7 @@ async def message_delta_streamer(message_id, created_at, response, run, astradb)
             run_id=run.id,
             thread_id=run.thread_id,
             status="in_progress",
+            metadata=None,
         )
         event = make_event(data=message_holder, event="thread.message.created")
         event_json = event.json()
@@ -1584,10 +1608,12 @@ async def message_delta_streamer(message_id, created_at, response, run, astradb)
 async def make_text_delta_event_from_chunk(chunk, i, run, message_id):
     # TODO - improve annotations
     text = MessageDeltaContentTextObjectText(value=chunk)
-    text_delta_block = MessageDeltaContentTextObject(
-        type="text",
-        text=text,
-        index=i,
+    text_delta_block = MessageDeltaObjectDeltaContentInner(
+            actual_instance=MessageDeltaContentTextObject(
+            type="text",
+            text=text,
+            index=i,
+        )
     )
     message_delta_holder = MessageDeltaObjectDelta(
         content=[text_delta_block],
