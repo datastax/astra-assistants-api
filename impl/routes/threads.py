@@ -657,6 +657,9 @@ async def create_run(
             message_id = str(uuid1())
             created_at = int(time.mktime(datetime.now().timetuple()))
 
+            # groq can't handle an assistant call with no content and perplexity can't handle non-alternating user/assistant messages
+            if message.content is None:
+                message.content = MessageContentTextObject(type='text', text=MessageContentTextObjectText(value="tool call placeholder", annotations=[])).to_json()
             # persist message
             astradb.upsert_message(
                 id=message_id,
