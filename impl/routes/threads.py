@@ -577,7 +577,14 @@ async def create_run(
                            ),
                        ],
                    )
-               )
+               ),
+               last_error=None,
+               expired_at=None,
+               cancelled_at=None,
+               failed_at=None,
+               completed_at=None,
+               metadata=None,
+               usage=None,
            )
            logger.info(f"creating run_step {run_step}")
            astradb.upsert_run_step(run_step)
@@ -787,7 +794,7 @@ async def process_rag(
                                 actual_instance = RunStepDetailsToolCallsRetrievalObject(
                                     id = message_id,
                                     type = "retrieval",
-                                    retrieval = context_json_meta,
+                                    retrieval = {"retrieved_sources" : context_json_meta},
                                 )
                             ),
                         ],
@@ -805,6 +812,12 @@ async def process_rag(
                     step_details = details,
                     thread_id = thread_id,
                     type = "tool_calls",
+                    last_error=None,
+                    expired_at=None,
+                    cancelled_at=None,
+                    failed_at=None,
+                    metadata=None,
+                    usage=None,
                 )
                 logger.info(f"creating run_step {run_step}")
                 astradb.upsert_run_step(run_step)

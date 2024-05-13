@@ -990,7 +990,7 @@ class CassandraClient:
                 object,
                 run_id,
                 status,
-                step_details.json(),
+                step_details.to_json(),
                 thread_id,
                 type,
                 usage
