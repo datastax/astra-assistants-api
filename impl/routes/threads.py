@@ -68,8 +68,10 @@ from openapi_server_v2.models.message_delta_content_text_object import MessageDe
 from openapi_server_v2.models.message_delta_content_text_object_text import MessageDeltaContentTextObjectText
 from openapi_server_v2.models.message_delta_object import MessageDeltaObject
 from openapi_server_v2.models.message_delta_object_delta import MessageDeltaObjectDelta
+from openapi_server_v2.models.message_delta_object_delta_content_inner import MessageDeltaObjectDeltaContentInner
 from openapi_server_v2.models.run_step_delta_object import RunStepDeltaObject
 from openapi_server_v2.models.run_step_delta_object_delta import RunStepDeltaObjectDelta
+from openapi_server_v2.models.run_step_delta_object_delta_step_details import RunStepDeltaObjectDeltaStepDetails
 from openapi_server_v2.models.run_step_delta_step_details_tool_calls_function_object import \
     RunStepDeltaStepDetailsToolCallsFunctionObject
 from openapi_server_v2.models.run_step_delta_step_details_tool_calls_object import \
@@ -346,7 +348,9 @@ async def run_event_stream(run, message_id, astradb):
         while run_step.status != "completed":
             run_step = astradb.get_run_step(run_id=run.id, id=message_id)
             await asyncio.sleep(1)
-        tool_call_delta_object = RunStepDeltaStepDetailsToolCallsObject(type="tool_calls", tool_calls=None)
+        tool_call_delta_object = RunStepDeltaObjectDeltaStepDetails(
+            actual_instance=RunStepDeltaStepDetailsToolCallsObject(type="tool_calls", tool_calls=None)
+        )
         step_delta = RunStepDeltaObjectDelta(step_details=tool_call_delta_object)
         run_step_delta = RunStepDeltaObject(id=run_step.id, delta=step_delta, object="thread.run.step.delta")
         event = make_event(data=run_step_delta, event="thread.run.step.delta")
@@ -427,14 +431,16 @@ async def make_text_delta_event(i, json_data, message, run):
     list_obj = ListMessagesStreamResponse.from_json(json_data)
     message_delta = list_obj.data
     # TODO - improve annotations
-    text_delta_block = MessageDeltaContentTextObjectText(
+    text_delta_block = MessageDeltaContentTextObject(
         type=message_delta[0].content[0].type,
-        text=message_delta[0].content[0].delta.dict(),
+        text=MessageDeltaContentTextObjectText(value=message_delta[0].content[0].delta.value),
         index=i,
     )
     i += 1
-    message_delta_holder = MessageDeltaContentTextObjectText(
-        content=[text_delta_block],
+    message_delta_holder = MessageDeltaObjectDelta(
+        content=[MessageDeltaObjectDeltaContentInner(
+            actual_instance=text_delta_block
+        )],
         role=message.role,
         file_ids=run.file_ids,
     )
