@@ -55,6 +55,8 @@ from openapi_server_v2.models.run_step_details_message_creation_object_message_c
 from openapi_server_v2.models.run_step_details_tool_calls_file_search_object import \
     RunStepDetailsToolCallsFileSearchObject
 from openapi_server_v2.models.run_step_details_tool_calls_object import RunStepDetailsToolCallsObject
+from openapi_server_v2.models.run_step_details_tool_calls_object_tool_calls_inner import \
+    RunStepDetailsToolCallsObjectToolCallsInner
 from openapi_server_v2.models.run_step_object import RunStepObject
 from openapi_server_v2.models.run_tool_call_object import RunToolCallObject
 from openapi_server_v2.models.run_tool_call_object_function import RunToolCallObjectFunction
@@ -554,10 +556,12 @@ async def create_run(
                 step_details = RunStepDetailsToolCallsObject(
                     type="tool_calls",
                     tool_calls = [
-                        RunStepDetailsToolCallsFileSearchObject(
-                            id = message_id,
-                            type = "file_search",
-                            file_search = {},
+                        RunStepDetailsToolCallsObjectToolCallsInner(
+                            actual_instance =RunStepDetailsToolCallsFileSearchObject(
+                                id = message_id,
+                                type = "file_search",
+                                file_search = {},
+                            )
                         ),
                     ],
                 )
@@ -737,10 +741,12 @@ async def process_rag(
                 details = RunStepDetailsToolCallsObject(
                     type="tool_calls",
                     tool_calls = [
-                        RunStepDetailsToolCallsFileSearchObject(
-                            id = message_id,
-                            type = "retrieval",
-                            retrieval = context_json_meta,
+                        RunStepDetailsToolCallsObjectToolCallsInner(
+                            actual_instance=RunStepDetailsToolCallsFileSearchObject(
+                                id = message_id,
+                                type = "retrieval",
+                                retrieval = context_json_meta,
+                            )
                         ),
                     ],
                 )

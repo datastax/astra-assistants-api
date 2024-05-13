@@ -56,6 +56,8 @@ from openapi_server.models.run_step_details_message_creation_object import RunSt
 from openapi_server.models.run_step_details_message_creation_object_message_creation import \
     RunStepDetailsMessageCreationObjectMessageCreation
 from openapi_server.models.run_step_details_tool_calls_object import RunStepDetailsToolCallsObject
+from openapi_server.models.run_step_details_tool_calls_object_tool_calls_inner import \
+    RunStepDetailsToolCallsObjectToolCallsInner
 from openapi_server.models.run_step_details_tool_calls_retrieval_object import RunStepDetailsToolCallsRetrievalObject
 from openapi_server.models.run_step_object import RunStepObject
 from openapi_server.models.run_tool_call_object import RunToolCallObject
@@ -562,10 +564,12 @@ async def create_run(
                step_details = RunStepDetailsToolCallsObject(
                    type="tool_calls",
                    tool_calls = [
-                       RunStepDetailsToolCallsRetrievalObject(
-                           id = message_id,
-                           type = "retrieval",
-                           retrieval = {},
+                       RunStepDetailsToolCallsObjectToolCallsInner(
+                       actual_instance=RunStepDetailsToolCallsRetrievalObject(
+                               id = message_id,
+                               type = "retrieval",
+                               retrieval = {},
+                           )
                        ),
                    ],
                )
@@ -770,10 +774,12 @@ async def process_rag(
                 details = RunStepDetailsToolCallsObject(
                     type="tool_calls",
                     tool_calls = [
-                        RunStepDetailsToolCallsRetrievalObject(
-                            id = message_id,
-                            type = "retrieval",
-                            retrieval = context_json_meta,
+                        RunStepDetailsToolCallsObjectToolCallsInner(
+                            actual_instance = RunStepDetailsToolCallsRetrievalObject(
+                                id = message_id,
+                                type = "retrieval",
+                                retrieval = context_json_meta,
+                            )
                         ),
                     ],
                 )
