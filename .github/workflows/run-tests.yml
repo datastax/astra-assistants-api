@@ -151,7 +151,7 @@ jobs:
           poetry add openai@1.20.0
       - name: run tests
         run: |
-          poetry run pytest -s --disable-warnings tests/openai-sdk/assistants_v1.py
+          poetry run pytest -s --disable-warnings tests/openai-sdk/test_assistants_v1.py
 
   run-openai-sdk-test_assistans_v2:
     runs-on: ubuntu-latest
@@ -191,7 +191,7 @@ jobs:
           poetry add openai@latest
       - name: run tests
         run: |
-          poetry run pytest -s --disable-warnings tests/openai-sdk/assistants_v2.py
+          poetry run pytest -s --disable-warnings tests/openai-sdk/test_assistants_v2.py
 
   run-streaming-assistants-tests-chat:
     runs-on: ubuntu-latest
