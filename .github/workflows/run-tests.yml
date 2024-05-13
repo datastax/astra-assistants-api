@@ -148,7 +148,7 @@ jobs:
           poetry install
       - name: Install dependencies with specific client version
         run: |
-          poetry add openai@1.20.0 --dev
+          poetry add openai@1.20.0
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/openai-sdk/assistants_v1.py
@@ -186,6 +186,9 @@ jobs:
       - name: get dependencies
         run: |
           poetry install
+      - name: Install dependencies with specific client version
+        run: |
+          poetry add openai@latest
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/openai-sdk/assistants_v2.py
