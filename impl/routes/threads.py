@@ -60,6 +60,7 @@ from openapi_server.models.run_step_details_tool_calls_object_tool_calls_inner i
     RunStepDetailsToolCallsObjectToolCallsInner
 from openapi_server.models.run_step_details_tool_calls_retrieval_object import RunStepDetailsToolCallsRetrievalObject
 from openapi_server.models.run_step_object import RunStepObject
+from openapi_server.models.run_step_object_step_details import RunStepObjectStepDetails
 from openapi_server.models.run_tool_call_object import RunToolCallObject
 from openapi_server.models.run_tool_call_object_function import RunToolCallObjectFunction
 from openapi_server.models.thread_object import ThreadObject
@@ -278,7 +279,9 @@ async def run_event_stream(run, message_id, astradb):
     if run.status == "requires_action":
        # annoyingly the sdk looks for a run step even though the data we need is in the RunRequiresAction
        # data.delta.step_details_tool_calls
-        step_details = RunStepDetailsToolCallsObject(type="tool_calls", tool_calls=[])
+        step_details = RunStepObjectStepDetails(
+            actual_instance=RunStepDetailsToolCallsObject(type="tool_calls", tool_calls=[])
+        )
         run_step = RunStepObject(
             type="tool_calls",
             thread_id=run.thread_id,
@@ -561,17 +564,19 @@ async def create_run(
                status = "in_progress",
                thread_id = thread_id,
                type = "tool_calls",
-               step_details = RunStepDetailsToolCallsObject(
-                   type="tool_calls",
-                   tool_calls = [
-                       RunStepDetailsToolCallsObjectToolCallsInner(
-                       actual_instance=RunStepDetailsToolCallsRetrievalObject(
-                               id = message_id,
-                               type = "retrieval",
-                               retrieval = {},
-                           )
-                       ),
-                   ],
+               step_details = RunStepObjectStepDetails(
+                   actual_instance = RunStepDetailsToolCallsObject(
+                       type="tool_calls",
+                       tool_calls = [
+                           RunStepDetailsToolCallsObjectToolCallsInner(
+                           actual_instance=RunStepDetailsToolCallsRetrievalObject(
+                                   id = message_id,
+                                   type = "retrieval",
+                                   retrieval = {},
+                               )
+                           ),
+                       ],
+                   )
                )
            )
            logger.info(f"creating run_step {run_step}")
@@ -771,17 +776,19 @@ async def process_rag(
                 completed_at = int(time.mktime(datetime.now().timetuple()))
 
                 # TODO: consider [optionally?] excluding the content payload because it can be big
-                details = RunStepDetailsToolCallsObject(
-                    type="tool_calls",
-                    tool_calls = [
-                        RunStepDetailsToolCallsObjectToolCallsInner(
-                            actual_instance = RunStepDetailsToolCallsRetrievalObject(
-                                id = message_id,
-                                type = "retrieval",
-                                retrieval = context_json_meta,
-                            )
-                        ),
-                    ],
+                details = RunStepObjectStepDetails(
+                    actual_instance=RunStepDetailsToolCallsObject(
+                        type="tool_calls",
+                        tool_calls = [
+                            RunStepDetailsToolCallsObjectToolCallsInner(
+                                actual_instance = RunStepDetailsToolCallsRetrievalObject(
+                                    id = message_id,
+                                    type = "retrieval",
+                                    retrieval = context_json_meta,
+                                )
+                            ),
+                        ],
+                    )
                 )
 
                 run_step = RunStepObject(

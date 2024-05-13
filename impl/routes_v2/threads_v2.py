@@ -58,6 +58,7 @@ from openapi_server_v2.models.run_step_details_tool_calls_object import RunStepD
 from openapi_server_v2.models.run_step_details_tool_calls_object_tool_calls_inner import \
     RunStepDetailsToolCallsObjectToolCallsInner
 from openapi_server_v2.models.run_step_object import RunStepObject
+from openapi_server_v2.models.run_step_object_step_details import RunStepObjectStepDetails
 from openapi_server_v2.models.run_tool_call_object import RunToolCallObject
 from openapi_server_v2.models.run_tool_call_object_function import RunToolCallObjectFunction
 from openapi_server_v2.models.submit_tool_outputs_run_request import SubmitToolOutputsRunRequest
@@ -268,7 +269,10 @@ async def run_event_stream(run, message_id, astradb):
     if run.status == "requires_action":
         # annoyingly the sdk looks for a run step even though the data we need is in the RunRequiresAction
         # data.delta.step_details_tool_calls
-        step_details = RunStepDetailsToolCallsObject(type="tool_calls", tool_calls=[])
+        step_details = RunStepObjectStepDetails(
+            actual_instance= RunStepDetailsToolCallsObject(type="tool_calls", tool_calls=[])
+
+        )
         run_step = RunStepObject(
             type="tool_calls",
             thread_id=run.thread_id,
@@ -553,17 +557,19 @@ async def create_run(
                 status = "in_progress",
                 thread_id = thread_id,
                 type = "tool_calls",
-                step_details = RunStepDetailsToolCallsObject(
-                    type="tool_calls",
-                    tool_calls = [
-                        RunStepDetailsToolCallsObjectToolCallsInner(
-                            actual_instance =RunStepDetailsToolCallsFileSearchObject(
-                                id = message_id,
-                                type = "file_search",
-                                file_search = {},
-                            )
-                        ),
-                    ],
+                step_details = RunStepObjectStepDetails(
+                    actual_instance= RunStepDetailsToolCallsObject(
+                        type="tool_calls",
+                        tool_calls = [
+                                RunStepDetailsToolCallsObjectToolCallsInner(
+                                actual_instance =RunStepDetailsToolCallsFileSearchObject(
+                                    id = message_id,
+                                    type = "file_search",
+                                    file_search = {},
+                                )
+                            ),
+                        ],
+                    )
                 )
             )
             logger.info(f"creating run_step {run_step}")
@@ -738,7 +744,8 @@ async def process_rag(
                 completed_at = int(time.mktime(datetime.now().timetuple()))
 
                 # TODO: consider [optionally?] excluding the content payload because it can be big
-                details = RunStepDetailsToolCallsObject(
+                details = RunStepObjectStepDetails(
+                    actual_instance=RunStepDetailsToolCallsObject(
                     type="tool_calls",
                     tool_calls = [
                         RunStepDetailsToolCallsObjectToolCallsInner(
@@ -749,6 +756,7 @@ async def process_rag(
                             )
                         ),
                     ],
+                )
                 )
 
                 run_step = RunStepObject(
