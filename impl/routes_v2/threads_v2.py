@@ -912,7 +912,7 @@ async def list_runs(
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> ListRunsResponse:
     # TODO fix data model to support limit and sort
-    raw_runs = astradb.selectFromTableByPK(
+    raw_runs = astradb.select_from_table_by_pk(
         table="runs", partitionKeys=["thread_id"], args={"thread_id": thread_id}
     )
     if order is None or order == "desc":
@@ -1070,7 +1070,7 @@ def get_and_process_messages(astradb, thread_id, limit, order, after, before):
         )
     raw_messages = None
     # TODO fix datamodel to support sorting and limit pushdown
-    raw_messages = astradb.selectFromTableByPK(
+    raw_messages = astradb.select_from_table_by_pk(
         table="messages", partitionKeys=["thread_id"], args={"thread_id": thread_id}
     )
 

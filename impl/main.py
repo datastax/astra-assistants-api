@@ -71,9 +71,13 @@ class APIVersionMiddleware(BaseHTTPMiddleware):
             request.scope['path'] = original_path
             response = await call_next(request)
             return response
+        if version_header is None or version_header == "assistants=v2":
+            request.scope['path'] = original_path.replace("v1","v2")
+            response = await call_next(request)
+            return response
         else:
             return Response(
-                "Unsupported version, please use openai SDK compatible with: OpenAI-Beta: assistants=v1 (python sdk openai 1.21.0 or older)",
+                f"Unsupported version: {version_header})",
                 status_code=400)
 
 

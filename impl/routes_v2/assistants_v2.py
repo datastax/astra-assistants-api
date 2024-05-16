@@ -1,5 +1,5 @@
 import asyncio
-import datetime
+from datetime import datetime
 import logging
 import time
 from uuid import uuid1
@@ -7,10 +7,11 @@ from uuid import uuid1
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Path
 
 from impl.astra_vector import CassandraClient
+from impl.model_v2.create_assistant_request import CreateAssistantRequest
 from impl.routes.utils import verify_openai_token, verify_db_client
+from impl.utils import map_model, combine_fields
 from openapi_server_v2.models.assistant_object import AssistantObject
 from openapi_server_v2.models.assistant_object_tools_inner import AssistantObjectToolsInner
-from openapi_server_v2.models.create_assistant_request import CreateAssistantRequest
 from openapi_server_v2.models.delete_assistant_response import DeleteAssistantResponse
 from openapi_server_v2.models.list_assistants_response import ListAssistantsResponse
 from openapi_server_v2.models.modify_assistant_request import ModifyAssistantRequest
@@ -48,51 +49,24 @@ async def list_assistants(
         openai_token: str = Depends(verify_openai_token),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> ListAssistantsResponse:
-    raw_assistants = astradb.selectAllFromTable(table="assistants")
+    raw_assistants = astradb.selectAllFromTable(table="assistants_v2")
 
     assistants = []
     if len(raw_assistants) == 0:
         return ListAssistantsResponse(
             data=assistants,
-            object="runs",
+            object="list",
             first_id="none",
             last_id="none",
             has_more=False,
         )
-    for assistant in raw_assistants:
-        created_at = int(assistant["created_at"].timestamp() * 1000)
-
-        metadata = assistant["metadata"]
-        if metadata is None:
-            metadata = {}
-
-        file_ids = assistant["file_ids"]
-        if file_ids is None:
-            file_ids = []
-
-        toolsJson = assistant["tools"]
-        tools = []
-
-        if toolsJson is not None:
-            for json_string in toolsJson:
-                tools.append(AssistantObjectToolsInner.parse_raw(json_string))
-
-        if assistant["model"] is None:
-            logger.info(f'Model is required, assistant={assistant}, assistant["model"]={assistant["model"]}')
-
-        assistant = AssistantObject(
-            id=assistant["id"],
-            object="assistant",
-            created_at=created_at,
-            name=assistant["name"],
-            description=assistant["description"],
-            model=assistant["model"],
-            instructions=assistant["instructions"],
-            tools=tools,
-            file_ids=file_ids,
-            metadata=metadata,
-        )
+    for raw_assistant in raw_assistants:
+        # TODO is there a better way to handle this?
+        if raw_assistant['tools'] is None:
+            raw_assistant['tools'] = []
+        assistant = AssistantObject.from_dict(raw_assistant)
         assistants.append(assistant)
+
     first_id = raw_assistants[0]["id"]
     last_id = raw_assistants[len(raw_assistants) - 1]["id"]
     assistants_response = ListAssistantsResponse(
@@ -121,61 +95,37 @@ async def create_assistant(
 ) -> AssistantObject:
     assistant_id = str(uuid1())
     logging.info(f"going to create assistant with id: {assistant_id} and details {create_assistant_request}")
-    metadata = create_assistant_request.metadata
-    if metadata is None:
-        metadata = {}
 
-    file_ids = create_assistant_request.file_ids
-    if file_ids is None:
-        file_ids = []
+    # validate
+    tool_resources = create_assistant_request.tool_resources
+    if tool_resources is None:
+        tool_resources = []
 
     tools = create_assistant_request.tools
     if tools is None:
         tools = []
 
     retrieval_tool = AssistantObjectToolsInner(type='retrieval', function=None)
-    if file_ids is not None and retrieval_tool not in tools and file_ids != []:
+    if tool_resources is not None and retrieval_tool not in tools and tool_resources != []:
         # raise http error
-        raise HTTPException(status_code=400, detail="Retrieval tool is required when file_ids is not [].")
+        raise HTTPException(status_code=400, detail="Retrieval tool is required when tool_resources is not [].")
 
 
     description = create_assistant_request.description
     if description is None:
         description = ""
 
-    created_at = int(time.mktime(datetime.now().timetuple()))
-    astradb.upsert_assistant(
-        id=assistant_id,
-        created_at=created_at,
-        name=create_assistant_request.name,
-        description=description,
-        model=create_assistant_request.model,
-        instructions=create_assistant_request.instructions,
-        tools=tools,
-        file_ids=file_ids,
-        metadata=metadata,
-        object="assistant",
-    )
-    logging.info(f"created assistant with id: {assistant_id}")
+    created_at = int(time.mktime(datetime.now().timetuple())*1000)
 
-    name = create_assistant_request.name
-    if name is None:
-        name = ""
+    extra_fields = {"id": assistant_id, "created_at": created_at, "object": "assistant"}
+    assistant : AssistantObject = map_model(source_instance=create_assistant_request, target_model_class=AssistantObject, extra_fields=extra_fields)
 
-    updated_assistant = AssistantObject(
-        id=assistant_id,
-        created_at=created_at,
-        name=name,
-        description=description,
-        model=create_assistant_request.model,
-        instructions=create_assistant_request.instructions,
-        tools=tools,
-        file_ids=file_ids,
-        metadata=metadata,
-        object="assistant",
-    )
-    logging.info(f"with these details: {updated_assistant}")
-    return updated_assistant
+    astradb.upsert_table_from_base_model(table_name="assistants_v2", obj=assistant)
+
+    logging.info(f"created assistant with id: {assistant.id}")
+
+    logging.info(f"with these details: {assistant}")
+    return assistant
 
 
 @router.post("/assistants/{assistant_id}", response_model=AssistantObject)
@@ -186,42 +136,22 @@ async def modify_assistant(
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> AssistantObject:
     metadata = modify_assistant_request.metadata
-    if metadata is None:
-        metadata = {}
-
-    file_ids = modify_assistant_request.file_ids
-    if file_ids is None:
-        file_ids = []
 
     tools = modify_assistant_request.tools
     if tools is None:
         tools = []
 
-    description = modify_assistant_request.description
-    if description is None:
-        description = ""
+    #assistant = astradb.get_assistant(id=assistant_id)
+    #if assistant is None:
+    #    logger.warn(f"this should not happen")
+    #    asyncio.sleep(1)
+    #    return modify_assistant(assistant_id, modify_assistant_request, openai_token, astradb)
+    #logger.info(f'assistant before upsert: {assistant}')
+    extra_fields={"id": assistant_id, "object": "assistant"}
+    combined_fields = combine_fields(extra_fields, modify_assistant_request, AssistantObject)
+    astradb.upsert_table_from_dict(table_name="assistants_v2", obj=combined_fields)
 
-    assistant = astradb.get_assistant(id=assistant_id)
-    if assistant is None:
-        logger.warn(f"this should not happen")
-        asyncio.sleep(1)
-        return modify_assistant(assistant_id, modify_assistant_request, openai_token, astradb)
-    logger.info(f'assistant before upsert: {assistant}')
-
-    astradb.upsert_assistant(
-        id=assistant_id,
-        created_at=int(time.mktime(datetime.now().timetuple())),
-        name=modify_assistant_request.name,
-        description=description,
-        model=modify_assistant_request.model,
-        instructions=modify_assistant_request.instructions,
-        tools=tools,
-        file_ids=file_ids,
-        metadata=metadata,
-        object="assistant",
-    )
-
-    assistant = astradb.get_assistant(id=assistant_id)
+    assistant = await get_assistant(assistant_id, openai_token, astradb)
     logger.info(f'assistant upserted: {assistant}')
     return assistant
 
@@ -260,7 +190,15 @@ async def get_assistant(
         openai_token: str = Depends(verify_openai_token),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> AssistantObject:
-    assistant = astradb.get_assistant(id=assistant_id)
-    if assistant is None:
+    assistants = astradb.select_from_table_by_pk(
+        table="assistants_v2",
+        partitionKeys=["id"],
+        args={"id": assistant_id}
+    )
+    if len(assistants) == 0:
         raise HTTPException(status_code=404, detail="Assistant not found.")
+    # TODO is there a better way to handle this?
+    if assistants[0]['tools'] is None:
+        assistants[0]['tools'] = []
+    assistant = AssistantObject.from_dict(assistants[0])
     return assistant

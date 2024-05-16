@@ -472,17 +472,20 @@ class CassandraClient:
             );"""
             )
 
+
+            #self.session.execute("drop table if exists assistant_api.assistants_v2;")
             self.session.execute(
                 f"""create table if not exists {CASSANDRA_KEYSPACE}.assistants_v2 (
                     id text primary key,
                     object text,
-                    created_at timestamp,
+                    created_at bigint,
                     name text,
                     description text,
                     model text,
                     instructions text,
                     tools List<text>,
                     metadata Map<text, text>,
+                    tool_resources Map<text, text>,
                     top_p float,
                     temperature float,
                     response_format text
@@ -1164,8 +1167,8 @@ class CassandraClient:
         return message
 
     def get_message(self, thread_id, message_id):
-        rows = self.selectFromTableByPK(table="messages", partitionKeys=["thread_id", "id"],
-                                        args={"thread_id": thread_id, "id": message_id})
+        rows = self.select_from_table_by_pk(table="messages", partitionKeys=["thread_id", "id"],
+                                            args={"thread_id": thread_id, "id": message_id})
         if len(rows) == 0:
             raise HTTPException(status_code=404, detail=f"Message not found {thread_id} {message_id}")
 
@@ -1314,7 +1317,7 @@ class CassandraClient:
         return self.get_thread(id)
 
     def get_thread(self, id):
-        rows = self.selectFromTableByPK(table="threads", partitionKeys=["id"], args={"id": id})
+        rows = self.select_from_table_by_pk(table="threads", partitionKeys=["id"], args={"id": id})
         if rows is not None and len(rows) > 0:
             row = rows[0]
             created_at = row["created_at"]
@@ -1333,6 +1336,76 @@ class CassandraClient:
             )
         else:
             raise HTTPException(status_code=404, detail=f"Thread not found with id {id}")
+
+    def upsert_table_from_dict(self, table_name : str, obj : Dict):
+        logger.info(f"going to upsert table {table_name} using {obj}")
+        fields = ', '.join(obj.keys())
+        placeholders = ', '.join(['?' for _ in range(len(obj.keys()))])
+
+        values_list = []
+
+        for field in obj.keys():
+            value = obj.get(field)
+            if value is None:
+                formatted_value = UNSET_VALUE
+            #elif isinstance(value, str):
+            #    formatted_value = f"'{value}'"
+            else:
+                formatted_value = value
+            values_list.append(formatted_value)
+
+        query_string = f"""insert into {CASSANDRA_KEYSPACE}.{table_name}(
+                {fields}
+            ) VALUES (
+                {placeholders}
+            );"""
+
+        statement = self.session.prepare(query_string)
+        statement.consistency_level = ConsistencyLevel.QUORUM
+        try:
+            response = self.session.execute(
+                statement,
+                tuple(values_list)
+            )
+        except Exception as e:
+            logger.error(f"failed to upsert {table_name}: {obj}")
+            raise e
+
+    def upsert_table_from_base_model(self, table_name : str, obj : BaseModel):
+        logger.info(f"going to upsert table {table_name} using {obj}")
+        fields = ', '.join(obj.__fields__.keys())
+        placeholders = ', '.join(['?' for _ in range(len(obj.__fields__.keys()))])
+
+        values_list = []
+
+        for field in obj.__fields__.keys():
+            value = getattr(obj, field)
+            if value is None:
+                formatted_value = UNSET_VALUE
+            #elif isinstance(value, str):
+            #    formatted_value = f"'{value}'"
+            else:
+                formatted_value = value
+            values_list.append(formatted_value)
+
+        query_string = f"""insert into {CASSANDRA_KEYSPACE}.{table_name}(
+                {fields}
+            ) VALUES (
+                {placeholders}
+            );"""
+
+        statement = self.session.prepare(query_string)
+        statement.consistency_level = ConsistencyLevel.QUORUM
+        try:
+            response = self.session.execute(
+                statement,
+                tuple(values_list)
+            )
+        except Exception as e:
+            logger.error(f"failed to upsert {table_name}: {obj}")
+            raise e
+
+
 
     def upsert_assistant(
             self,
@@ -1413,7 +1486,8 @@ class CassandraClient:
         self.session.row_factory = named_tuple_factory
         return json_rows
 
-    def selectFromTableByPK(self, table, partitionKeys, args, limit=None, order=None):
+    def select_from_table_by_pk(self, table: str, partitionKeys: List[str], args: Dict[str, Any], limit: int = None,
+                                order: str = None) -> object:
         limitString = ""
         if limit is not None:
             limitString = f"limit {limit}"
@@ -1473,8 +1547,8 @@ class CassandraClient:
         self.upsert_chunks_concurrently(statements_and_params)
 
     def load_auth_file(self, file_id):
-        rows = self.selectFromTableByPK(table="file_chunks", partitionKeys=["file_id", "chunk_id"],
-                                        args={"file_id": file_id, "chunk_id": "0"})
+        rows = self.select_from_table_by_pk(table="file_chunks", partitionKeys=["file_id", "chunk_id"],
+                                            args={"file_id": file_id, "chunk_id": "0"})
         content = rows[0]["content"]
 
         # write content to tmp file

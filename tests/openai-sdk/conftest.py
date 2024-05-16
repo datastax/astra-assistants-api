@@ -10,10 +10,9 @@ from httpx import USE_CLIENT_DEFAULT, Response
 from httpx._client import UseClientDefault
 from openai import OpenAI
 
-from impl import astra_vector
 from impl.astra_vector import CassandraClient
 from impl.main import app as application
-from impl.routes.utils import verify_db_client, datastore_cache
+from impl.routes.utils import datastore_cache
 
 logger = logging.getLogger(__name__)
 
