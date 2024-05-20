@@ -29,7 +29,7 @@ LLM_PARAM_AWS_SECRET_ACCESS_KEY = "LLM-PARAM-aws-secret-access-key"
 LLM_PARAM_AWS_ACCESS_KEY_ID = "LLM-PARAM-aws-access-key-id"
 
 
-BETA_HEADER = {"OpenAI-Beta": "assistants=v1"}
+BETA_HEADER = {"OpenAI-Beta": "assistants=v2"}
 
 def is_async(func: Callable) -> bool:
     """Returns true if the callable is async, accounting for wrapped callables"""
