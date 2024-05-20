@@ -44,7 +44,7 @@ def wrap_update_messages(original_update):
         message_id = kwargs.get("message_id")
         content = kwargs.get("content", NOT_GIVEN)
         role = kwargs.get("role", NOT_GIVEN)
-        file_ids = kwargs.get("file_ids", NOT_GIVEN)
+        attachments = kwargs.get("attachments", NOT_GIVEN)
         metadata = kwargs.get("metadata", NOT_GIVEN)
         extra_headers = kwargs.get("extra_headers", None)
         extra_headers = {**BETA_HEADER, **(extra_headers or {})}
@@ -59,7 +59,7 @@ def wrap_update_messages(original_update):
                 {
                     "content": content,
                     "role": role,
-                    "file_ids": file_ids,
+                    "attachments": attachments,
                     "metadata": metadata,
                 },
                 message_create_params.MessageCreateParams,
@@ -77,7 +77,7 @@ def wrap_update_messages(original_update):
         message_id = kwargs.get("message_id")
         content = kwargs.get("content", NOT_GIVEN)
         role = kwargs.get("role", NOT_GIVEN)
-        file_ids = kwargs.get("file_ids", NOT_GIVEN)
+        attachments = kwargs.get("attachments", NOT_GIVEN)
         metadata = kwargs.get("metadata", NOT_GIVEN)
         extra_headers = kwargs.get("extra_headers", None)
         extra_headers = {**BETA_HEADER, **(extra_headers or {})}
@@ -91,7 +91,7 @@ def wrap_update_messages(original_update):
                 {
                     "content": content,
                     "role": role,
-                    "file_ids": file_ids,
+                    "attachments": attachments,
                     "metadata": metadata,
                 },
                 message_create_params.MessageCreateParams,
@@ -207,13 +207,14 @@ def wrap_create(original_create, client):
             print(assistant_id)
             assistant = client.beta.assistants.retrieve(assistant_id)
             model = assistant.model
-            if assistant.file_ids is not None and len(assistant.file_ids) > 0:
-                file_id = assistant.file_ids[0]
-                file = client.files.retrieve(file_id)
-                if file.embedding_model is not None:
-                    extra_headers = kwargs.get("extra_headers", None)
-                    extra_headers = {**BETA_HEADER, "embedding-model": file.embedding_model, **(extra_headers or {})}
-                    kwargs["extra_headers"] = extra_headers
+            if assistant.tool_resources is not None and len(assistant.tool_resources) > 0:
+                # TODO figure out how to get the model from the tool resources
+                #file_id = assistant.file_ids[0]
+                #file = client.files.retrieve(file_id)
+                #if file.embedding_model is not None:
+                #    extra_headers = kwargs.get("extra_headers", None)
+                #    extra_headers = {**BETA_HEADER, "embedding-model": file.embedding_model, **(extra_headers or {})}
+                #    kwargs["extra_headers"] = extra_headers
 
         if model is not None:
             try:
