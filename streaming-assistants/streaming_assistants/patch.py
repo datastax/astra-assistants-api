@@ -29,6 +29,8 @@ LLM_PARAM_AWS_SECRET_ACCESS_KEY = "LLM-PARAM-aws-secret-access-key"
 LLM_PARAM_AWS_ACCESS_KEY_ID = "LLM-PARAM-aws-access-key-id"
 
 
+BETA_HEADER = {"OpenAI-Beta": "assistants=v1"}
+
 def is_async(func: Callable) -> bool:
     """Returns true if the callable is async, accounting for wrapped callables"""
     return inspect.iscoroutinefunction(func) or (
@@ -45,6 +47,7 @@ def wrap_update_messages(original_update):
         file_ids = kwargs.get("file_ids", NOT_GIVEN)
         metadata = kwargs.get("metadata", NOT_GIVEN)
         extra_headers = kwargs.get("extra_headers", None)
+        extra_headers = {**BETA_HEADER, **(extra_headers or {})}
         extra_query = kwargs.get("extra_query", None)
         extra_body = kwargs.get("extra_body", None)
         timeout = kwargs.get("timeout", NOT_GIVEN)
@@ -77,6 +80,7 @@ def wrap_update_messages(original_update):
         file_ids = kwargs.get("file_ids", NOT_GIVEN)
         metadata = kwargs.get("metadata", NOT_GIVEN)
         extra_headers = kwargs.get("extra_headers", None)
+        extra_headers = {**BETA_HEADER, **(extra_headers or {})}
         extra_query = kwargs.get("extra_query", None)
         extra_body = kwargs.get("extra_body", None)
         timeout = kwargs.get("timeout", NOT_GIVEN)
@@ -133,7 +137,8 @@ def sync_delete(
         raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
     if not message_id:
         raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
-    extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+
+    extra_headers = {**BETA_HEADER, **(extra_headers or {})}
     url = f"/threads/{thread_id}/messages/{message_id}"
     return self._delete(
         url,
@@ -161,7 +166,7 @@ async def async_delete(
         raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
     if not message_id:
         raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
-    extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+    extra_headers = {**BETA_HEADER, **(extra_headers or {})}
     url = f"/threads/{thread_id}/messages/{message_id}"
     return await self._delete(
         url,
@@ -172,7 +177,7 @@ async def async_delete(
     )
 
 
-def delete(self, thread_id: str, message_id: str, **kwargs):
+def delete_message(self, thread_id: str, message_id: str, **kwargs):
     """
     Delete a message from a thread.
 
@@ -204,6 +209,7 @@ def wrap_list(original_list):
         limit = kwargs.get("limit", NOT_GIVEN)
         order = kwargs.get("order", NOT_GIVEN)
         extra_headers = kwargs.get("extra_headers", None)
+        extra_headers = {**BETA_HEADER, **(extra_headers or {})}
         extra_query = kwargs.get("extra_query", None)
         extra_body = kwargs.get("extra_body", None)
         timeout = kwargs.get("timeout", NOT_GIVEN)
@@ -256,6 +262,7 @@ def wrap_list(original_list):
         limit = kwargs.get("limit", NOT_GIVEN)
         order = kwargs.get("order", NOT_GIVEN)
         extra_headers = kwargs.get("extra_headers", None)
+        extra_headers = {**BETA_HEADER, **(extra_headers or {})}
         extra_query = kwargs.get("extra_query", None)
         extra_body = kwargs.get("extra_body", None)
         timeout = kwargs.get("timeout", NOT_GIVEN)
@@ -419,7 +426,9 @@ def wrap_create(original_create, client):
                 file_id = assistant.file_ids[0]
                 file = client.files.retrieve(file_id)
                 if file.embedding_model is not None:
-                    kwargs["extra_headers"] = {"embedding-model": file.embedding_model}
+                    extra_headers = kwargs.get("extra_headers", None)
+                    extra_headers = {**BETA_HEADER, "embedding-model": file.embedding_model, **(extra_headers or {})}
+                    kwargs["extra_headers"] = extra_headers
 
         if model is not None:
             try:
@@ -443,7 +452,9 @@ def wrap_file_create(original_create, client):
         # Assuming the argument we"re interested in is named "special_argument"
         model = kwargs.get("embedding_model")
         if model is not None:
-            kwargs["extra_headers"] = { "embedding-model": model}
+            extra_headers = kwargs.get("extra_headers", None)
+            extra_headers = {**BETA_HEADER, "embedding-model": model, **(extra_headers or {})}
+            kwargs["extra_headers"] = extra_headers
             kwargs.pop("embedding_model")
             try:
                 assign_key_based_on_model(model, client)
@@ -589,9 +600,9 @@ def patch(client: Union[OpenAI, AsyncOpenAI]):
     client.files.create = MethodType(wrap_file_create(client.files.create, client), client.files.create)
 
     # support message deletion
-    client.beta.threads.messages.delete = MethodType(delete, client.beta.threads.messages)
+    client.beta.threads.messages.delete = MethodType(delete_message, client.beta.threads.messages)
 
-    # Wrap client.beta.threads.messages.update
+    # Wrap client.beta.threads.messages.update to support modifying content
     client.beta.threads.messages.update = MethodType(wrap_update_messages(client.beta.threads.messages.update), client.beta.threads.messages)
 
     return client
