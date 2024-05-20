@@ -387,30 +387,6 @@ class MessageListWithStreamingParams(TypedDict, total=False):
     """
     streaming: bool
 
-param_list = [
-    "temperature",
-    "top_p",
-    "stop",
-    "max_tokens",
-    "presence_penalty",
-    "frequency_penalty",
-    "logit_bias",
-    "user",
-    "response_format",
-    "seed",
-    "logprobs",
-    "top_logprobs",
-    "model_list",
-]
-
-def extract_llm_param_headers(kwargs, client):
-    for param in param_list:
-        value = kwargs.pop(param, None)
-        if value is not None:
-            header_key = f"LLM-PARAM-{param.replace('_', '-')}"
-            header_value = str(value)
-            client._custom_headers[header_key] = header_value
-
 def wrap_create(original_create, client):
     @wraps(original_create)
     def patched_create(self, *args, **kwargs):
@@ -435,10 +411,6 @@ def wrap_create(original_create, client):
                 assign_key_based_on_model(model, client)
             except Exception as e:
                 raise RuntimeError(f"Invalid model {model} or key. Make sure you set the right environment variable.") from None
-
-        # Only for run creation, pop off LLM parameters from kwargs and add them to the client headers
-        if "beta.threads.runs" in str(type(self)):
-            extract_llm_param_headers(kwargs, client)
 
         # Call the original "create" method
         result = original_create(*args, **kwargs)
