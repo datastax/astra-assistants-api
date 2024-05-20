@@ -208,6 +208,7 @@ def wrap_create(original_create, client):
             assistant = client.beta.assistants.retrieve(assistant_id)
             model = assistant.model
             if assistant.tool_resources is not None and len(assistant.tool_resources) > 0:
+                pass
                 # TODO figure out how to get the model from the tool resources
                 #file_id = assistant.file_ids[0]
                 #file = client.files.retrieve(file_id)

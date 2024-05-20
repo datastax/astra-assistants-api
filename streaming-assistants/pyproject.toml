@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "streaming-assistants"
-version = "0.18.3-pre"
+version = "0.18.4-pre"
 description = "Streaming enabled Assistants API"
 authors = ["phact <estevezsebastian@gmail.com>"]
 readme = "README.md"
