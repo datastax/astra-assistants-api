@@ -1,8 +1,11 @@
+import json
 from typing import Type, Dict, Any, List, get_origin, Annotated, get_args
 
 from pydantic import BaseModel
 
-def map_model(source_instance: BaseModel, target_model_class: Type[BaseModel], extra_fields: Dict[str, Any] = {}) -> BaseModel:
+
+def map_model(source_instance: BaseModel, target_model_class: Type[BaseModel],
+              extra_fields: Dict[str, Any] = {}) -> BaseModel:
     combined_fields = combine_fields(extra_fields, source_instance, target_model_class)
 
     # Create an instance of the target model class using the extracted and adjusted fields
@@ -16,7 +19,8 @@ def combine_fields(extra_fields, source_instance, target_model_class):
         value = None
         if field_name in source_instance.__fields__:
             value = getattr(source_instance, field_name)
-        elif field_name in extra_fields:
+        # extra_fields can override source_instance values
+        if field_name in extra_fields:
             value = extra_fields[field_name]
 
         # Handle Annotated type by extracting the base type

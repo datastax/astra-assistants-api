@@ -46,7 +46,6 @@ async def list_assistants(
             None,
             description="A cursor for use in pagination. &#x60;before&#x60; is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with obj_foo, your subsequent call can include before&#x3D;obj_foo in order to fetch the previous page of the list. ",
         ),
-        openai_token: str = Depends(verify_openai_token),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> ListAssistantsResponse:
     raw_assistants = astradb.selectAllFromTable(table="assistants_v2")
@@ -90,7 +89,6 @@ async def list_assistants(
 )
 async def create_assistant(
         create_assistant_request: CreateAssistantRequest = Body(None, description=""),
-        openai_token: str = Depends(verify_openai_token),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> AssistantObject:
     assistant_id = str(uuid1())
@@ -132,26 +130,13 @@ async def create_assistant(
 async def modify_assistant(
         assistant_id: str = Path(..., description="The ID of the assistant to modify."),
         modify_assistant_request: ModifyAssistantRequest = Body(None, description=""),
-        openai_token: str = Depends(verify_openai_token),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> AssistantObject:
-    metadata = modify_assistant_request.metadata
-
-    tools = modify_assistant_request.tools
-    if tools is None:
-        tools = []
-
-    #assistant = astradb.get_assistant(id=assistant_id)
-    #if assistant is None:
-    #    logger.warn(f"this should not happen")
-    #    asyncio.sleep(1)
-    #    return modify_assistant(assistant_id, modify_assistant_request, openai_token, astradb)
-    #logger.info(f'assistant before upsert: {assistant}')
     extra_fields={"id": assistant_id, "object": "assistant"}
     combined_fields = combine_fields(extra_fields, modify_assistant_request, AssistantObject)
     astradb.upsert_table_from_dict(table_name="assistants_v2", obj=combined_fields)
 
-    assistant = await get_assistant(assistant_id, openai_token, astradb)
+    assistant = await get_assistant(assistant_id, astradb)
     logger.info(f'assistant upserted: {assistant}')
     return assistant
 
@@ -167,7 +152,6 @@ async def modify_assistant(
 )
 async def delete_assistant(
         assistant_id: str,
-        openai_token: str = Depends(verify_openai_token),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> DeleteAssistantResponse:
     astradb.delete_assistant(id=assistant_id)
@@ -187,7 +171,6 @@ async def delete_assistant(
 )
 async def get_assistant(
         assistant_id: str,
-        openai_token: str = Depends(verify_openai_token),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> AssistantObject:
     assistants = astradb.select_from_table_by_pk(

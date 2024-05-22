@@ -473,7 +473,6 @@ class CassandraClient:
             )
 
 
-            #self.session.execute("drop table if exists assistant_api.assistants_v2;")
             self.session.execute(
                 f"""create table if not exists {CASSANDRA_KEYSPACE}.assistants_v2 (
                     id text primary key,
@@ -570,19 +569,25 @@ class CassandraClient:
             );"""
             )
 
+            # TODO remove this
+            self.session.execute("drop table if exists assistant_api.messages_v2;")
             self.session.execute(
                 f"""create table if not exists {CASSANDRA_KEYSPACE}.messages_v2 (
                     id text,
                     object text,
-                    created_at timestamp,
-                    assistant_id text,
+                    created_at bigint,
                     thread_id text,
-                    run_id text,
+                    status text,
+                    incomplete_details text,
+                    completed_at bigint,
+                    incomplete_at bigint,
                     role text,
                     content List<text>,
+                    assistant_id text,
+                    run_id text,
                     attachments List<text>,
                     metadata Map<text, text>,
-                    PRIMARY KEY ((thread_id), id)
+                    PRIMARY KEY ((thread_id), created_at, id)
             );"""
             )
 
@@ -610,19 +615,21 @@ class CassandraClient:
             ); """
             )
 
+            self.session.execute("drop table if exists assistant_api.runs_v2;")
             self.session.execute(
                 f"""create table if not exists {CASSANDRA_KEYSPACE}.runs_v2(
                 id text,
                 object text,
-                created_at timestamp,
+                created_at bigint,
                 assistant_id text,
                 thread_id text,
                 status text,
-                started_at timestamp,
-                expires_at timestamp,
-                cancelled_at timestamp,
-                failed_at timestamp,
-                completed_at timestamp,
+                required_action text,
+                started_at bigint,
+                expires_at bigint,
+                cancelled_at bigint,
+                failed_at bigint,
+                completed_at bigint,
                 last_error text,
                 model text,
                 instructions text,
@@ -1404,6 +1411,7 @@ class CassandraClient:
         except Exception as e:
             logger.error(f"failed to upsert {table_name}: {obj}")
             raise e
+        return obj
 
 
 

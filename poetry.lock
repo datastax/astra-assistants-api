@@ -1673,7 +1673,6 @@ files = [
     {file = "lxml-5.2.1-cp37-cp37m-musllinux_1_2_x86_64.whl", hash = "sha256:9e2addd2d1866fe112bc6f80117bcc6bc25191c5ed1bfbcf9f1386a884252ae8"},
     {file = "lxml-5.2.1-cp37-cp37m-win32.whl", hash = "sha256:f51969bac61441fd31f028d7b3b45962f3ecebf691a510495e5d2cd8c8092dbd"},
     {file = "lxml-5.2.1-cp37-cp37m-win_amd64.whl", hash = "sha256:b0b58fbfa1bf7367dde8a557994e3b1637294be6cf2169810375caf8571a085c"},
-    {file = "lxml-5.2.1-cp38-cp38-macosx_10_9_universal2.whl", hash = "sha256:3e183c6e3298a2ed5af9d7a356ea823bccaab4ec2349dc9ed83999fd289d14d5"},
     {file = "lxml-5.2.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:804f74efe22b6a227306dd890eecc4f8c59ff25ca35f1f14e7482bbce96ef10b"},
     {file = "lxml-5.2.1-cp38-cp38-manylinux_2_12_i686.manylinux2010_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:08802f0c56ed150cc6885ae0788a321b73505d2263ee56dad84d200cab11c07a"},
     {file = "lxml-5.2.1-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0f8c09ed18ecb4ebf23e02b8e7a22a05d6411911e6fabef3a36e4f371f4f2585"},
@@ -2820,13 +2819,13 @@ full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.7
 
 [[package]]
 name = "streaming-assistants"
-version = "0.15.9"
+version = "0.18.4rc0"
 description = "Streaming enabled Assistants API"
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "streaming_assistants-0.15.9-py3-none-any.whl", hash = "sha256:ff4ccf5b1188934d8720fce63dd6a4702afd7ed6bdb2584b43d4dd950cbd6eba"},
-    {file = "streaming_assistants-0.15.9.tar.gz", hash = "sha256:9ce6cdb481519a806c3f2ab16e192daad3063f4fcfd805c3dae6c8a3699c0330"},
+    {file = "streaming_assistants-0.18.4rc0-py3-none-any.whl", hash = "sha256:8997a3330f27e7587331d0d7ed38aa2f7342cc8628b45816a4b073bbb7ed6226"},
+    {file = "streaming_assistants-0.18.4rc0.tar.gz", hash = "sha256:b715a85d8a0713bb2490187dc63b7daee8bd1607006197a579a91b1367a98c06"},
 ]
 
 [package.dependencies]
@@ -2834,7 +2833,7 @@ boto3 = ">=1.34.31,<2.0.0"
 google-generativeai = ">=0.4.1,<0.5.0"
 httpx = ">=0.26.0,<0.27.0"
 litellm = ">=1.34.18,<2.0.0"
-openai = ">=1.14.0,<2.0.0"
+openai = ">=1.21.0,<2.0.0"
 
 [[package]]
 name = "tenacity"
@@ -3642,4 +3641,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10.12,<3.12"
-content-hash = "f688e375a76897f3366b58ca6e7bd4311764a360e49cd118e018038a974c5626"
+content-hash = "50bb690957362f30092903d0e23f890371618966d85f3bcd21bdffe1ea484fa4"
