@@ -207,9 +207,14 @@ def wrap_create(original_create, client):
             print(assistant_id)
             assistant = client.beta.assistants.retrieve(assistant_id)
             model = assistant.model
-            if assistant.tool_resources is not None and len(assistant.tool_resources) > 0:
-                pass
+            if(
+                getattr(assistant, 'tool_resources', None) and
+                getattr(assistant.tool_resources, 'file_search', None) and
+                getattr(assistant.tool_resources.file_search, 'vector_store_ids', None)
+            ):
                 # TODO figure out how to get the model from the tool resources
+                vector_store_id = assistant.tool_resources.file_search.vector_store_ids[0]
+                vector_store = client.vector_store.retrieve(vector_store_id)
                 #file_id = assistant.file_ids[0]
                 #file = client.files.retrieve(file_id)
                 #if file.embedding_model is not None:
