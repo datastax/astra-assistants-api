@@ -51,14 +51,15 @@ async def shutdown_event():
             pass  # Handle cancellation if needed
 
 
+app.include_router(health.router, prefix="/v1")
 app.include_router(stateless.router, prefix="/v1")
 app.include_router(assistants.router, prefix="/v1")
 app.include_router(files.router, prefix="/v1")
-app.include_router(health.router, prefix="/v1")
 app.include_router(threads.router, prefix="/v1")
 
 app.include_router(stateless.router, prefix="/v2")
 app.include_router(assistants_v2.router, prefix="/v2")
+app.include_router(files.router, prefix="/v2")
 app.include_router(threads_v2.router, prefix="/v2")
 
 
