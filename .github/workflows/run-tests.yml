@@ -607,6 +607,9 @@ jobs:
       - name: get dependencies
         run: |
           poetry install
+      - name: Install openai dependency
+        run: |
+          poetry add openai@1.20.0 streaming-assistants@0.15.9
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/streaming-assistants/test_auto_tool_call_v1.py
