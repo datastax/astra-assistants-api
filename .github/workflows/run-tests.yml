@@ -148,7 +148,7 @@ jobs:
           poetry install
       - name: Install dependencies with specific client version
         run: |
-          poetry add openai@1.20.0
+          poetry add openai@1.20.0 streaming-assistants@0.15.9
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/openai-sdk/test_assistants_v1.py
@@ -186,9 +186,6 @@ jobs:
       - name: get dependencies
         run: |
           poetry install
-      - name: Install dependencies with specific client version
-        run: |
-          poetry add openai@latest
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/openai-sdk/test_assistants_v2.py
@@ -337,7 +334,7 @@ jobs:
           poetry install
       - name: Install openai dependency
         run: |
-          poetry add openai@1.20.0
+          poetry add openai@1.20.0 streaming-assistants@0.15.9
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/streaming-assistants/test_function_calling_v1.py
@@ -376,7 +373,7 @@ jobs:
           poetry install
       - name: Install openai dependency
         run: |
-          poetry add openai@1.20.0
+          poetry add openai@1.20.0 streaming-assistants@0.15.9
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/streaming-assistants/test_run_v1.py
@@ -415,7 +412,7 @@ jobs:
           poetry install
       - name: Install openai dependency
         run: |
-          poetry add openai@1.20.0
+          poetry add openai@1.20.0 streaming-assistants@0.15.9
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/streaming-assistants/test_run_retreival_v1.py
@@ -454,7 +451,7 @@ jobs:
           poetry install
       - name: Install openai dependency
         run: |
-          poetry add openai@1.20.0
+          poetry add openai@1.20.0 streaming-assistants@0.15.9
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/streaming-assistants/test_streaming_run_retrieval_v1.py
@@ -493,7 +490,7 @@ jobs:
           poetry install
       - name: Install openai dependency
         run: |
-          poetry add openai@1.20.0
+          poetry add openai@1.20.0 streaming-assistants@0.15.9
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/streaming-assistants/test_streaming_run_v1.py
@@ -532,7 +529,7 @@ jobs:
           poetry install
       - name: Install openai dependency
         run: |
-          poetry add openai@1.20.0
+          poetry add openai@1.20.0 streaming-assistants@0.15.9
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/streaming-assistants/test_streaming_run_function_calling_v1.py
@@ -572,7 +569,7 @@ jobs:
           poetry install
       - name: Install openai dependency
         run: |
-          poetry add openai@1.20.0
+          poetry add openai@1.20.0 streaming-assistants@0.15.9
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/streaming-assistants/test_threads_v1.py
