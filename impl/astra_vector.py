@@ -1492,7 +1492,7 @@ class CassandraClient:
         return json_rows
 
     def select_from_table_by_pk(self, table: str, partitionKeys: List[str], args: Dict[str, Any], limit: int = None,
-                                order: str = None) -> object:
+                                order: str = None, allow_filtering: bool = False) -> object:
         limitString = ""
         if limit is not None:
             limitString = f"limit {limit}"
@@ -1517,6 +1517,8 @@ class CassandraClient:
             queryString = queryString + limitString + " ALLOW FILTERING;"
         else:
             queryString = queryString + limitString
+            if (allow_filtering):
+                queryString = queryString + " ALLOW FILTERING;"
         statement = self.session.prepare(queryString)
         statement.consistency_level = ConsistencyLevel.QUORUM
         preparedStatement = statement.bind(partitionKeyValues)

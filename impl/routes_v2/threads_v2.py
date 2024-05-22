@@ -186,10 +186,11 @@ async def get_message(
     messages = astradb.select_from_table_by_pk(
         table="messages_v2",
         partitionKeys=["id", "thread_id"],
-        args={"id": message_id, "thread_id": thread_id}
+        args={"id": message_id, "thread_id": thread_id},
+        allow_filtering=True
     )
     if len(messages) == 0:
-        raise HTTPException(status_code=404, detail="Assistant not found.")
+        raise HTTPException(status_code=404, detail="Message not found.")
     message = messages_json_to_objects(messages)[0]
     return message
 
@@ -239,6 +240,7 @@ async def modify_message(
         "created_at": message.created_at
     }
     await store_object(astradb=astradb, obj=modify_message_request, TargetClass=MessageObject, table_name="messages_v2", extra_fields=extra_fields)
+    message = await get_message(thread_id, message_id, astradb)
 
     logger.info(f'message upserted: {message}')
     return message
