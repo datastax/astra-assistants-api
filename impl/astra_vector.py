@@ -569,8 +569,6 @@ class CassandraClient:
             );"""
             )
 
-            # TODO remove this
-            self.session.execute("drop table if exists assistant_api.messages_v2;")
             self.session.execute(
                 f"""create table if not exists {CASSANDRA_KEYSPACE}.messages_v2 (
                     id text,
@@ -615,7 +613,6 @@ class CassandraClient:
             ); """
             )
 
-            self.session.execute("drop table if exists assistant_api.runs_v2;")
             self.session.execute(
                 f"""create table if not exists {CASSANDRA_KEYSPACE}.runs_v2(
                 id text,
