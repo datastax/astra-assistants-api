@@ -2819,13 +2819,13 @@ full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.7
 
 [[package]]
 name = "streaming-assistants"
-version = "0.18.4rc0"
+version = "0.18.5rc0"
 description = "Streaming enabled Assistants API"
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "streaming_assistants-0.18.4rc0-py3-none-any.whl", hash = "sha256:8997a3330f27e7587331d0d7ed38aa2f7342cc8628b45816a4b073bbb7ed6226"},
-    {file = "streaming_assistants-0.18.4rc0.tar.gz", hash = "sha256:b715a85d8a0713bb2490187dc63b7daee8bd1607006197a579a91b1367a98c06"},
+    {file = "streaming_assistants-0.18.5rc0-py3-none-any.whl", hash = "sha256:18c129bed7ed3e750a521acb2d565efa99a832c1221c14ec19b47796121a6c09"},
+    {file = "streaming_assistants-0.18.5rc0.tar.gz", hash = "sha256:15d0396c80932e6b3fa161a5d80038063605c57e49e9a68a1d3ccfb832fd688a"},
 ]
 
 [package.dependencies]
@@ -2833,7 +2833,7 @@ boto3 = ">=1.34.31,<2.0.0"
 google-generativeai = ">=0.4.1,<0.5.0"
 httpx = ">=0.26.0,<0.27.0"
 litellm = ">=1.34.18,<2.0.0"
-openai = ">=1.21.0,<2.0.0"
+openai = ">=1.20.0,<2.0.0"
 
 [[package]]
 name = "tenacity"
@@ -3641,4 +3641,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10.12,<3.12"
-content-hash = "50bb690957362f30092903d0e23f890371618966d85f3bcd21bdffe1ea484fa4"
+content-hash = "8d217fccd81ed9e9ae39cec287f1c4b160e5347261f13141f773daa760d85e60"
