@@ -720,4 +720,4 @@ jobs:
           poetry install
       - name: run tests
         run: |
-          poetry run pytest -s --disable-warnings tests/streaming-assistants/test_run_retrieval_v2.py
+          poetry run pytest -s --disable-warnings tests/streaming-assistants/test_run_retreival_v2.py
