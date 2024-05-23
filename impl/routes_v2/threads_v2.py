@@ -21,9 +21,10 @@ from impl.model_v2.modify_message_request import ModifyMessageRequest
 from impl.model_v2.run_object import RunObject
 from impl.routes.files import retrieve_file
 from impl.routes.utils import verify_db_client, get_litellm_kwargs, infer_embedding_model, infer_embedding_api_key
+from impl.routes_v2.assistants_v2 import get_assistant_obj
+from impl.routes_v2.vector_stores import read_vsf
 from impl.services.inference_utils import get_chat_completion, get_async_chat_completion_response
-from impl.utils import map_model, combine_fields
-from impl.routes_v2.assistants_v2 import get_assistant
+from impl.utils import map_model, store_object, read_object
 from openapi_server_v2.models.assistants_api_response_format_option import AssistantsApiResponseFormatOption
 from openapi_server_v2.models.assistants_api_tool_choice_option import AssistantsApiToolChoiceOption
 
@@ -143,29 +144,9 @@ async def create_message(
         "object": "thread.message",
         "content": [content]
     }
-    return await store_object(astradb=astradb, obj=create_message_request, TargetClass=MessageObject, table_name="messages_v2", extra_fields=extra_fields)
+    return await store_object(astradb=astradb, obj=create_message_request, target_class=MessageObject, table_name="messages_v2", extra_fields=extra_fields)
 
 
-async def store_object(astradb: CassandraClient, obj: BaseModel, TargetClass: BaseModel, table_name: str, extra_fields: Dict[str, Any]):
-    combined_fields = combine_fields(extra_fields, obj, TargetClass)
-    combined_obj: TargetClass = TargetClass.construct(**combined_fields)
-
-    # TODO is there a better way to do this
-    # flatten nested objects into json
-    obj_dict = combined_obj.to_dict()
-    for key, value in obj_dict.items():
-        if isinstance(value, list):
-            for i in range(len(value)):
-                if isinstance(value[i], list):
-                    obj_dict[key][i] = json.dumps(value[i])
-                if isinstance(value[i], dict):
-                    obj_dict[key][i] = json.dumps(value[i])
-        # special handling for metadata column which is actually stored as a map in cassandra (other objects are json strings)
-        if key != "metadata" and isinstance(value, dict):
-            obj_dict[key] = json.dumps(value)
-
-    astradb.upsert_table_from_dict(table_name=table_name, obj=obj_dict)
-    return combined_obj
 
 
 @router.get(
@@ -239,7 +220,7 @@ async def modify_message(
         "thread_id": thread_id,
         "created_at": message.created_at
     }
-    await store_object(astradb=astradb, obj=modify_message_request, TargetClass=MessageObject, table_name="messages_v2", extra_fields=extra_fields)
+    await store_object(astradb=astradb, obj=modify_message_request, target_class=MessageObject, table_name="messages_v2", extra_fields=extra_fields)
     message = await get_message(thread_id, message_id, astradb)
 
     logger.info(f'message upserted: {message}')
@@ -512,7 +493,7 @@ async def init_assistant_message(thread_id, assistant_id, run_id, astradb, creat
         metadata=None,
         attachments=None
     )
-    message = await store_object(astradb=astradb, obj=message_obj, TargetClass=MessageObject, table_name="messages_v2", extra_fields={})
+    message = await store_object(astradb=astradb, obj=message_obj, target_class=MessageObject, table_name="messages_v2", extra_fields={})
     return message.id
 
 
@@ -551,7 +532,7 @@ async def create_run(
 
     model = create_run_request.model
     # TODO: implement support for ChatCompletionToolChoiceOption
-    assistant = await get_assistant(assistant_id=create_run_request.assistant_id, astradb=astradb)
+    assistant = await get_assistant_obj(assistant_id=create_run_request.assistant_id, astradb=astradb)
 
     if tools is None:
         tools = []
@@ -596,8 +577,9 @@ async def create_run(
 
         status = "in_progress"
 
-    for tool in tools:
-        if tool.type == "retrieval":
+    for tool_obj in tools:
+        tool = tool_obj.actual_instance
+        if tool.type == "file_search":
             message_id = str(uuid1())
             created_at = int(time.mktime(datetime.now().timetuple()))
 
@@ -605,6 +587,7 @@ async def create_run(
             await init_assistant_message(thread_id=thread_id, assistant_id=assistant.id, run_id=run_id, astradb=astradb, created_at=created_at)
 
             # create run_step
+            # Note the run_step id is the same as the message_id
             run_step = RunStepObject(
                 id=message_id,
                 assistant_id=assistant.id,
@@ -627,7 +610,14 @@ async def create_run(
                             ),
                         ],
                     )
-                )
+                ),
+                last_error=None,
+                expired_at=None,
+                cancelled_at=None,
+                failed_at=None,
+                completed_at=None,
+                metadata=None,
+                usage=None,
             )
             logger.info(f"creating run_step {run_step}")
             astradb.upsert_run_step(run_step)
@@ -651,7 +641,7 @@ async def create_run(
             )
             await add_background_task(function=bkd_task, run_id=run_id, thread_id=thread_id, astradb=astradb)
 
-            status = "generating"
+            status = "in_progress"
         if tool.type == "function":
             toolsJson.append(tool.function.dict())
 
@@ -698,7 +688,7 @@ async def create_run(
             metadata={},
         )
 
-    run = await modify_run(
+    run = await store_run(
         id=run_id,
         created_at=created_at,
         thread_id=thread_id,
@@ -748,11 +738,11 @@ async def update_run_status(thread_id, id, status, astradb):
         tool_choice=None,
         response_format=None,
     )
-    run = await store_object(astradb=astradb, obj=obj, TargetClass=RunObject, table_name="runs_v2", extra_fields={})
+    run = await store_object(astradb=astradb, obj=obj, target_class=RunObject, table_name="runs_v2", extra_fields={})
     return run
 
 
-async def modify_run(id, created_at, thread_id, assistant_id, status, required_action, model, tools, instructions, create_run_request, astradb):
+async def store_run(id, created_at, thread_id, assistant_id, status, required_action, model, tools, instructions, create_run_request, astradb):
     truncation_strategy = create_run_request.truncation_strategy
     if truncation_strategy is None:
         truncation_strategy = TruncationObject(type="auto")
@@ -765,36 +755,28 @@ async def modify_run(id, created_at, thread_id, assistant_id, status, required_a
     if response_format is None:
         response_format = AssistantsApiResponseFormatOption(actual_instance="auto")
 
+    tools_dict = []
+    for tool in tools:
+        tools_dict.append(tool.to_dict())
+
     # TODO - support expiration
-    obj = RunObject(
-        id=id,
-        object="thread.run",
-        created_at=created_at,
-        thread_id=thread_id,
-        assistant_id=assistant_id,
-        status=status,
-        required_action=required_action,
-        last_error=None,
-        expires_at=None,
-        started_at=None,
-        cancelled_at=None,
-        failed_at=None,
-        completed_at=None,
-        incomplete_details=None,
-        model=model,
-        instructions=instructions,
-        tools=tools,
-        metadata=create_run_request.metadata,
-        usage=None,
-        temperature=create_run_request.temperature,
-        top_p=create_run_request.top_p,
-        max_prompt_tokens=create_run_request.max_prompt_tokens,
-        max_completion_tokens=create_run_request.max_completion_tokens,
-        truncation_strategy=truncation_strategy,
-        tool_choice=tool_choice,
-        response_format=response_format,
-    )
-    run = await store_object(astradb=astradb, obj=obj, TargetClass=RunObject, table_name="runs_v2", extra_fields={})
+    extra_fields = {
+        "id": id,
+        "object": "thread.run",
+        "created_at": created_at,
+        "thread_id": thread_id,
+        "assistant_id": assistant_id,
+        "status": status,
+        "required_action": required_action,
+        "model": model,
+        "instructions": instructions,
+        "tools": tools,
+        "truncation_strategy": truncation_strategy,
+        "tool_choice": tool_choice,
+        "response_format": response_format,
+
+    }
+    run = await store_object(astradb=astradb, obj=create_run_request, target_class=RunObject, table_name="runs_v2", extra_fields=extra_fields)
     return run
 
 
@@ -821,8 +803,9 @@ def summarize_message_content(instructions, messages):
 
 
 # TODO - file_ids to tool_resources
+# https://platform.openai.com/docs/assistants/tools/file-search/how-it-works
 async def process_rag(
-        run_id, thread_id, file_ids, messages, model, instructions, astradb, litellm_kwargs, embedding_model,
+        run_id, thread_id, tool_resources, messages, model, instructions, astradb, litellm_kwargs, embedding_model,
         assistant_id, message_id, embedding_api_key, created_at, run_step_id=None
 ):
     try:
@@ -848,9 +831,13 @@ async def process_rag(
             )).content
             logger.debug(f"ANN search_string {search_string}")
 
-            # TODO incorporate file_ids into the search using where in
+            file_ids = []
+            for vector_store_id in tool_resources.file_search.vector_store_ids:
+                vector_store_files = await read_vsf(vector_store_id=vector_store_id, astradb=astradb)
+                for vector_store_file in vector_store_files:
+                    file_ids.append(vector_store_file.id)
             if len(file_ids) > 0:
-                created_at = int(time.mktime(datetime.now().timetuple()))
+                created_at = int(time.mktime(datetime.now().timetuple())*1000)
                 context_json = astradb.annSearch(
                     table="file_chunks",
                     vector_index_column="embedding",
@@ -861,12 +848,12 @@ async def process_rag(
                     embedding_api_key=embedding_api_key,
                 )
 
-                # get the unique tool_resources from the context_json
-                tool_resources = list(set([chunk["tool_resources"] for chunk in context_json]))
+                # get the unique file_ids from the context_json
+                file_ids = list(set([chunk["file_id"] for chunk in context_json]))
 
                 file_meta = {}
                 # TODO fix
-                for file_id in tool_resources:
+                for file_id in file_ids:
                     # TODO - IMPL
                     file: OpenAIFile = await retrieve_file(file_id, astradb)
                     file_object = {
@@ -891,8 +878,8 @@ async def process_rag(
                             RunStepDetailsToolCallsObjectToolCallsInner(
                                 actual_instance=RunStepDetailsToolCallsFileSearchObject(
                                     id=message_id,
-                                    type="retrieval",
-                                    retrieval=context_json_meta,
+                                    type="file_search",
+                                    file_search={"chunks": context_json_meta},
                                 )
                             ),
                         ],
@@ -910,6 +897,12 @@ async def process_rag(
                     step_details=details,
                     thread_id=thread_id,
                     type="tool_calls",
+                    last_error=None,
+                    expired_at=None,
+                    cancelled_at=None,
+                    failed_at=None,
+                    metadata=None,
+                    usage=None,
                 )
                 logger.info(f"creating run_step {run_step}")
                 astradb.upsert_run_step(run_step)
@@ -959,7 +952,7 @@ async def process_rag(
                     text += part.choices[0].delta.content
                     start_time = await maybe_checkpoint(assistant_id, astradb,
                                                         frequency_in_seconds, message_id,
-                                                        run_id, start_time, text, thread_id)
+                                                        run_id, start_time, text, thread_id, created_at)
         else:
             done = False
             while not done:
@@ -971,7 +964,7 @@ async def process_rag(
                         text += delta
                     start_time = await maybe_checkpoint(assistant_id, astradb,
                                                         frequency_in_seconds, message_id,
-                                                        run_id, start_time, text, thread_id)
+                                                        run_id, start_time, text, thread_id, created_at)
 
 
         # final message upsert
@@ -1013,11 +1006,11 @@ async def complete_message(assistant_id, astradb, message_id, run_id, text, thre
         metadata={},
         attachments=None
     )
-    await store_object(astradb=astradb, obj=message, TargetClass=MessageObject, table_name="messages_v2", extra_fields={})
+    await store_object(astradb=astradb, obj=message, target_class=MessageObject, table_name="messages_v2", extra_fields={})
 
 
 async def maybe_checkpoint(assistant_id, astradb, frequency_in_seconds, message_id, run_id,
-                           start_time, text, thread_id):
+                           start_time, text, thread_id, created_at):
     current_time = time.time()
     if current_time - start_time >= frequency_in_seconds:
         logger.info("Checkpointing message")
@@ -1033,7 +1026,7 @@ async def maybe_checkpoint(assistant_id, astradb, frequency_in_seconds, message_
         message = MessageObject.construct(
             id=message_id,
             object="thread.message",
-            created_at=None,
+            created_at=created_at,
             thread_id=thread_id,
             status="in_progress",
             role="assistant",
@@ -1046,7 +1039,7 @@ async def maybe_checkpoint(assistant_id, astradb, frequency_in_seconds, message_
             metadata={},
             attachments=None
         )
-        await store_object(astradb=astradb, obj=message, TargetClass=MessageObject, table_name="messages_v2", extra_fields={})
+        await store_object(astradb=astradb, obj=message, target_class=MessageObject, table_name="messages_v2", extra_fields={})
         start_time = time.time()
         return start_time
     return start_time
@@ -1176,21 +1169,13 @@ async def get_run(
         run_id: str = Path(..., description="The ID of the run to retrieve."),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> RunObject:
-    runs = astradb.select_from_table_by_pk(
-        table="runs_v2",
-        partitionKeys=["id", "thread_id"],
+    run: RunObject = read_object(
+        astradb=astradb,
+        target_class=RunObject,
+        table_name="runs_v2",
+        partition_keys=["id", "thread_id"],
         args={"id": run_id, "thread_id": thread_id}
     )
-    if len(runs) == 0:
-        raise HTTPException(status_code=404, detail="Assistant not found.")
-
-    if runs[0]["tools"] is None:
-        runs[0]["tools"] = []
-    runs[0]["truncation_strategy"] = TruncationObject.from_json(runs[0]["truncation_strategy"])
-    runs[0]["tool_choice"] = AssistantsApiToolChoiceOption(actual_instance=runs[0]["tool_choice"])
-    runs[0]["response_format"] = AssistantsApiResponseFormatOption(actual_instance=runs[0]["response_format"])
-
-    run = RunObject(**runs[0])
     return run.to_dict()
 
 
@@ -1461,7 +1446,7 @@ async def submit_tool_ouputs_to_run(
         logger.info(submit_tool_outputs_run_request)
 
         run = astradb.get_run(id=run_id, thread_id=thread_id)
-        assistant = await get_assistant(assistant_id=run.assistant_id, astradb=astradb)
+        assistant = await get_assistant_obj(assistant_id=run.assistant_id, astradb=astradb)
         if assistant is None:
             raise HTTPException(status_code=404, detail="Assistant not found")
         model = assistant.model
@@ -1498,7 +1483,7 @@ async def submit_tool_ouputs_to_run(
                 file_ids=file_ids,
                 metadata={},
             )
-            astradb.update_run_status(thread_id=thread_id, id=run_id, status="completed")
+            await update_run_status(thread_id=thread_id, id=run_id, status="completed")
             run = astradb.get_run(id=run_id, thread_id=thread_id)
             return run
         else:
@@ -1532,7 +1517,7 @@ async def submit_tool_ouputs_to_run(
                 raise RuntimeError("process_rag cancelled")
     except Exception as e:
         logger.info(e)
-        astradb.update_run_status(thread_id=thread_id, id=run_id, status="failed")
+        await update_run_status(thread_id=thread_id, id=run_id, status="failed")
         raise
 
 
@@ -1603,7 +1588,7 @@ async def message_delta_streamer(message_id, created_at, response, run, astradb)
                     text += delta
                     start_time = await maybe_checkpoint(run.assistant_id, astradb, run.file_ids,
                                                         frequency_in_seconds, message_id,
-                                                        run.id, start_time, text, run.thread_id)
+                                                        run.id, start_time, text, run.thread_id, created_at)
         else:
             done = False
             while not done:
@@ -1618,7 +1603,7 @@ async def message_delta_streamer(message_id, created_at, response, run, astradb)
                         text += delta
                     start_time = await maybe_checkpoint(run.assistant_id, astradb, run.file_ids,
                                                         frequency_in_seconds, message_id,
-                                                        run.id, start_time, text, run.thread_id)
+                                                        run.id, start_time, text, run.thread_id, created_at)
 
         # final message upsert
         astradb.upsert_message(
@@ -1675,6 +1660,8 @@ async def make_text_delta_event_from_chunk(chunk, i, run, message_id):
     response_model_by_alias=True,
 )
 async def create_thread_and_run(
+        # TODO - make copy of CreateThreadAndRunRequest to handle LiteralGenericAlias issue with Tools
+        # also do it for  create run
         create_thread_and_run_request: CreateThreadAndRunRequest = Body(None, description=""),
         astradb: CassandraClient = Depends(verify_db_client),
         embedding_model: str = Depends(infer_embedding_model),

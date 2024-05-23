@@ -17,7 +17,7 @@ from starlette.responses import Response
 from impl.background import background_task_set
 from impl.rate_limiter import limiter
 from impl.routes import stateless, assistants, files, health, threads
-from impl.routes_v2 import assistants_v2, threads_v2
+from impl.routes_v2 import assistants_v2, threads_v2, vector_stores
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG,
@@ -61,6 +61,7 @@ app.include_router(stateless.router, prefix="/v2")
 app.include_router(assistants_v2.router, prefix="/v2")
 app.include_router(files.router, prefix="/v2")
 app.include_router(threads_v2.router, prefix="/v2")
+app.include_router(vector_stores.router, prefix="/v2")
 
 
 class APIVersionMiddleware(BaseHTTPMiddleware):

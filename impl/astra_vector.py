@@ -457,50 +457,50 @@ class CassandraClient:
         try:
             await self.make_keyspace()
 
-            self.session.execute(
-                f"""create table if not exists {CASSANDRA_KEYSPACE}.assistants (
-                    id text primary key,
-                    created_at timestamp,
-                    name text,
-                    description text,
-                    model text,
-                    instructions text,
-                    tools List<text>,
-                    file_ids List<text>,
-                    metadata Map<text, text>,
-                    object text
+            self.session.execute(f"""
+            create table if not exists {CASSANDRA_KEYSPACE}.assistants (
+                id text primary key,
+                created_at timestamp,
+                name text,
+                description text,
+                model text,
+                instructions text,
+                tools List<text>,
+                file_ids List<text>,
+                metadata Map<text, text>,
+                object text
             );"""
             )
 
 
-            self.session.execute(
-                f"""create table if not exists {CASSANDRA_KEYSPACE}.assistants_v2 (
-                    id text primary key,
-                    object text,
-                    created_at bigint,
-                    name text,
-                    description text,
-                    model text,
-                    instructions text,
-                    tools List<text>,
-                    metadata Map<text, text>,
-                    tool_resources Map<text, text>,
-                    top_p float,
-                    temperature float,
-                    response_format text
+            self.session.execute(f"""
+            create table if not exists {CASSANDRA_KEYSPACE}.assistants_v2 (
+                id text primary key,
+                object text,
+                created_at bigint,
+                name text,
+                description text,
+                model text,
+                instructions text,
+                tools list<text>,
+                metadata Map<text, text>,
+                tool_resources text,
+                top_p float,
+                temperature float,
+                response_format text
             );"""
             )
 
-            self.session.execute(
-                f"""create table if not exists {CASSANDRA_KEYSPACE}.files(
-                    id text primary key,
-                    object text,
-                    purpose text,
-                    created_at timestamp,
-                    filename text,
-                    format text,
-                    bytes int,
-                    status text
+            self.session.execute(f"""
+            create table if not exists {CASSANDRA_KEYSPACE}.files(
+                id text primary key,
+                object text,
+                purpose text,
+                created_at timestamp,
+                filename text,
+                format text,
+                bytes int,
+                status text
             );"""
             )
             try:
@@ -511,14 +511,14 @@ class CassandraClient:
                 logger.info(f"alter table attempt: {e}")
 
 
-            self.session.execute(
-                f"""create table if not exists {CASSANDRA_KEYSPACE}.file_chunks (
-                    file_id text,
-                    chunk_id text,
-                    content text,
-                    created_at timestamp,
-                    embedding VECTOR<float, 1536>,
-                    PRIMARY KEY ((file_id), chunk_id)
+            self.session.execute(f"""
+            create table if not exists {CASSANDRA_KEYSPACE}.file_chunks (
+                file_id text,
+                chunk_id text,
+                content text,
+                created_at timestamp,
+                embedding VECTOR<float, 1536>,
+                PRIMARY KEY ((file_id), chunk_id)
             );"""
             )
 
@@ -537,8 +537,8 @@ class CassandraClient:
             except Exception as e:
                 logger.info(f"index creation attempt: {e}")
 
-            self.session.execute(
-                f"""create table if not exists {CASSANDRA_KEYSPACE}.threads (
+            self.session.execute(f"""
+            create table if not exists {CASSANDRA_KEYSPACE}.threads (
                     id text primary key,
                     object text,
                     created_at timestamp,
@@ -553,8 +553,8 @@ class CassandraClient:
             except Exception as e:
                 logger.info(f"alter table attempt: {e}")
 
-            self.session.execute(
-                f"""create table if not exists {CASSANDRA_KEYSPACE}.messages (
+            self.session.execute(f"""
+            create table if not exists {CASSANDRA_KEYSPACE}.messages (
                     id text,
                     object text,
                     created_at timestamp,
@@ -569,8 +569,8 @@ class CassandraClient:
             );"""
             )
 
-            self.session.execute(
-                f"""create table if not exists {CASSANDRA_KEYSPACE}.messages_v2 (
+            self.session.execute(f"""
+            create table if not exists {CASSANDRA_KEYSPACE}.messages_v2 (
                     id text,
                     object text,
                     created_at bigint,
@@ -589,8 +589,8 @@ class CassandraClient:
             );"""
             )
 
-            self.session.execute(
-                f"""create table if not exists {CASSANDRA_KEYSPACE}.runs(
+            self.session.execute(f"""
+            create table if not exists {CASSANDRA_KEYSPACE}.runs(
                 id text,
                 object text,
                 created_at timestamp,
@@ -613,8 +613,8 @@ class CassandraClient:
             ); """
             )
 
-            self.session.execute(
-                f"""create table if not exists {CASSANDRA_KEYSPACE}.runs_v2(
+            self.session.execute(f"""
+            create table if not exists {CASSANDRA_KEYSPACE}.runs_v2(
                 id text,
                 object text,
                 created_at bigint,
@@ -646,8 +646,8 @@ class CassandraClient:
             )
 
 
-            self.session.execute(
-                f"""create table if not exists {CASSANDRA_KEYSPACE}.run_steps(
+            self.session.execute(f"""
+            create table if not exists {CASSANDRA_KEYSPACE}.run_steps(
                 id text,
                 assistant_id text,
                 cancelled_at timestamp,
@@ -674,6 +674,37 @@ class CassandraClient:
                 consistency_level=ConsistencyLevel.QUORUM,
             )
             self.session.execute(statement)
+
+            self.session.execute(f"""
+            create table if not exists {CASSANDRA_KEYSPACE}.vector_stores(
+                id TEXT PRIMARY KEY,
+                object TEXT,
+                created_at BIGINT,
+                usage_bytes BIGINT,
+                last_active_at BIGINT,
+                name TEXT,
+                status TEXT,
+                file_counts TEXT,
+                metadata MAP<TEXT, TEXT>,
+                expires_at BIGINT,
+                expires_after TEXT,
+            );"""
+            )
+
+            self.session.execute(f"""drop table if exists {CASSANDRA_KEYSPACE}.vector_store_files;""")
+            self.session.execute(f"""
+            create table if not exists {CASSANDRA_KEYSPACE}.vector_store_files(
+                vector_store_id TEXT,
+                id TEXT,
+                object TEXT,
+                usage_bytes INT,
+                created_at BIGINT,
+                status TEXT,
+                last_error TEXT,
+                PRIMARY KEY ((vector_store_id), created_at, id)
+            );"""
+            )
+
 
         except Exception as e:
             logger.info(f"Exception creating table or index: {e}")

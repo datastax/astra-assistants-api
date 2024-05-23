@@ -8,17 +8,19 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query, Path
 
 from impl.astra_vector import CassandraClient
 from impl.model_v2.create_assistant_request import CreateAssistantRequest
-from impl.routes.utils import verify_openai_token, verify_db_client
-from impl.utils import map_model, combine_fields
+from impl.model_v2.modify_assistant_request import ModifyAssistantRequest
+from impl.routes.utils import verify_db_client
+from impl.utils import store_object
 from openapi_server_v2.models.assistant_object import AssistantObject
+from openapi_server_v2.models.assistant_object_tool_resources import AssistantObjectToolResources
 from openapi_server_v2.models.assistant_object_tools_inner import AssistantObjectToolsInner
 from openapi_server_v2.models.delete_assistant_response import DeleteAssistantResponse
 from openapi_server_v2.models.list_assistants_response import ListAssistantsResponse
-from openapi_server_v2.models.modify_assistant_request import ModifyAssistantRequest
 
 router = APIRouter()
 
 logger = logging.getLogger(__name__)
+
 
 @router.get(
     "/assistants",
@@ -92,33 +94,16 @@ async def create_assistant(
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> AssistantObject:
     assistant_id = str(uuid1())
+    created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
     logging.info(f"going to create assistant with id: {assistant_id} and details {create_assistant_request}")
 
-    # validate
-    tool_resources = create_assistant_request.tool_resources
-    if tool_resources is None:
-        tool_resources = []
-
-    tools = create_assistant_request.tools
-    if tools is None:
-        tools = []
-
-    retrieval_tool = AssistantObjectToolsInner(type='retrieval', function=None)
-    if tool_resources is not None and retrieval_tool not in tools and tool_resources != []:
-        # raise http error
-        raise HTTPException(status_code=400, detail="Retrieval tool is required when tool_resources is not [].")
-
-
-    description = create_assistant_request.description
-    if description is None:
-        description = ""
-
-    created_at = int(time.mktime(datetime.now().timetuple())*1000)
-
     extra_fields = {"id": assistant_id, "created_at": created_at, "object": "assistant"}
-    assistant : AssistantObject = map_model(source_instance=create_assistant_request, target_model_class=AssistantObject, extra_fields=extra_fields)
+    assistant: AssistantObject = await store_object(astradb=astradb, obj=create_assistant_request,
+                                                    target_class=AssistantObject, table_name="assistants_v2",
+                                                    extra_fields=extra_fields)
 
-    astradb.upsert_table_from_base_model(table_name="assistants_v2", obj=assistant)
+    # assistant : AssistantObject = map_model(source_instance=create_assistant_request, target_model_class=AssistantObject, extra_fields=extra_fields)
+    # astradb.upsert_table_from_base_model(table_name="assistants_v2", obj=assistant)
 
     logging.info(f"created assistant with id: {assistant.id}")
 
@@ -126,19 +111,30 @@ async def create_assistant(
     return assistant
 
 
-@router.post("/assistants/{assistant_id}", response_model=AssistantObject)
+@router.post(
+    "/assistants/{assistant_id}",
+    responses={
+        200: {"model": AssistantObject, "description": "OK"},
+    },
+    tags=["Assistants"],
+    summary="Modify an assistant.",
+    response_model_by_alias=True,
+    response_model=None
+)
 async def modify_assistant(
         assistant_id: str = Path(..., description="The ID of the assistant to modify."),
         modify_assistant_request: ModifyAssistantRequest = Body(None, description=""),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> AssistantObject:
-    extra_fields={"id": assistant_id, "object": "assistant"}
-    combined_fields = combine_fields(extra_fields, modify_assistant_request, AssistantObject)
-    astradb.upsert_table_from_dict(table_name="assistants_v2", obj=combined_fields)
+    extra_fields = {"id": assistant_id, "object": "assistant"}
+    await store_object(astradb=astradb, obj=modify_assistant_request, target_class=AssistantObject,
+                       table_name="assistants_v2", extra_fields=extra_fields)
+    # combined_fields = combine_fields(extra_fields, modify_assistant_request, AssistantObject)
+    # astradb.upsert_table_from_dict(table_name="assistants_v2", obj=combined_fields)
 
-    assistant = await get_assistant(assistant_id, astradb)
+    assistant = await get_assistant_obj(astradb=astradb, assistant_id=assistant_id)
     logger.info(f'assistant upserted: {assistant}')
-    return assistant
+    return assistant.to_dict()
 
 
 @router.delete(
@@ -168,11 +164,16 @@ async def delete_assistant(
     tags=["Assistants"],
     summary="Retrieves an assistant.",
     response_model_by_alias=True,
+    response_model=None,
 )
 async def get_assistant(
         assistant_id: str,
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> AssistantObject:
+    assistant = await get_assistant_obj(astradb=astradb, assistant_id=assistant_id)
+    return assistant.to_dict()
+
+async def get_assistant_obj(astradb, assistant_id):
     assistants = astradb.select_from_table_by_pk(
         table="assistants_v2",
         partitionKeys=["id"],
@@ -180,8 +181,17 @@ async def get_assistant(
     )
     if len(assistants) == 0:
         raise HTTPException(status_code=404, detail="Assistant not found.")
-    # TODO is there a better way to handle this?
+    # TODO is there a better way to handle this? Maybe build a utility function
     if assistants[0]['tools'] is None:
         assistants[0]['tools'] = []
+    else:
+        i = 0
+        for tool in assistants[0]['tools']:
+            assistants[0]['tools'][i] = AssistantObjectToolsInner.from_json(tool).to_dict()
+
+    if assistants[0]['tool_resources'] is not None:
+        tool_resources = assistants[0]['tool_resources']
+        assistants[0]['tool_resources'] = AssistantObjectToolResources.from_json(tool_resources).to_dict()
+
     assistant = AssistantObject.from_dict(assistants[0])
     return assistant
