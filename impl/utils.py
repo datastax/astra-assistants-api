@@ -108,15 +108,18 @@ def read_objects(astradb: CassandraClient, target_class: Type[BaseModel], table_
                     else:
                         json_obj[field_name] = annotation.from_json(json_obj[field_name])
                 elif get_origin(annotation) is list:
-                    for i in range(len(json_obj[field_name])):
-                        if isinstance(json_obj[field_name][i], str):
-                            json_obj[field_name][i] = annotation.__args__[0].from_json(json_obj[field_name][i])
-                        else:
-                            if 'actual_instance' in annotation.__args__[0].__fields__:
-                                 json_obj[field_name][i] = annotation.__args__[0](actual_instance=json_obj[field_name][i])
+                    if json_obj[field_name] is None:
+                        json_obj[field_name] = []
+                    else:
+                        for i in range(len(json_obj[field_name])):
+                            if isinstance(json_obj[field_name][i], str):
+                                json_obj[field_name][i] = annotation.__args__[0].from_json(json_obj[field_name][i])
                             else:
-                                logger.error(f"error reading object from {table_name} - {field_name} is an object: {json_obj[field_name][i]}  but {annotation} does not take objects.")
-                                raise HTTPException(status_code=500, detail=f"Error reading {table_name}: {field_name}.")
+                                if 'actual_instance' in annotation.__args__[0].__fields__:
+                                     json_obj[field_name][i] = annotation.__args__[0](actual_instance=json_obj[field_name][i])
+                                else:
+                                    logger.error(f"error reading object from {table_name} - {field_name} is an object: {json_obj[field_name][i]}  but {annotation} does not take objects.")
+                                    raise HTTPException(status_code=500, detail=f"Error reading {table_name}: {field_name}.")
 
             obj = target_class(**json_obj)
             obj_list.append(obj)
