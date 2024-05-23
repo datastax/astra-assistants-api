@@ -691,7 +691,6 @@ class CassandraClient:
             );"""
             )
 
-            self.session.execute(f"""drop table if exists {CASSANDRA_KEYSPACE}.vector_store_files;""")
             self.session.execute(f"""
             create table if not exists {CASSANDRA_KEYSPACE}.vector_store_files(
                 vector_store_id TEXT,
