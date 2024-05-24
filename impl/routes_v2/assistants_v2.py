@@ -10,7 +10,7 @@ from impl.astra_vector import CassandraClient
 from impl.model_v2.create_assistant_request import CreateAssistantRequest
 from impl.model_v2.modify_assistant_request import ModifyAssistantRequest
 from impl.routes.utils import verify_db_client
-from impl.utils import store_object
+from impl.utils import store_object, read_object
 from openapi_server_v2.models.assistant_object import AssistantObject
 from openapi_server_v2.models.assistant_object_tool_resources import AssistantObjectToolResources
 from openapi_server_v2.models.assistant_object_tools_inner import AssistantObjectToolsInner
@@ -88,6 +88,7 @@ async def list_assistants(
     tags=["Assistants"],
     summary="Create an assistant with a model and instructions.",
     response_model_by_alias=True,
+    response_model=None
 )
 async def create_assistant(
         create_assistant_request: CreateAssistantRequest = Body(None, description=""),
@@ -108,6 +109,7 @@ async def create_assistant(
     logging.info(f"created assistant with id: {assistant.id}")
 
     logging.info(f"with these details: {assistant}")
+    assistant = assistant.to_dict()
     return assistant
 
 
@@ -174,24 +176,11 @@ async def get_assistant(
     return assistant.to_dict()
 
 async def get_assistant_obj(astradb, assistant_id):
-    assistants = astradb.select_from_table_by_pk(
-        table="assistants_v2",
-        partitionKeys=["id"],
+    assistant = read_object(
+        astradb=astradb,
+        target_class=AssistantObject,
+        table_name="assistants_v2",
+        partition_keys=["id"],
         args={"id": assistant_id}
     )
-    if len(assistants) == 0:
-        raise HTTPException(status_code=404, detail="Assistant not found.")
-    # TODO is there a better way to handle this? Maybe build a utility function
-    if assistants[0]['tools'] is None:
-        assistants[0]['tools'] = []
-    else:
-        i = 0
-        for tool in assistants[0]['tools']:
-            assistants[0]['tools'][i] = AssistantObjectToolsInner.from_json(tool).to_dict()
-
-    if assistants[0]['tool_resources'] is not None:
-        tool_resources = assistants[0]['tool_resources']
-        assistants[0]['tool_resources'] = AssistantObjectToolResources.from_json(tool_resources).to_dict()
-
-    assistant = AssistantObject.from_dict(assistants[0])
     return assistant

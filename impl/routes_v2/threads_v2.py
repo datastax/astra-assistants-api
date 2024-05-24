@@ -431,7 +431,7 @@ async def stream_message_events(astradb, thread_id, limit, order, after, before,
                 yield f"data: {event_json}\n\n"
                 last_message.content = message.content
             await asyncio.sleep(1)
-            run = await get_run(thread_id, run_id, astradb)
+            run = await read_run(thread_id, run_id, astradb)
             if (run.status != "generating"):
                 # do a final pass
                 message = await get_message(thread_id, last_message.id, astradb)
@@ -475,7 +475,9 @@ async def make_text_delta_event(i, json_data, message, run):
 
 
 # TODO - add attachments?
-async def init_assistant_message(thread_id, assistant_id, run_id, astradb, created_at):
+async def init_message(thread_id, assistant_id, run_id, astradb, created_at, content=None):
+    if content is None:
+        content = []
     message_id = str(uuid1())
     message_obj = MessageObject(
         id=message_id,
@@ -484,7 +486,7 @@ async def init_assistant_message(thread_id, assistant_id, run_id, astradb, creat
         thread_id=thread_id,
         status="in_progress",
         role="assistant",
-        content=[],
+        content=content,
         assistant_id=assistant_id,
         run_id=run_id,
         incomplete_details=None,
@@ -556,7 +558,7 @@ async def create_run(
     if len(tools) == 0:
 
         # we use the same created_at as the run
-        message_id = await init_assistant_message(thread_id=thread_id, assistant_id=assistant.id, run_id=run_id, astradb=astradb, created_at=created_at)
+        message_id = await init_message(thread_id=thread_id, assistant_id=assistant.id, run_id=run_id, astradb=astradb, created_at=created_at)
 
         bkd_task = process_rag(
             run_id,
@@ -580,11 +582,10 @@ async def create_run(
     for tool_obj in tools:
         tool = tool_obj.actual_instance
         if tool.type == "file_search":
-            message_id = str(uuid1())
-            created_at = int(time.mktime(datetime.now().timetuple()))
+            created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
 
             # initialize message
-            await init_assistant_message(thread_id=thread_id, assistant_id=assistant.id, run_id=run_id, astradb=astradb, created_at=created_at)
+            message_id = await init_message(thread_id=thread_id, assistant_id=assistant.id, run_id=run_id, astradb=astradb, created_at=created_at)
 
             # create run_step
             # Note the run_step id is the same as the message_id
@@ -666,26 +667,19 @@ async def create_run(
             function_call = RunToolCallObjectFunction(name=name, arguments=arguments)
         run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=function_call))
         tool_outputs = RunObjectRequiredActionSubmitToolOutputs(tool_calls=run_tool_calls)
-        required_action = RunObjectRequiredAction(type='submit_tool_outputs', submit_tool_outputs=tool_outputs).json()
+        required_action = RunObjectRequiredAction(type='submit_tool_outputs', submit_tool_outputs=tool_outputs)
         status = "requires_action"
 
-        message_id = str(uuid1())
-        created_at = int(time.mktime(datetime.now().timetuple()))
-
+        created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
 
         # persist message
-        modify_message(thread_id)
-        astradb.upsert_message(
-            id=message_id,
-            object="thread.message",
-            created_at=created_at,
+        message_id = await init_message(
             thread_id=thread_id,
-            role=message.role,
-            content=[message.content],
             assistant_id=assistant.id,
             run_id=run_id,
-            file_ids=file_ids,
-            metadata={},
+            astradb=astradb,
+            created_at=created_at,
+            content=message.content
         )
 
     run = await store_run(
@@ -968,7 +962,7 @@ async def process_rag(
 
 
         # final message upsert
-        await complete_message(assistant_id, astradb, message_id, run_id, text, thread_id, created_at)
+        await complete_message_with_text(assistant_id, astradb, message_id, run_id, text, thread_id, created_at)
 
         await update_run_status(thread_id=thread_id, id=run_id, status="completed", astradb=astradb)
         logger.info(f"processed rag for run_id {run_id} thread_id {thread_id}")
@@ -981,8 +975,7 @@ async def process_rag(
         raise RuntimeError("process_rag cancelled")
 
 
-async def complete_message(assistant_id, astradb, message_id, run_id, text, thread_id, created_at):
-    completed_at = int(time.mktime(datetime.now().timetuple()) * 1000)
+async def complete_message_with_text(assistant_id, astradb, message_id, run_id, text, thread_id, created_at):
     content = MessageContentTextObject(
         text=MessageContentTextObjectText(
             value=text,
@@ -990,6 +983,18 @@ async def complete_message(assistant_id, astradb, message_id, run_id, text, thre
         ),
         type="text"
     )
+    await complete_message_with_content(
+        assistant_id=assistant_id,
+        astradb=astradb,
+        message_id=message_id,
+        run_id=run_id,
+        content=content,
+        thread_id=thread_id,
+        created_at=created_at
+    )
+
+async def complete_message_with_content(assistant_id, astradb, message_id, run_id, content, thread_id, created_at):
+    completed_at = int(time.mktime(datetime.now().timetuple()) * 1000)
     message = MessageObject.construct(
         id=message_id,
         object="thread.message",
@@ -1169,6 +1174,11 @@ async def get_run(
         run_id: str = Path(..., description="The ID of the run to retrieve."),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> RunObject:
+    run = await read_run(thread_id=thread_id, run_id=run_id, astradb=astradb)
+    return run.to_dict()
+
+
+async def read_run(thread_id, run_id, astradb):
     run: RunObject = read_object(
         astradb=astradb,
         target_class=RunObject,
@@ -1176,7 +1186,7 @@ async def get_run(
         partition_keys=["id", "thread_id"],
         args={"id": run_id, "thread_id": thread_id}
     )
-    return run.to_dict()
+    return run
 
 
 @router.get(
@@ -1302,7 +1312,7 @@ async def stream_messages_by_thread(astradb, thread_id, limit, order, after, bef
                 yield f"data: {json_data}\n\n"
                 last_message.content = message.content
             await asyncio.sleep(1)
-            run = await get_run(thread_id, run_id, astradb)
+            run = await read_run(thread_id, run_id, astradb)
             if (run.status != "generating"):
                 # do a final pass
                 message = await get_message(thread_id, last_message.id, astradb)
@@ -1445,12 +1455,11 @@ async def submit_tool_ouputs_to_run(
     try:
         logger.info(submit_tool_outputs_run_request)
 
-        run = astradb.get_run(id=run_id, thread_id=thread_id)
+        run = await read_run(thread_id=thread_id, run_id=run_id, astradb=astradb)
         assistant = await get_assistant_obj(assistant_id=run.assistant_id, astradb=astradb)
         if assistant is None:
             raise HTTPException(status_code=404, detail="Assistant not found")
         model = assistant.model
-        file_ids = assistant.file_ids
 
         messages = get_messages_by_thread(astradb, thread_id, order="asc")
         message_string, message_content = summarize_message_content(assistant.instructions, messages.data)
@@ -1466,42 +1475,34 @@ async def submit_tool_ouputs_to_run(
                 model=model,
                 **litellm_kwargs,
             )
-            completion = message.content
+            text = message.content
 
             id = str(uuid1())
-            created_at = int(time.mktime(datetime.now().timetuple()))
+            created_at = int(time.mktime(datetime.now().timetuple())*1000)
 
-            astradb.upsert_message(
-                id=id,
-                object="thread.message",
-                created_at=created_at,
-                thread_id=thread_id,
-                role="assistant",
-                content=[completion],
+
+            await complete_message_with_text(
                 assistant_id=run.assistant_id,
+                astradb=astradb,
+                message_id=id,
                 run_id=run_id,
-                file_ids=file_ids,
-                metadata={},
+                text=text,
+                thread_id=thread_id,
+                created_at=created_at
             )
-            await update_run_status(thread_id=thread_id, id=run_id, status="completed")
-            run = astradb.get_run(id=run_id, thread_id=thread_id)
-            return run
+            await update_run_status(thread_id=thread_id, id=run_id, status="completed", astradb=astradb)
+            run = await read_run(thread_id=thread_id, run_id=run_id, astradb=astradb)
+            return run.to_dict()
         else:
 
-            message_id = str(uuid1())
-            created_at = int(time.mktime(datetime.now().timetuple()))
+            created_at = int(time.mktime(datetime.now().timetuple())*1000)
             # initialize message
-            astradb.upsert_message(
-                id=message_id,
-                object="thread.message",
-                created_at=created_at,
+            message_id = await init_message(
                 thread_id=thread_id,
-                role="assistant",
-                content=[],
-                assistant_id=assistant.id,
+                assistant_id=run.assistant_id,
                 run_id=run_id,
-                file_ids=file_ids,
-                metadata={},
+                astradb=astradb,
+                created_at=created_at
             )
             try:
                 response = await get_async_chat_completion_response(
@@ -1517,7 +1518,7 @@ async def submit_tool_ouputs_to_run(
                 raise RuntimeError("process_rag cancelled")
     except Exception as e:
         logger.info(e)
-        await update_run_status(thread_id=thread_id, id=run_id, status="failed")
+        await update_run_status(thread_id=thread_id, id=run_id, status="failed", astradb=astradb)
         raise
 
 

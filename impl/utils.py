@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Type, Dict, Any, List, get_origin, Annotated, get_args
+from typing import Type, Dict, Any, List, get_origin, Annotated, get_args, Union
 
 from fastapi import HTTPException
 from pydantic import BaseModel
@@ -74,6 +74,7 @@ async def store_object(astradb: CassandraClient, obj: BaseModel, target_class: T
         astradb.upsert_table_from_dict(table_name=table_name, obj=obj_dict)
         return combined_obj
     except Exception as e:
+        logger.error(f"store_object failed {e} for table {table_name} and object {obj}")
         raise HTTPException(status_code=500, detail=f"Error reading {table_name}: {e}")
 
 
@@ -120,9 +121,14 @@ def read_objects(astradb: CassandraClient, target_class: Type[BaseModel], table_
                                 else:
                                     logger.error(f"error reading object from {table_name} - {field_name} is an object: {json_obj[field_name][i]}  but {annotation} does not take objects.")
                                     raise HTTPException(status_code=500, detail=f"Error reading {table_name}: {field_name}.")
+                elif get_origin(annotation) is Union:
+                    if hasattr(get_args(annotation)[0], 'from_json'):
+                        if json_obj[field_name] is not None and isinstance(json_obj[field_name], str):
+                            json_obj[field_name] = get_args(annotation)[0].from_json(json_obj[field_name])
 
             obj = target_class(**json_obj)
             obj_list.append(obj)
         return obj_list
     except Exception as e:
+        logger.error(f"read_objects failed {e} for table {table_name} and object {obj}")
         raise HTTPException(status_code=500, detail=f"Error reading {table_name}: {e}")
