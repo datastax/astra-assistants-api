@@ -10,7 +10,7 @@ from impl.astra_vector import CassandraClient
 from impl.model_v2.create_assistant_request import CreateAssistantRequest
 from impl.model_v2.modify_assistant_request import ModifyAssistantRequest
 from impl.routes.utils import verify_db_client
-from impl.utils import store_object, read_object
+from impl.utils import store_object, read_object, read_objects
 from openapi_server_v2.models.assistant_object import AssistantObject
 from openapi_server_v2.models.assistant_object_tool_resources import AssistantObjectToolResources
 from openapi_server_v2.models.assistant_object_tools_inner import AssistantObjectToolsInner
@@ -50,26 +50,15 @@ async def list_assistants(
         ),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> ListAssistantsResponse:
-    raw_assistants = astradb.selectAllFromTable(table="assistants_v2")
-
-    assistants = []
-    if len(raw_assistants) == 0:
-        return ListAssistantsResponse(
-            data=assistants,
-            object="list",
-            first_id="none",
-            last_id="none",
-            has_more=False,
-        )
-    for raw_assistant in raw_assistants:
-        # TODO is there a better way to handle this?
-        if raw_assistant['tools'] is None:
-            raw_assistant['tools'] = []
-        assistant = AssistantObject.from_dict(raw_assistant)
-        assistants.append(assistant)
-
-    first_id = raw_assistants[0]["id"]
-    last_id = raw_assistants[len(raw_assistants) - 1]["id"]
+    assistants: [AssistantObject] = read_objects(
+        astradb=astradb,
+        target_class=AssistantObject,
+        table_name="assistants_v2",
+        partition_keys=[],
+        args={}
+    )
+    first_id = assistants[0].id
+    last_id = assistants[len(assistants) - 1].id
     assistants_response = ListAssistantsResponse(
         data=assistants,
         object="assistants",

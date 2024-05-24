@@ -8,8 +8,6 @@ from impl.model_v2.create_assistant_request import CreateAssistantRequest
 
 def test_assistants_crud(openai_client):
 
-    assistants = openai_client.beta.assistants.list().data
-
     try:
         openai_client.beta.assistants.retrieve("invalid-assistant-id")
         assert False, "Expected an error"
@@ -21,6 +19,10 @@ def test_assistants_crud(openai_client):
         instructions="You are a personal math tutor. Answer questions briefly, in a sentence or less.",
         model="gpt-4-1106-preview",
     )
+
+    assistants = openai_client.beta.assistants.list().data
+    assert len(assistants) > 0
+
     assert asst.name == "Math Tutor"
     assert asst.instructions == "You are a personal math tutor. Answer questions briefly, in a sentence or less."
     assert asst.model == "gpt-4-1106-preview"
@@ -39,6 +41,7 @@ def test_assistants_crud(openai_client):
     openai_client.beta.assistants.delete(asst.id)
 
     assistants = openai_client.beta.assistants.list().data
+    print(assistants)
 
 
 def test_no_collisions(openai_client):

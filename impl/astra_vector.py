@@ -1201,7 +1201,7 @@ class CassandraClient:
         return message
 
     def get_message(self, thread_id, message_id):
-        rows = self.select_from_table_by_pk(table="messages", partitionKeys=["thread_id", "id"],
+        rows = self.select_from_table_by_pk(table="messages", partition_keys=["thread_id", "id"],
                                             args={"thread_id": thread_id, "id": message_id})
         if len(rows) == 0:
             raise HTTPException(status_code=404, detail=f"Message not found {thread_id} {message_id}")
@@ -1351,7 +1351,7 @@ class CassandraClient:
         return self.get_thread(id)
 
     def get_thread(self, id):
-        rows = self.select_from_table_by_pk(table="threads", partitionKeys=["id"], args={"id": id})
+        rows = self.select_from_table_by_pk(table="threads", partition_keys=["id"], args={"id": id})
         if rows is not None and len(rows) > 0:
             row = rows[0]
             created_at = row["created_at"]
@@ -1521,39 +1521,45 @@ class CassandraClient:
         self.session.row_factory = named_tuple_factory
         return json_rows
 
-    def select_from_table_by_pk(self, table: str, partitionKeys: List[str], args: Dict[str, Any], limit: int = None,
+    def select_from_table_by_pk(self, table: str, partition_keys: List[str], args: Dict[str, Any], limit: int = None,
                                 order: str = None, allow_filtering: bool = False) -> object:
-        limitString = ""
+        limit_string = ""
         if limit is not None:
-            limitString = f"limit {limit}"
-        queryString = f"""SELECT * FROM {CASSANDRA_KEYSPACE}.{table} WHERE """
-        partitionKeyValues = []
-        for column in partitionKeys:
-            # TODO support other types (single quotes are for strings)
-            queryString += f"{column} = ? AND "
-            partitionKeyValues.append(args[column])
-        # remove the last AND
-        queryString = queryString[:-4]
-        if order is not None:
-            i = 0
-            for key, value in order.items():
-                if i == 0:
-                    queryString += f" ORDER BY "
-                queryString += f"{key} {value} ,"
-                i += 1
-            # remove the last comma
-            queryString = queryString[:-1]
-            # TODO: figure out how to do a migration to get rid of ALLOW FILTERING
-            queryString = queryString + limitString + " ALLOW FILTERING;"
-        else:
-            queryString = queryString + limitString
-            if (allow_filtering):
-                queryString = queryString + " ALLOW FILTERING;"
-        statement = self.session.prepare(queryString)
+            limit_string = f"limit {limit}"
+        query_string = f"""SELECT * FROM {CASSANDRA_KEYSPACE}.{table}"""
+
+        partition_key_values = None
+        if partition_keys is not None and len(partition_keys) > 0:
+            query_string += """ WHERE """
+            partition_key_values = []
+            for column in partition_keys:
+                # TODO support other types (single quotes are for strings)
+                query_string += f"{column} = ? AND "
+                partition_key_values.append(args[column])
+            # remove the last AND
+            query_string = query_string[:-4]
+            if order is not None:
+                i = 0
+                for key, value in order.items():
+                    if i == 0:
+                        query_string += f" ORDER BY "
+                    query_string += f"{key} {value} ,"
+                    i += 1
+                # remove the last comma
+                query_string = query_string[:-1]
+                # TODO: figure out how to do a migration to get rid of ALLOW FILTERING
+                query_string = query_string + limit_string + " ALLOW FILTERING;"
+            else:
+                query_string = query_string + limit_string
+                if (allow_filtering):
+                    query_string = query_string + " ALLOW FILTERING;"
+        # TODO - make a prepared statement cache
+        statement = self.session.prepare(query_string)
         statement.consistency_level = ConsistencyLevel.QUORUM
-        preparedStatement = statement.bind(partitionKeyValues)
+        if partition_key_values is not None:
+            statement = statement.bind(partition_key_values)
         self.session.row_factory = dict_factory
-        rows = self.session.execute(preparedStatement)
+        rows = self.session.execute(statement)
         json_rows = [dict(row) for row in rows]
         self.session.row_factory = named_tuple_factory
         return json_rows
@@ -1584,7 +1590,7 @@ class CassandraClient:
         self.upsert_chunks_concurrently(statements_and_params)
 
     def load_auth_file(self, file_id):
-        rows = self.select_from_table_by_pk(table="file_chunks", partitionKeys=["file_id", "chunk_id"],
+        rows = self.select_from_table_by_pk(table="file_chunks", partition_keys=["file_id", "chunk_id"],
                                             args={"file_id": file_id, "chunk_id": "0"})
         content = rows[0]["content"]
 
