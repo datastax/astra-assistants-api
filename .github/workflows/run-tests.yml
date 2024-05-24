@@ -793,3 +793,39 @@ jobs:
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/streaming-assistants/test_streaming_run_v2.py
+  run-streaming-assistants-tests-streaming_run_retrieval_calling_v2:
+    runs-on: ubuntu-latest
+    name: run streaming-assistants v2 streaming run retrieval tests
+    env:
+        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        base_url: ${{ secrets.BASE_URL }}
+        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Set up Python 3.11.8
+        uses: actions/setup-python@v2
+        with:
+           python-version: '3.11.8'
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+      - name: Check Poetry Version
+        run: poetry --version
+      - name: Configure Poetry to Use Python 3.11.8
+        run: poetry env use python3.10
+      - name: get dependencies
+        run: |
+          poetry install
+      - name: run tests
+        run: |
+          poetry run pytest -s --disable-warnings tests/streaming-assistants/test_streaming_run_retrieval_v2.py

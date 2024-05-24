@@ -29,6 +29,7 @@ from openapi_server_v2.models.assistants_api_response_format_option import Assis
 from openapi_server_v2.models.assistants_api_tool_choice_option import AssistantsApiToolChoiceOption
 from openapi_server_v2.models.message_delta_object_delta_content_inner import MessageDeltaObjectDeltaContentInner
 from openapi_server_v2.models.message_stream_event import MessageStreamEvent
+from openapi_server_v2.models.run_step_delta_object_delta_step_details import RunStepDeltaObjectDeltaStepDetails
 from openapi_server_v2.models.run_step_stream_event import RunStepStreamEvent
 from openapi_server_v2.models.run_stream_event import RunStreamEvent
 
@@ -393,7 +394,7 @@ async def run_event_stream(run, message_id, astradb):
             obj=run_step,
             target_class=RunStepStreamEvent,
             obj_statuses=["in_progress", "in_progress"],
-            events=["thread.run.step.created", "thread.run.in_progress"],
+            events=["thread.run.step.created", "thread.run.step.in_progress"],
             extra_fields={"required_action": None}
         ):
             yield event
@@ -417,20 +418,26 @@ async def run_event_stream(run, message_id, astradb):
             run_step = astradb.get_run_step(run_id=run.id, id=message_id)
             await asyncio.sleep(1)
         tool_call_delta_object = RunStepDeltaStepDetailsToolCallsObject(type="tool_calls", tool_calls=None)
-        step_delta = RunStepDeltaObjectDelta(step_details=tool_call_delta_object)
+        step_details = RunStepDeltaObjectDeltaStepDetails(actual_object=tool_call_delta_object)
+        step_delta = RunStepDeltaObjectDelta(step_details=step_details)
         run_step_delta = RunStepDeltaObject(id=run_step.id, delta=step_delta, object="thread.run.step.delta")
-        async for event in yield_events_from_object(
+        async for event in yield_event_from_object(
             obj=run_step_delta,
             target_class=RunStepStreamEvent,
-            obj_statuses=[None, None],
-            events=["thread.run.step.delta", "thread.run.step.completed"],
-            extra_fields={}
+            obj_status=None,
+            event="thread.run.step.delta",
         ):
             yield event
         #event = make_event(data=run_step_delta, event="thread.run.step.delta")
         #event_json = event.json()
         #yield f"data: {event_json}\n\n"
-
+        async for event in yield_event_from_object(
+                obj=run_step,
+                target_class=RunStepStreamEvent,
+                obj_status=None,
+                event="thread.run.step.completed",
+        ):
+            yield event
         #event = make_event(data=run_step, event=f"thread.run.step.completed")
         #event_json = event.json()
         #yield f"data: {event_json}\n\n"
