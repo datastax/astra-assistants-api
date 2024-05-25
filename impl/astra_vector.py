@@ -971,6 +971,7 @@ class CassandraClient:
         return True
 
 
+    # TODO - stop using the object from the SDK
     def upsert_run_step(self, run_step : RunStep):
         query_string = f"""insert into {CASSANDRA_KEYSPACE}.run_steps(
             id,
