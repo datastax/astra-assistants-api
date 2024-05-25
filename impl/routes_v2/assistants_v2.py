@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
     tags=["Assistants"],
     summary="Returns a list of assistants.",
     response_model_by_alias=True,
+    response_model=None
 )
 async def list_assistants(
         limit: int = Query(
@@ -66,7 +67,7 @@ async def list_assistants(
         last_id=last_id,
         has_more=False,
     )
-    return assistants_response
+    return assistants_response.to_dict()
 
 
 @router.post(

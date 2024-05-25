@@ -1205,6 +1205,7 @@ async def maybe_checkpoint(assistant_id, astradb, frequency_in_seconds, message_
     tags=["Assistants"],
     summary="Returns a list of runs belonging to a thread.",
     response_model_by_alias=True,
+    response_model=None,
 )
 async def list_runs(
         thread_id: str = Path(..., description="The ID of the thread the run belongs to."),
@@ -1242,7 +1243,7 @@ async def list_runs(
         last_id=last_id,
         has_more=False,
     )
-    return runs_response
+    return runs_response.to_dict()
 
 
 @router.get(
