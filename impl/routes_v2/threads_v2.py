@@ -265,8 +265,10 @@ def extractFunctionArguments(content):
         return extracted_text
     else:
         try:
-            json.loads(content)
-            return content
+            content_obj = json.loads(content)
+            return content_obj['arguments']
+            #json.loads(content)
+            #return content
         except Exception as e:
             logger.error(e)
             raise ValueError(
@@ -738,43 +740,94 @@ async def create_run(
 
             status = "in_progress"
         if tool.type == "function":
-            toolsJson.append(tool.function.dict())
+            toolsJson.append(tool.dict())
 
     required_action = None
 
     if len(toolsJson) > 0:
-        litellm_kwargs["functions"] = toolsJson
+        litellm_kwargs["tools"] = toolsJson
+        litellm_kwargs["tool_choice"] = "auto"
         message_string, message_content = summarize_message_content(instructions, messages.data)
         message = await get_chat_completion(messages=message_content, model=model, **litellm_kwargs)
 
         tool_call_object_id = str(uuid1())
         run_tool_calls = []
         if message.content is None:
-            function_call = RunToolCallObjectFunction(name=message.function_call.name,
-                                                      arguments=message.function_call.arguments)
+            for tool_call in message.tool_calls:
+                tool_call_object_function = RunToolCallObjectFunction(name=tool_call.function.name, arguments=tool_call.function.arguments)
+                run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=tool_call_object_function))
+
         else:
-            arguments = extractFunctionArguments(message.content)
+            #TODO: most models formally support tools now, maybe remove this logic
+            try:
+                arguments = extractFunctionArguments(message.content)
+                candidates = [tool['name'] for tool in toolsJson]
+                name = extractFunctionName(message.content, candidates)
 
-            candidates = [tool['name'] for tool in toolsJson]
-            name = extractFunctionName(message.content, candidates)
+                tool_call_object_function = RunToolCallObjectFunction(name=name, arguments=str(arguments))
+                run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=tool_call_object_function))
+            except Exception as e:
+                logger.info("did not find function call in message content")
+                status = "completed"
+                message_id = str(uuid1())
+                created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
 
-            function_call = RunToolCallObjectFunction(name=name, arguments=arguments)
-        run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=function_call))
-        tool_outputs = RunObjectRequiredActionSubmitToolOutputs(tool_calls=run_tool_calls)
-        required_action = RunObjectRequiredAction(type='submit_tool_outputs', submit_tool_outputs=tool_outputs)
-        status = "requires_action"
+                content = MessageContentTextObject(
+                    text=MessageContentTextObjectText(
+                        value=message.content,
+                        annotations=[],
+                    ),
+                    type="text"
+                )
+                # persist message
+                message_obj = MessageObject(
+                    id=message_id,
+                    object="thread.message",
+                    created_at=created_at,
+                    thread_id=thread_id,
+                    role=message.role,
+                    content=[content],
+                    assistant_id=assistant.id,
+                    run_id=run_id,
+                    metadata={},
+                    status=status,
+                    incomplete_details=None,
+                    completed_at=created_at,
+                    incomplete_at=None,
+                    attachments=None,
+                )
+                store_object(astradb=astradb, obj=message_obj, target_class=MessageObject, table_name="messages_v2", extra_fields={})
 
-        created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
+        if len(run_tool_calls) > 0:
+            tool_outputs = RunObjectRequiredActionSubmitToolOutputs(tool_calls=run_tool_calls)
+            required_action = RunObjectRequiredAction(type='submit_tool_outputs', submit_tool_outputs=tool_outputs)
+            status = "requires_action"
 
-        # persist message
-        message_id = await init_message(
-            thread_id=thread_id,
-            assistant_id=assistant.id,
-            run_id=run_id,
-            astradb=astradb,
-            created_at=created_at,
-            content=message.content
-        )
+            message_id = str(uuid1())
+            created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
+
+            # groq can't handle an assistant call with no content and perplexity can't handle non-alternating user/assistant messages
+            if message.content is None:
+                message.content = MessageContentTextObject(type='text', text=MessageContentTextObjectText(value="tool call placeholder", annotations=[]))
+            # persist message
+            message_obj = MessageObject(
+                id=message_id,
+                object="thread.message",
+                created_at=created_at,
+                thread_id=thread_id,
+                role=message.role,
+                content=[message.content],
+                assistant_id=assistant.id,
+                run_id=run_id,
+                metadata={},
+                status="in_progress",
+                incomplete_details=None,
+                completed_at=created_at,
+                incomplete_at=None,
+                attachments=None,
+            )
+            store_object(astradb=astradb, obj=message_obj, target_class=MessageObject, table_name="messages_v2", extra_fields={})
+
 
     run = await store_run(
         id=run_id,
