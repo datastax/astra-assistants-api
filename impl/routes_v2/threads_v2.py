@@ -747,7 +747,7 @@ async def create_run(
     if len(toolsJson) > 0:
         litellm_kwargs["tools"] = toolsJson
         litellm_kwargs["tool_choice"] = "auto"
-        message_string, message_content = summarize_message_content(instructions, messages.data)
+        message_content = summarize_message_content(instructions, messages.data, False)
         message = await get_chat_completion(messages=message_content, model=model, **litellm_kwargs)
 
         tool_call_object_id = str(uuid1())
@@ -761,7 +761,7 @@ async def create_run(
             #TODO: most models formally support tools now, maybe remove this logic
             try:
                 arguments = extractFunctionArguments(message.content)
-                candidates = [tool['name'] for tool in toolsJson]
+                candidates = [tool['function']['name'] for tool in toolsJson]
                 name = extractFunctionName(message.content, candidates)
 
                 tool_call_object_function = RunToolCallObjectFunction(name=name, arguments=str(arguments))
@@ -809,6 +809,8 @@ async def create_run(
             # groq can't handle an assistant call with no content and perplexity can't handle non-alternating user/assistant messages
             if message.content is None:
                 message.content = MessageContentTextObject(type='text', text=MessageContentTextObjectText(value="tool call placeholder", annotations=[]))
+            else:
+                message.content = MessageContentTextObject(type='text', text=MessageContentTextObjectText(value=message.content, annotations=[]))
             # persist message
             message_obj = MessageObject(
                 id=message_id,
@@ -826,7 +828,7 @@ async def create_run(
                 incomplete_at=None,
                 attachments=None,
             )
-            store_object(astradb=astradb, obj=message_obj, target_class=MessageObject, table_name="messages_v2", extra_fields={})
+            await store_object(astradb=astradb, obj=message_obj, target_class=MessageObject, table_name="messages_v2", extra_fields={})
 
 
     run = await store_run(
@@ -921,7 +923,7 @@ async def store_run(id, created_at, thread_id, assistant_id, status, required_ac
     return run
 
 
-def summarize_message_content(instructions, messages):
+def summarize_message_content(instructions, messages, filter_user_messages=False):
     message_content = []
     if instructions is None:
         instructions = ""
@@ -933,12 +935,12 @@ def summarize_message_content(instructions, messages):
             message_content.append({"role": role, "content": content.text.value})
 
     # filter messages to only include user messages
-    userContent = [message for message in message_content if message["role"] == "user"]
+    user_content = [message for message in message_content if message["role"] == "user"]
 
-    message_string = ""
-    if len(userContent) > 0:
-        message_string = userContent[0]["content"]
-    return message_string, message_content  # maybe trim message history?
+    if filter_user_messages:
+        return user_content
+    else:
+        return message_content  # maybe trim message history?
 
 
 
@@ -951,7 +953,7 @@ async def process_rag(
     try:
         logger.info(f"Processing RAG {run_id}")
         # TODO: Deal with run status better
-        message_string, message_content = summarize_message_content(instructions, messages)
+        message_content = summarize_message_content(instructions, messages, True)
 
         if run_step_id is not None:
             search_string_messages = message_content.copy()
@@ -1486,7 +1488,7 @@ async def submit_tool_ouputs_to_run(
         model = assistant.model
 
         messages = get_messages_by_thread(astradb, thread_id, order="asc")
-        message_string, message_content = summarize_message_content(assistant.instructions, messages.data)
+        message_content = summarize_message_content(assistant.instructions, messages.data)
         for tool_output in submit_tool_outputs_run_request.tool_outputs:
             # some models do not allow system messages in the middle, maybe this should be model specific?
             # message_content.append({"role": "system", "content": f"tool response for {tool_output.tool_call_id} is {tool_output.output}"})

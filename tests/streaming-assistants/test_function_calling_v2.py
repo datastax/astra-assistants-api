@@ -105,7 +105,7 @@ def function_calling(model, client):
     logger.info(run)
 
     def wait_on_run(run, thread):
-        while run.status == "queued" or run.status == "in_progress" or run.status == "generating":
+        while run.status == "queued" or run.status == "in_progress":
             run = client.beta.threads.runs.retrieve(
                 thread_id=thread.id,
                 run_id=run.id,
@@ -138,4 +138,4 @@ def function_calling(model, client):
     logger.info(f"{model}-->")
     logger.info(messages.data[0].content[0].text.value)
     assert messages.data[0].created_at > messages.data[1].created_at, "messages should be listed by created_at desc by default"
-    assert len(messages.data) == 2, "should have 2 messages in the thread"
+    assert len(messages.data) == 3, "should have 3 messages in the thread"
