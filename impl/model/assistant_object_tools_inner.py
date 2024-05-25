@@ -27,4 +27,13 @@ class AssistantObjectToolsInner(BaseModel):
     type: Optional[str] = Field(alias="type")
     function: Optional[FunctionObject] = Field(default=None, alias="function")
 
+    def to_dict(self) -> Dict[str, Any]:
+        _dict = self.model_dump(
+            by_alias=True,
+            exclude={
+            },
+            exclude_none=True,
+        )
+        return _dict
+
 AssistantObjectToolsInner.update_forward_refs()

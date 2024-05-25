@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Callable, Sequence, Union
+from typing import Callable, Sequence, Union, Any
 
 import httpx
 import openai
@@ -17,7 +17,7 @@ from starlette.responses import Response
 from impl.background import background_task_set
 from impl.rate_limiter import limiter
 from impl.routes import stateless, assistants, files, health, threads
-from impl.routes_v2 import assistants_v2, threads_v2
+from impl.routes_v2 import assistants_v2, threads_v2, vector_stores
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG,
@@ -28,6 +28,7 @@ logger = logging.getLogger('cassandra')
 logger.setLevel(logging.WARN)
 
 logger = logging.getLogger(__name__)
+
 
 app = FastAPI(
     title="Astra Assistants API",
@@ -50,30 +51,36 @@ async def shutdown_event():
             pass  # Handle cancellation if needed
 
 
+app.include_router(health.router, prefix="/v1")
 app.include_router(stateless.router, prefix="/v1")
 app.include_router(assistants.router, prefix="/v1")
 app.include_router(files.router, prefix="/v1")
-app.include_router(health.router, prefix="/v1")
 app.include_router(threads.router, prefix="/v1")
 
 app.include_router(stateless.router, prefix="/v2")
 app.include_router(assistants_v2.router, prefix="/v2")
 app.include_router(files.router, prefix="/v2")
-app.include_router(health.router, prefix="/v2")
 app.include_router(threads_v2.router, prefix="/v2")
+app.include_router(vector_stores.router, prefix="/v2")
+
 
 class APIVersionMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         version_header = request.headers.get("OpenAI-Beta")
-
-        original_path = request.url.path
         if version_header is None or version_header == "assistants=v1":
-            request.scope['path'] = original_path
+            logger.info(f"scope before call_next {request.scope}")
+            response = await call_next(request)
+            return response
+        if version_header == "assistants=v2":
+            request.scope['path'] = request.scope['path'].replace("v1", "v2")
+            if 'raw_path' in request.scope:
+                request.scope['raw_path'] = request.scope['raw_path'].replace(b'v1', b'v2')
+            logger.info(f"scope before call_next {request.scope}")
             response = await call_next(request)
             return response
         else:
             return Response(
-                "Unsupported version, please use openai SDK compatible with: OpenAI-Beta: assistants=v1 (python sdk openai 1.21.0 or older)",
+                f"Unsupported version: {version_header})",
                 status_code=400)
 
 
@@ -192,7 +199,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
         raise exec
     # Return an error response, not sure if we want to return all errors but at least this surfaces things like bad embedding model. Though that should be a 4xx error?
     return JSONResponse(
-        status_code=501, content={"message": str(exc)}
+        status_code=500, content={"message": str(exc)}
     )
 
 

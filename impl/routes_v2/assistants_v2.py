@@ -1,5 +1,5 @@
 import asyncio
-import datetime
+from datetime import datetime
 import logging
 import time
 from uuid import uuid1
@@ -7,17 +7,20 @@ from uuid import uuid1
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Path
 
 from impl.astra_vector import CassandraClient
-from impl.routes.utils import verify_openai_token, verify_db_client
+from impl.model_v2.create_assistant_request import CreateAssistantRequest
+from impl.model_v2.modify_assistant_request import ModifyAssistantRequest
+from impl.routes.utils import verify_db_client
+from impl.utils import store_object, read_object, read_objects
 from openapi_server_v2.models.assistant_object import AssistantObject
+from openapi_server_v2.models.assistant_object_tool_resources import AssistantObjectToolResources
 from openapi_server_v2.models.assistant_object_tools_inner import AssistantObjectToolsInner
-from openapi_server_v2.models.create_assistant_request import CreateAssistantRequest
 from openapi_server_v2.models.delete_assistant_response import DeleteAssistantResponse
 from openapi_server_v2.models.list_assistants_response import ListAssistantsResponse
-from openapi_server_v2.models.modify_assistant_request import ModifyAssistantRequest
 
 router = APIRouter()
 
 logger = logging.getLogger(__name__)
+
 
 @router.get(
     "/assistants",
@@ -27,6 +30,7 @@ logger = logging.getLogger(__name__)
     tags=["Assistants"],
     summary="Returns a list of assistants.",
     response_model_by_alias=True,
+    response_model=None
 )
 async def list_assistants(
         limit: int = Query(
@@ -45,56 +49,17 @@ async def list_assistants(
             None,
             description="A cursor for use in pagination. &#x60;before&#x60; is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with obj_foo, your subsequent call can include before&#x3D;obj_foo in order to fetch the previous page of the list. ",
         ),
-        openai_token: str = Depends(verify_openai_token),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> ListAssistantsResponse:
-    raw_assistants = astradb.selectAllFromTable(table="assistants")
-
-    assistants = []
-    if len(raw_assistants) == 0:
-        return ListAssistantsResponse(
-            data=assistants,
-            object="runs",
-            first_id="none",
-            last_id="none",
-            has_more=False,
-        )
-    for assistant in raw_assistants:
-        created_at = int(assistant["created_at"].timestamp() * 1000)
-
-        metadata = assistant["metadata"]
-        if metadata is None:
-            metadata = {}
-
-        file_ids = assistant["file_ids"]
-        if file_ids is None:
-            file_ids = []
-
-        toolsJson = assistant["tools"]
-        tools = []
-
-        if toolsJson is not None:
-            for json_string in toolsJson:
-                tools.append(AssistantObjectToolsInner.parse_raw(json_string))
-
-        if assistant["model"] is None:
-            logger.info(f'Model is required, assistant={assistant}, assistant["model"]={assistant["model"]}')
-
-        assistant = AssistantObject(
-            id=assistant["id"],
-            object="assistant",
-            created_at=created_at,
-            name=assistant["name"],
-            description=assistant["description"],
-            model=assistant["model"],
-            instructions=assistant["instructions"],
-            tools=tools,
-            file_ids=file_ids,
-            metadata=metadata,
-        )
-        assistants.append(assistant)
-    first_id = raw_assistants[0]["id"]
-    last_id = raw_assistants[len(raw_assistants) - 1]["id"]
+    assistants: [AssistantObject] = read_objects(
+        astradb=astradb,
+        target_class=AssistantObject,
+        table_name="assistants_v2",
+        partition_keys=[],
+        args={}
+    )
+    first_id = assistants[0].id
+    last_id = assistants[len(assistants) - 1].id
     assistants_response = ListAssistantsResponse(
         data=assistants,
         object="assistants",
@@ -102,7 +67,7 @@ async def list_assistants(
         last_id=last_id,
         has_more=False,
     )
-    return assistants_response
+    return assistants_response.to_dict()
 
 
 @router.post(
@@ -113,117 +78,55 @@ async def list_assistants(
     tags=["Assistants"],
     summary="Create an assistant with a model and instructions.",
     response_model_by_alias=True,
+    response_model=None
 )
 async def create_assistant(
         create_assistant_request: CreateAssistantRequest = Body(None, description=""),
-        openai_token: str = Depends(verify_openai_token),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> AssistantObject:
     assistant_id = str(uuid1())
+    created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
     logging.info(f"going to create assistant with id: {assistant_id} and details {create_assistant_request}")
-    metadata = create_assistant_request.metadata
-    if metadata is None:
-        metadata = {}
 
-    file_ids = create_assistant_request.file_ids
-    if file_ids is None:
-        file_ids = []
+    extra_fields = {"id": assistant_id, "created_at": created_at, "object": "assistant"}
+    assistant: AssistantObject = await store_object(astradb=astradb, obj=create_assistant_request,
+                                                    target_class=AssistantObject, table_name="assistants_v2",
+                                                    extra_fields=extra_fields)
 
-    tools = create_assistant_request.tools
-    if tools is None:
-        tools = []
+    # assistant : AssistantObject = map_model(source_instance=create_assistant_request, target_model_class=AssistantObject, extra_fields=extra_fields)
+    # astradb.upsert_table_from_base_model(table_name="assistants_v2", obj=assistant)
 
-    retrieval_tool = AssistantObjectToolsInner(type='retrieval', function=None)
-    if file_ids is not None and retrieval_tool not in tools and file_ids != []:
-        # raise http error
-        raise HTTPException(status_code=400, detail="Retrieval tool is required when file_ids is not [].")
+    logging.info(f"created assistant with id: {assistant.id}")
+
+    logging.info(f"with these details: {assistant}")
+    assistant = assistant.to_dict()
+    return assistant
 
 
-    description = create_assistant_request.description
-    if description is None:
-        description = ""
-
-    created_at = int(time.mktime(datetime.now().timetuple()))
-    astradb.upsert_assistant(
-        id=assistant_id,
-        created_at=created_at,
-        name=create_assistant_request.name,
-        description=description,
-        model=create_assistant_request.model,
-        instructions=create_assistant_request.instructions,
-        tools=tools,
-        file_ids=file_ids,
-        metadata=metadata,
-        object="assistant",
-    )
-    logging.info(f"created assistant with id: {assistant_id}")
-
-    name = create_assistant_request.name
-    if name is None:
-        name = ""
-
-    updated_assistant = AssistantObject(
-        id=assistant_id,
-        created_at=created_at,
-        name=name,
-        description=description,
-        model=create_assistant_request.model,
-        instructions=create_assistant_request.instructions,
-        tools=tools,
-        file_ids=file_ids,
-        metadata=metadata,
-        object="assistant",
-    )
-    logging.info(f"with these details: {updated_assistant}")
-    return updated_assistant
-
-
-@router.post("/assistants/{assistant_id}", response_model=AssistantObject)
+@router.post(
+    "/assistants/{assistant_id}",
+    responses={
+        200: {"model": AssistantObject, "description": "OK"},
+    },
+    tags=["Assistants"],
+    summary="Modify an assistant.",
+    response_model_by_alias=True,
+    response_model=None
+)
 async def modify_assistant(
         assistant_id: str = Path(..., description="The ID of the assistant to modify."),
         modify_assistant_request: ModifyAssistantRequest = Body(None, description=""),
-        openai_token: str = Depends(verify_openai_token),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> AssistantObject:
-    metadata = modify_assistant_request.metadata
-    if metadata is None:
-        metadata = {}
+    extra_fields = {"id": assistant_id, "object": "assistant"}
+    await store_object(astradb=astradb, obj=modify_assistant_request, target_class=AssistantObject,
+                       table_name="assistants_v2", extra_fields=extra_fields)
+    # combined_fields = combine_fields(extra_fields, modify_assistant_request, AssistantObject)
+    # astradb.upsert_table_from_dict(table_name="assistants_v2", obj=combined_fields)
 
-    file_ids = modify_assistant_request.file_ids
-    if file_ids is None:
-        file_ids = []
-
-    tools = modify_assistant_request.tools
-    if tools is None:
-        tools = []
-
-    description = modify_assistant_request.description
-    if description is None:
-        description = ""
-
-    assistant = astradb.get_assistant(id=assistant_id)
-    if assistant is None:
-        logger.warn(f"this should not happen")
-        asyncio.sleep(1)
-        return modify_assistant(assistant_id, modify_assistant_request, openai_token, astradb)
-    logger.info(f'assistant before upsert: {assistant}')
-
-    astradb.upsert_assistant(
-        id=assistant_id,
-        created_at=int(time.mktime(datetime.now().timetuple())),
-        name=modify_assistant_request.name,
-        description=description,
-        model=modify_assistant_request.model,
-        instructions=modify_assistant_request.instructions,
-        tools=tools,
-        file_ids=file_ids,
-        metadata=metadata,
-        object="assistant",
-    )
-
-    assistant = astradb.get_assistant(id=assistant_id)
+    assistant = await get_assistant_obj(astradb=astradb, assistant_id=assistant_id)
     logger.info(f'assistant upserted: {assistant}')
-    return assistant
+    return assistant.to_dict()
 
 
 @router.delete(
@@ -237,7 +140,6 @@ async def modify_assistant(
 )
 async def delete_assistant(
         assistant_id: str,
-        openai_token: str = Depends(verify_openai_token),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> DeleteAssistantResponse:
     astradb.delete_assistant(id=assistant_id)
@@ -254,13 +156,21 @@ async def delete_assistant(
     tags=["Assistants"],
     summary="Retrieves an assistant.",
     response_model_by_alias=True,
+    response_model=None,
 )
 async def get_assistant(
         assistant_id: str,
-        openai_token: str = Depends(verify_openai_token),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> AssistantObject:
-    assistant = astradb.get_assistant(id=assistant_id)
-    if assistant is None:
-        raise HTTPException(status_code=404, detail="Assistant not found.")
+    assistant = await get_assistant_obj(astradb=astradb, assistant_id=assistant_id)
+    return assistant.to_dict()
+
+async def get_assistant_obj(astradb, assistant_id):
+    assistant = read_object(
+        astradb=astradb,
+        target_class=AssistantObject,
+        table_name="assistants_v2",
+        partition_keys=["id"],
+        args={"id": assistant_id}
+    )
     return assistant

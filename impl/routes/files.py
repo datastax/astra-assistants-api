@@ -243,8 +243,8 @@ async def retrieve_file(
     file_id: str = Path(..., description="The ID of the file to use for this request."),
     astradb: CassandraClient = Depends(verify_db_client),
 ) -> OpenAIFile:
-    response = astradb.selectFromTableByPK(
-        table="files", partitionKeys=["id"], args={"id":file_id}
+    response = astradb.select_from_table_by_pk(
+        table="files", partition_keys=["id"], args={"id":file_id}
     )
     if len(response) > 0:
         raw_file = response[0]
