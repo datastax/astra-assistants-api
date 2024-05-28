@@ -130,7 +130,7 @@ def read_objects(astradb: CassandraClient, target_class: Type[BaseModel], table_
             obj_list.append(obj)
         return obj_list
     except Exception as e:
-        if e.status_code== 404:
+        if hasattr(e, 'status_code') and e.status_code== 404:
             raise e
         logger.error(f"read_objects failed {e} for table {table_name} and object {obj}")
         raise HTTPException(status_code=500, detail=f"Error reading {table_name}: {e}")
