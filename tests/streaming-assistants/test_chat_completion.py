@@ -47,17 +47,6 @@ def print_chat_completion(model, client):
 
     logger.info(f'prompt> {prompt}')
     logger.info(f'artist-{model}>\n{response.choices[0].message.content}')
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": "You are an amazing json generator."},
-            {"role": "user", "content": prompt}
-        ],
-        response_format="auto",
-    )
-
-    logger.info(f'prompt> {prompt}')
-    logger.info(f'artist-{model}>\n{response.choices[0].message.content}')
 
 
     logger.info('now streaming')
