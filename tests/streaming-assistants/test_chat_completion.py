@@ -33,7 +33,7 @@ def print_chat_completion(model, client):
                 },
             },
         }],
-        tool_choice='auto'
+        tool_choice={'type': 'function', 'function': {'name': 'get_current_weather'}}
     )
     logger.info(f'prompt> {prompt}')
     logger.info(f'artist-{model}>\n{response.choices[0].message.content}')

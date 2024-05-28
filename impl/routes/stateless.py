@@ -232,7 +232,8 @@ async def create_moderation(
     responses={'200': {'description': 'OK', 'content': {'application/json': {'schema': {'$ref': '#/components/schemas/CreateChatCompletionResponse'}}}}},
     tags=['Chat'],
     summary="""Creates a model response for the given chat conversation.""",
-    response_model_by_alias=True
+    response_model_by_alias=True,
+    response_model=None
 )
 async def create_chat_completion(
     create_chat_completion_request: CreateChatCompletionRequest,
