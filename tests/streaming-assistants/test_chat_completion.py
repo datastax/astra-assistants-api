@@ -5,11 +5,11 @@ import pytest
 logger = logging.getLogger(__name__)
 
 def print_chat_completion(model, client):
-    prompt="Draw your favorite animal using today's weather in NY."
+    prompt="provide the weather in ny today in json format, it's 75 degrees F and sunny"
     response = client.chat.completions.create(
         model=model,
         messages=[
-            {"role": "system", "content": "You are an amazing ascii art generator bot, no text just art."},
+            {"role": "system", "content": "You are an amazing json generator."},
             {"role": "user", "content": prompt}
         ],
         tools=[{
@@ -33,10 +33,32 @@ def print_chat_completion(model, client):
                 },
             },
         }],
-        tool_choice={'type': 'function', 'function': {'name': 'get_current_weather'}}
+        tool_choice={'type': 'function', 'function': {'name': 'get_current_weather'}},
     )
+    assert len(response.choices[0].message.tool_calls) > 0
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": "You are an amazing json generator."},
+            {"role": "user", "content": prompt}
+        ],
+        response_format={"type": "json_object"},
+    )
+
     logger.info(f'prompt> {prompt}')
     logger.info(f'artist-{model}>\n{response.choices[0].message.content}')
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": "You are an amazing json generator."},
+            {"role": "user", "content": prompt}
+        ],
+        response_format="auto",
+    )
+
+    logger.info(f'prompt> {prompt}')
+    logger.info(f'artist-{model}>\n{response.choices[0].message.content}')
+
 
     logger.info('now streaming')
     response = client.chat.completions.create(

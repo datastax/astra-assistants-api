@@ -12,8 +12,7 @@ from impl.model_v2.modify_assistant_request import ModifyAssistantRequest
 from impl.routes.utils import verify_db_client
 from impl.utils import store_object, read_object, read_objects
 from openapi_server_v2.models.assistant_object import AssistantObject
-from openapi_server_v2.models.assistant_object_tool_resources import AssistantObjectToolResources
-from openapi_server_v2.models.assistant_object_tools_inner import AssistantObjectToolsInner
+from openapi_server_v2.models.assistants_api_response_format_option import AssistantsApiResponseFormatOption
 from openapi_server_v2.models.delete_assistant_response import DeleteAssistantResponse
 from openapi_server_v2.models.list_assistants_response import ListAssistantsResponse
 
@@ -88,7 +87,12 @@ async def create_assistant(
     created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
     logging.info(f"going to create assistant with id: {assistant_id} and details {create_assistant_request}")
 
-    extra_fields = {"id": assistant_id, "created_at": created_at, "object": "assistant"}
+    extra_fields = {
+        "id": assistant_id,
+        "created_at": created_at,
+        "object": "assistant",
+        "response_format": AssistantsApiResponseFormatOption.from_dict(create_assistant_request.response_format)
+    }
     assistant: AssistantObject = await store_object(astradb=astradb, obj=create_assistant_request,
                                                     target_class=AssistantObject, table_name="assistants_v2",
                                                     extra_fields=extra_fields)

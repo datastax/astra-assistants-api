@@ -7,10 +7,8 @@ import time
 from typing import Dict, Any, Union, get_origin, Type, List, Optional
 from uuid import uuid1
 
-from cassandra.query import UNSET_VALUE
 
 from fastapi import APIRouter, Body, Depends, Path, HTTPException, Query
-from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from starlette.responses import StreamingResponse
 
@@ -28,7 +26,6 @@ from impl.utils import map_model, store_object, read_object, read_objects
 from openapi_server_v2.models.assistants_api_response_format_option import AssistantsApiResponseFormatOption
 from openapi_server_v2.models.assistants_api_tool_choice_option import AssistantsApiToolChoiceOption
 from openapi_server_v2.models.message_delta_object_delta_content_inner import MessageDeltaObjectDeltaContentInner
-from openapi_server_v2.models.message_object_content_inner import MessageObjectContentInner
 from openapi_server_v2.models.message_stream_event import MessageStreamEvent
 from openapi_server_v2.models.run_step_delta_object_delta_step_details import RunStepDeltaObjectDeltaStepDetails
 from openapi_server_v2.models.run_step_delta_step_details_tool_calls_object_tool_calls_inner import \
