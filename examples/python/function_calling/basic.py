@@ -26,84 +26,93 @@ model="gpt-4-1106-preview"
 #model = "meta.llama2-13b-chat-v1"
 
 
-print("make assistant")
-assistant = client.beta.assistants.create(
-  name=f"Weather Bot {model}",
-  instructions="You are a weather bot. Use the provided functions to answer questions.",
-  model=model,
-  tools=[{
-      "type": "function",
-    "function": {
-      "name": "getCurrentWeather",
-      "description": "Get the weather in location",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "location": {"type": "string", "description": "The city and state e.g. San Francisco, CA"},
-          "unit": {"type": "string", "enum": ["c", "f"]}
-        },
-        "required": ["location"]
-      }
-    }
-  }, {
+logger.info(f"making assistant for model {model}")
+functions_list = [{
     "type": "function",
     "function": {
-      "name": "getNickname",
-      "description": "Get the nickname of a city",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "location": {"type": "string", "description": "The city and state e.g. San Francisco, CA"},
-        },
-        "required": ["location"]
-      }
-    } 
-  }]
-)
-print(assistant)
+        "name": "getCurrentWeather",
+        "description": "Get the weather in location",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "location": {"type": "string", "description": "The city and state e.g. San Francisco, CA"},
+                "unit": {"type": "string", "enum": ["c", "f"]}
+            },
+            "required": ["location"]
+        }
+    }
+},
+    {
+        "type": "function",
+        "function": {
+            "name": "getNickname",
+            "description": "Get the nickname of a city",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {"type": "string", "description": "The city and state e.g. San Francisco, CA"},
+                },
+                "required": ["location"]
+            }
+        }
+    }
+]
 
-print("generating thread")
+assistant = client.beta.assistants.create(
+    name=f"Weather Bot {model}",
+    instructions="You are a weather bot. Use the provided functions to answer questions.",
+    model=model,
+    tools=functions_list,
+)
+logger.info(assistant)
+
+logger.info("generating thread")
 user_message="What's the weather like in Miami today?"
 thread = client.beta.threads.create()
 
 client.beta.threads.messages.create(
     thread_id=thread.id, role="user", content=user_message
 )
-
-class EventHandler(AssistantEventHandler):
-    def __init__(self):
-        super().__init__()
-
-    @override
-    def on_exception(self, exception: Exception):
-        logger.error(exception)
-        raise exception
-
-    @override
-    def on_tool_call_done(self, toolCall: ToolCall):
-        logger.debug(toolCall)
-        tool_outputs = []
-        tool_outputs.append({"tool_call_id": toolCall.id, "output": "75 degrees F and sunny"})
-
-        with client.beta.threads.runs.submit_tool_outputs_stream(
-            thread_id=self.current_run.thread_id,
-            run_id=self.current_run.id,
-            tool_outputs=tool_outputs,
-            event_handler=EventHandler(),
-        ) as stream:
-            #for part in stream:
-            #    logger.info(part)
-            for text in stream.text_deltas:
-                print(text, end="", flush=True)
-            print()
-
-with client.beta.threads.runs.create_and_stream(
+run = client.beta.threads.runs.create(
     thread_id=thread.id,
     assistant_id=assistant.id,
-    event_handler=EventHandler()
-) as stream:
-    stream.until_done()
-    #for part in stream:
-    #    logger.info(f"event: {part}")
-
+)
 logger.info(thread)
+logger.info(run)
+
+def wait_on_run(run, thread):
+    while run.status == "queued" or run.status == "in_progress":
+        run = client.beta.threads.runs.retrieve(
+            thread_id=thread.id,
+            run_id=run.id,
+        )
+        time.sleep(0.5)
+    logger.info(f"run {run}")
+    return run
+
+
+run = wait_on_run(run, thread)
+if run.required_action is not None:
+    logger.info(run.required_action)
+    tool_outputs = []
+    for tool_call in run.required_action.submit_tool_outputs.tool_calls:
+        tool_outputs.append({"tool_call_id": tool_call.id, "output": "75 and sunny"})
+
+    try:
+        run = client.beta.threads.runs.submit_tool_outputs(
+            thread_id=thread.id,
+            run_id=run.id,
+            tool_outputs=tool_outputs
+        )
+        run = wait_on_run(run, thread)
+    except Exception as e:
+        logger.info(f"run {run}")
+        logger.error(e)
+        raise e
+
+messages = client.beta.threads.messages.list(thread_id=thread.id)
+logger.info(f"{model}-->")
+logger.info(messages.data[0].content[0].text.value)
+assert messages.data[0].created_at > messages.data[1].created_at, "messages should be listed by created_at desc by default"
+assert len(messages.data) == 3, "should have 3 messages in the thread"
+print(messages.data[0].content[0].text.value)
