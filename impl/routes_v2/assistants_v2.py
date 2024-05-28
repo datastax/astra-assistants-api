@@ -91,8 +91,9 @@ async def create_assistant(
         "id": assistant_id,
         "created_at": created_at,
         "object": "assistant",
-        "response_format": AssistantsApiResponseFormatOption.from_dict(create_assistant_request.response_format)
     }
+    if create_assistant_request.response_format is not None:
+        extra_fields["response_format"] = AssistantsApiResponseFormatOption.from_dict(create_assistant_request.response_format)
     assistant: AssistantObject = await store_object(astradb=astradb, obj=create_assistant_request,
                                                     target_class=AssistantObject, table_name="assistants_v2",
                                                     extra_fields=extra_fields)

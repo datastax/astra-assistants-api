@@ -1,10 +1,4 @@
-import json
-
 import pytest
-from openai import OpenAI
-
-from impl.model_v2.create_assistant_request import CreateAssistantRequest
-
 
 def test_assistants_crud(openai_client):
 
