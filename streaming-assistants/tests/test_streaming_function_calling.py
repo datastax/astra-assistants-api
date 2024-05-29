@@ -21,7 +21,7 @@ def test_function_calling_groq(openai_client):
 
 @pytest.mark.skip(reason="claude does not consistently work with function calling, skip")
 def test_function_calling_cohere(openai_client):
-    model="cohere/command"
+    model="command-r"
     function_calling(model, openai_client)
 
 def test_function_calling_pplx_mix(openai_client):

@@ -84,7 +84,7 @@ def test_run_groq(openai_client):
     run_with_assistant(gpt3_assistant, openai_client)
 
 def test_run_cohere(openai_client):
-    model = "cohere/command"
+    model = "command-r"
     name = f"{model} Math Tutor"
 
     cohere_assistant = openai_client.beta.assistants.create(
