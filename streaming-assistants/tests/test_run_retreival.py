@@ -51,8 +51,7 @@ def run_with_assistant(assistant, client):
             run_id=run.id,
         )
         time.sleep(0.5)
-    print(f"streaming messages")
-    print("-->", end="")
+
     response = client.beta.threads.messages.list(thread_id=thread.id)
 
     print(f"{response.data[0].content[0].text.value}")
