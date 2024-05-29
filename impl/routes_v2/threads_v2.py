@@ -793,7 +793,7 @@ async def create_run(
                     incomplete_at=None,
                     attachments=None,
                 )
-                store_object(astradb=astradb, obj=message_obj, target_class=MessageObject, table_name="messages_v2", extra_fields={})
+                await store_object(astradb=astradb, obj=message_obj, target_class=MessageObject, table_name="messages_v2", extra_fields={})
 
         if len(run_tool_calls) > 0:
             tool_outputs = RunObjectRequiredActionSubmitToolOutputs(tool_calls=run_tool_calls)
