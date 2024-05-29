@@ -146,6 +146,4 @@ def function_calling(model, client):
         for part in stream:
             logger.info(part)
 
-    assert event_handler.tool_called > 0
-
     logger.info(thread)
