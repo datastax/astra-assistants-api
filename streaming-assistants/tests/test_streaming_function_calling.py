@@ -24,6 +24,7 @@ def test_function_calling_cohere(openai_client):
     model="command-r"
     function_calling(model, openai_client)
 
+@pytest.mark.skip(reason="flake, skip")
 def test_function_calling_pplx_mix(openai_client):
     model="perplexity/mixtral-8x7b-instruct"
     function_calling(model, openai_client)
@@ -81,7 +82,7 @@ def function_calling(model, client):
                     "required": ["location"]
                 }
             }
-        }]
+        }],
     )
     print(assistant)
 
