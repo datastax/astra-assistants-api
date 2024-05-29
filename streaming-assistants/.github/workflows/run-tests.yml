@@ -18,6 +18,7 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -53,6 +54,7 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -87,6 +89,7 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -121,6 +124,7 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -155,6 +159,7 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -189,6 +194,7 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
     steps:
       - name: Git checkout
