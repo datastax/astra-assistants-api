@@ -214,7 +214,7 @@ def wrap_create(original_create, client):
             ):
                 # TODO figure out how to get the model from the tool resources
                 vector_store_id = assistant.tool_resources.file_search.vector_store_ids[0]
-                vector_store = client.vector_store.retrieve(vector_store_id)
+                vector_store = client.beta.vector_stores.retrieve(vector_store_id)
                 #file_id = assistant.file_ids[0]
                 #file = client.files.retrieve(file_id)
                 #if file.embedding_model is not None:
@@ -353,6 +353,14 @@ def patch_methods(obj, client, visited=None):
         elif hasattr(attr, "__dict__") and not isinstance(attr, (str, int, float, list, dict, set, tuple)):
             patch_methods(attr, client, visited)
 
+
+def enhance_copy_method(original_copy, client):
+    def enhanced_copy(self, *args, **kwargs):
+        copied_instance = original_copy(*args, **kwargs)
+        patch(copied_instance)
+        return copied_instance
+    return enhanced_copy
+
 def patch(client: Union[OpenAI, AsyncOpenAI]):
 
 
@@ -389,5 +397,9 @@ def patch(client: Union[OpenAI, AsyncOpenAI]):
 
     # Wrap client.beta.threads.messages.update to support modifying content
     client.beta.threads.messages.update = MethodType(wrap_update_messages(client.beta.threads.messages.update), client.beta.threads.messages)
+
+    # patch the copy method so that the copied instance is also patched
+    client.copy = MethodType(enhance_copy_method(client.copy, client), client.copy)
+    client.with_options = client.copy
 
     return client
