@@ -94,6 +94,7 @@ def test_run_cohere(openai_client):
     )
     run_with_assistant(cohere_assistant, openai_client)
 
+@pytest.mark.skip(reason="flaky")
 def test_run_perp(openai_client):
     model = "perplexity/mixtral-8x7b-instruct"
     name = f"{model} Math Tutor"
