@@ -193,7 +193,7 @@ async def shutdown_event():
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
     # Log the error
-    logger.error(f"Unexpected error: {exc}")
+    logger.error(f"Unexpected error: {exc} for request {request}")
 
     if isinstance(exc, HTTPException):
         raise exec
@@ -208,7 +208,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH", "TRACE"],
 )
 async def unimplemented(request: Request, full_path: str):
-    logger.info(f"Unmatched route accessed: {request.method} {request.url.path}")
+    logger.info(f"Unmatched route accessed: {request.method} {request.url.path} {full_path} for request {request}")
     return JSONResponse(
         status_code=501, content={"message": "This feature is not yet implemented"}
     )
