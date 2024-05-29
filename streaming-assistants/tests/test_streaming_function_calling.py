@@ -11,6 +11,7 @@ def test_function_calling_gpt_4(openai_client):
     model="gpt-4-1106-preview"
     function_calling(model, openai_client)
 
+@pytest.mark.skip(reason="3.5 does not consistently pick the right function, skip")
 def test_function_calling_gpt_3_5(openai_client):
     model="gpt-3.5-turbo"
     function_calling(model, openai_client)
