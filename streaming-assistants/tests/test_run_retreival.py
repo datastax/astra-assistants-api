@@ -1,3 +1,5 @@
+import time
+
 import pytest
 
 
@@ -46,9 +48,9 @@ def run_with_assistant(assistant, client):
         time.sleep(0.5)
     print(f"streaming messages")
     print("-->", end="")
-    response = client.beta.threads.messages.list(thread_id=thread.id, stream=True)
-    for part in response:
-        print(f"{part.data[0].content[0].delta.value}", end="")
+    response = client.beta.threads.messages.list(thread_id=thread.id)
+
+    print(f"{response.data[0].content[0].text.value}")
     print("\n")
 
 
@@ -57,6 +59,17 @@ instructions = "You are a personal math tutor. Answer thoroughly. The system wil
 
 def test_run_gpt3_5(openai_client):
     model = "gpt-3.5-turbo"
+    name = f"{model} Math Tutor"
+
+    gpt3_assistant = openai_client.beta.assistants.create(
+        name=name,
+        instructions=instructions,
+        model=model,
+    )
+    run_with_assistant(gpt3_assistant, openai_client)
+
+def test_run_gpt3_5(openai_client):
+    model = "groq/llama3-8b-8192"
     name = f"{model} Math Tutor"
 
     gpt3_assistant = openai_client.beta.assistants.create(

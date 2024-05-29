@@ -11,6 +11,10 @@ def test_function_calling_gpt_3_5(openai_client):
     model="gpt-3.5-turbo"
     function_calling(model, openai_client)
 
+def test_function_calling_groq(openai_client):
+    model="groq/llama3-8b-8192"
+    function_calling(model, openai_client)
+
 @pytest.mark.skip(reason="claude does not consistently work with function calling, skip")
 def test_function_calling_cohere(openai_client):
     model="cohere/command"
@@ -119,7 +123,3 @@ def function_calling(model, client):
     messages = client.beta.threads.messages.list(thread_id=thread.id)
     print(f"{model}-->")
     print(messages.data[0].content[0].text.value)
-
-    response = client.beta.threads.messages.list(thread_id=thread.id, stream=True)
-    for part in response:
-        print(f"streamed response: {part.data[0].content[0].delta.value}")

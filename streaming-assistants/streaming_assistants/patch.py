@@ -28,6 +28,8 @@ LLM_PARAM_AWS_REGION_NAME = "LLM-PARAM-aws-region-name"
 LLM_PARAM_AWS_SECRET_ACCESS_KEY = "LLM-PARAM-aws-secret-access-key"
 LLM_PARAM_AWS_ACCESS_KEY_ID = "LLM-PARAM-aws-access-key-id"
 
+DOCS_URL="https://docs.datastax.com/en/astra-db-serverless/tutorials/astra-assistants-api.html"
+
 
 BETA_HEADER = {"OpenAI-Beta": "assistants=v2"}
 
@@ -368,7 +370,7 @@ def patch(client: Union[OpenAI, AsyncOpenAI]):
         base_url = os.getenv("base_url") or os.getenv("BASE_URL", "https://open-assistant-ai.astra.datastax.com/v1")
         client.base_url=base_url
 
-    print(f"Patching OpenAI client, it will now communicate to Astra Assistants API: {client.base_url}\nLearn more about Astra at: https://docs.datastax.com/en/astra/astra-db-vector/integrations/astra-assistants-api.html")
+    print(f"Patching OpenAI client, it will now communicate to Astra Assistants API: {client.base_url}\nLearn more about Astra at: {DOCS_URL}")
 
     # for astra headers (all beta endpoints)
     patch_methods(client.beta,client)

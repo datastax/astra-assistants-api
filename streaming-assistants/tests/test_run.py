@@ -17,7 +17,7 @@ def run_with_assistant(assistant, client):
     while True:
         if run.status == 'failed':
             raise ValueError("Run is in failed state")
-        if run.status == 'completed' or run.status == 'generating':
+        if run.status == 'completed':
             print(f"run status: {run.status}")
             break
         run = client.beta.threads.runs.retrieve(
@@ -30,15 +30,8 @@ def run_with_assistant(assistant, client):
     print(f"thread.id {thread.id}")
     response = client.beta.threads.messages.list(
         thread_id=thread.id,
-        stream=True
     )
 
-    print(f"{assistant.model} - streaming=>")
-    for part in response:
-        print(part.data[0].content[0].delta.value, end="")
-
-
-    #Note, we can list now that the run is completed, we know the run is completed because we finished streaming
     print(f"{assistant.model} no streaming=>")
     response = client.beta.threads.messages.list(thread_id=thread.id)
     print(response.data[0].content[0].text.value)

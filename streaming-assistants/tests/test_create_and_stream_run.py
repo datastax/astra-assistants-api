@@ -35,6 +35,18 @@ def test_run_gpt3_5(openai_client):
 
     run_with_assistant(gpt3_assistant, openai_client)
 
+def test_run_groq(openai_client):
+    gpt3_assistant = openai_client.beta.assistants.create(
+        name="groq Animal Tutor",
+        instructions=instructions,
+        model="groq/llama3-8b-8192",
+    )
+
+    assistant = openai_client.beta.assistants.retrieve(gpt3_assistant.id)
+    print(assistant)
+
+    run_with_assistant(gpt3_assistant, openai_client)
+
 def test_run_cohere(openai_client):
     cohere_assistant = openai_client.beta.assistants.create(
         name="Cohere Animal Tutor",

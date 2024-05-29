@@ -1,4 +1,8 @@
 import time
+from typing_extensions import override
+
+from openai.lib.streaming import AssistantEventHandler
+
 
 def run_with_assistant(assistant, client):
     user_message = "What's your favorite animal."
@@ -8,19 +12,45 @@ def run_with_assistant(assistant, client):
     client.beta.threads.messages.create(
         thread_id=thread.id, role="user", content=user_message
     )
-    run = client.beta.threads.runs.create(
-        thread_id=thread.id,
-        assistant_id=assistant.id,
-        stream=True,
-        temperature=0,
-    )
 
-    i=0
-    print(f"{assistant.model} - streaming=>")
-    for part in run:
-        i+=1
-        print(part)
-    assert i > 0
+    class EventHandler(AssistantEventHandler):
+        def __init__(self):
+            super().__init__()
+            self.on_message_created_count = 0
+            self.on_text_created_count = 0
+            self.on_text_delta_count = 0
+
+        @override
+        def on_message_created(self, message) -> None:
+            # Increment the counter each time the method is called
+            self.on_message_created_count += 1
+            print(message.id)
+
+        @override
+        def on_text_created(self, text) -> None:
+            # Increment the counter each time the method is called
+            self.on_text_created_count += 1
+            print(f"\nassistant > {text}", end="", flush=True)
+
+        @override
+        def on_text_delta(self, delta, snapshot):
+            # Increment the counter each time the method is called
+            self.on_text_delta_count += 1
+            print(delta.value, end="", flush=True)
+
+    event_handler = EventHandler()
+
+    with client.beta.threads.runs.create_and_stream(
+            thread_id=thread.id,
+            assistant_id=assistant.id,
+            #instructions="Speak in spanish",
+            event_handler=event_handler,
+    ) as stream:
+        for part in stream:
+            print(part)
+
+    assert event_handler.on_text_created_count > 0
+    assert event_handler.on_text_delta_count > 0
 
 
 
@@ -30,6 +60,18 @@ def test_run_gpt3_5(openai_client):
         name="GPT3 Animal Tutor",
         instructions=instructions,
         model="gpt-3.5-turbo",
+    )
+
+    assistant = openai_client.beta.assistants.retrieve(gpt3_assistant.id)
+    print(assistant)
+
+    run_with_assistant(gpt3_assistant, openai_client)
+
+def test_run_groq(openai_client):
+    gpt3_assistant = openai_client.beta.assistants.create(
+        name="qroq Animal Tutor",
+        instructions=instructions,
+        model="groq/llama3-8b-8192",
     )
 
     assistant = openai_client.beta.assistants.retrieve(gpt3_assistant.id)

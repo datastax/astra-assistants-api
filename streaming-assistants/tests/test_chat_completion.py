@@ -10,20 +10,6 @@ def print_chat_completion(model, client):
     print(f'prompt> {prompt}')
     print(f'artist-{model}>\n{response.choices[0].message.content}')
 
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": "You are an amazing ascii art generator bot, no text just art."},
-            {"role": "user", "content": prompt}
-        ],
-        stream=True
-    )
-    print(f"prompt> {prompt}")
-    print(f"artist-{model}>")
-    for part in response:
-        if part.choices[0].finish_reason is not None:
-            break
-        print(part.choices[0].delta.content, end="")
 
 
 def test_chat_completion_gpt4(openai_client):
@@ -32,6 +18,10 @@ def test_chat_completion_gpt4(openai_client):
 
 def test_chat_completion_gpt3_5(openai_client):
     model="gpt-3.5-turbo"
+    print_chat_completion(model, openai_client)
+
+def test_chat_completion_groq(openai_client):
+    model="groq/llama3-8b-8192"
     print_chat_completion(model, openai_client)
 
 def test_chat_completion_cohere(openai_client):
