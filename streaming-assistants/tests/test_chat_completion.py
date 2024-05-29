@@ -25,7 +25,7 @@ def test_chat_completion_groq(openai_client):
     print_chat_completion(model, openai_client)
 
 def test_chat_completion_cohere(openai_client):
-    model="cohere/command"
+    model="command-r"
     print_chat_completion(model, openai_client)
 
 def test_chat_completion_perp_mixtral(openai_client):

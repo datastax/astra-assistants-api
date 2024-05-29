@@ -14,12 +14,17 @@ def run_with_assistant(assistant, client):
         ),
         purpose="assistants",
     )
+    vector_store = client.beta.vector_stores.create(
+        name="papers",
+        file_ids=[file.id]
+    )
+
     print("adding file id to assistant")
     # Update Assistant
     assistant = client.beta.assistants.update(
         assistant.id,
-        tools=[{"type": "retrieval"}],
-        file_ids=[file.id],
+        tools=[{"type": "file_search"}],
+        tool_resources={"file_search": {"vector_store_ids": [vector_store.id]}},
     )
     user_message = "What are some cool math concepts behind this ML paper pdf? Explain in two sentences."
     print("creating persistent thread and message")
@@ -68,7 +73,7 @@ def test_run_gpt3_5(openai_client):
     )
     run_with_assistant(gpt3_assistant, openai_client)
 
-def test_run_gpt3_5(openai_client):
+def test_run_groq(openai_client):
     model = "groq/llama3-8b-8192"
     name = f"{model} Math Tutor"
 
