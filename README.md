@@ -1,19 +1,21 @@
 # Astra Assistant API Service
 [![Run tests](https://github.com/datastax/astra-assistants-api/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/datastax/astra-assistants-api/actions/workflows/run-tests.yml)
 [![Docker build and publish](https://github.com/datastax/astra-assistants-api/actions/workflows/docker.yml/badge.svg)](https://github.com/datastax/astra-assistants-api/actions/workflows/docker.yml)
+[![PyPI version](https://badge.fury.io/py/astra-assistants.svg)](https://badge.fury.io/py/astra-assistants)
+[![Discord chat](https://img.shields.io/static/v1?label=Chat%20on&message=Discord&color=blue&logo=Discord&style=flat-square)](https://discord.gg/j6vgnRke)
 
-A drop-in compatible service for the OpenAI beta Assistants API with support for persistent threads, files, assistants, streaming, retreival, function calling and more using [AstraDB](https://astra.datastax.com) (DataStax's db as a service offering powered by [Apache Cassandra](https://cassandra.apache.org/_/index.html) and [jvector](https://github.com/jbellis/jvector)).
+A drop-in compatible service for the latest OpenAI Assistants API v2 (with streaming) with support for persistent threads, files, vector_stores, assistants, retreival, function calling and more using [AstraDB](https://astra.datastax.com) (DataStax's db as a service offering powered by [Apache Cassandra](https://cassandra.apache.org/_/index.html) and [jvector](https://github.com/jbellis/jvector)).
 
-Compatible with existing OpenAI apps via the OpenAI SDKs by changing a single line of code.
+Supports dozens of third party LLM providers (or even local models) for both completion and embeddings (powered by [LiteLLM](https://github.com/BerriAI/litellm)). 
 
-You can use our Astra Assistants service, or host the API server yourself.
+You can use our hosted Astra Assistants service, or host the open source API server yourself.
 
 ## Client Getting Started
 
-To build an app that uses the Astra Asistants service install the [streaming-assistants](https://github.com/phact/streaming-assistants) dependency with your favorite package manager:
+To build an app that uses the Astra Asistants service install the [astra-assistants](https://pypi.org/project/astra-assistants/) python library with your favorite package manager. The code for astra-assistants can be found under (clients/)[./clients/]:
 
 ```
-poetry add streaming_assistants
+poetry add astra_assistants
 ```
 
 [Signup for Astra and get an Admin API token](https://astra.datastax.com/signup):
@@ -23,39 +25,44 @@ Set your environment variables (depending on what LLMs you want to use), see the
 ```
 #!/bin/bash
 
-# astra has a generous free tier, no cc required 
-# https://astra.datastax.com/ --> tokens --> administrator user --> generate
-export ASTRA_DB_APPLICATION_TOKEN=
-# https://platform.openai.com/api-keys --> create new secret key
-export OPENAI_API_KEY=
+# AstraDB -> https://astra.datastax.com/ --> tokens --> administrator user --> generate
+export ASTRA_DB_APPLICATION_TOKEN=""
 
-# https://www.perplexity.ai/settings/api  --> generate
-export PERPLEXITYAI_API_KEY=
+# OpenAI Models - https://platform.openai.com/api-keys --> create new secret key
+export OPENAI_API_KEY=""
 
-# https://dashboard.cohere.com/api-keys
-export COHERE_API_KEY=
+# Groq Models - https://console.groq.com/keys
+export GROQ_API_KEY=""
 
-#bedrock models https://docs.aws.amazon.com/bedrock/latest/userguide/setting-up.html
-export AWS_REGION_NAME=
-export AWS_ACCESS_KEY_ID=
-export AWS_SECRET_ACCESS_KEY=
+# Anthropic claude models - https://console.anthropic.com/settings/keys
+export ANTHROPIC_API_KEY=""
 
-#vertexai models https://console.cloud.google.com/vertex-ai
-export GOOGLE_JSON_PATH=
-export GOOGLE_PROJECT_ID=
+# Gemini models -> https://makersuite.google.com/app/apikey
+export GEMINI_API_KEY=""
 
-#gemini api https://makersuite.google.com/app/apikey
-export GEMINI_API_KEY=
+# Perplexity models -> https://www.perplexity.ai/settings/api  --> generate
+export PERPLEXITYAI_API_KEY=""
 
-#anthropic claude models https://console.anthropic.com/settings/keys
-export ANTHROPIC_API_KEY=
+# Cohere models -> https://dashboard.cohere.com/api-keys
+export COHERE_API_KEY=""
+
+# Bedrock models -> https://docs.aws.amazon.com/bedrock/latest/userguide/setting-up.html
+export AWS_REGION_NAME=""
+export AWS_ACCESS_KEY_ID=""
+export AWS_SECRET_ACCESS_KEY=""
+
+# vertexai models https://console.cloud.google.com/vertex-ai
+export GOOGLE_JSON_PATH=""
+export GOOGLE_PROJECT_ID=""
+
+# ... for all models see the .env.bkp file
 ```
 
 Then import and patch your client:
 
 ```python
 from openai import OpenAI
-from streaming_assistants import patch
+from astra_assistants import patch
 client = patch(OpenAI())
 ```
 The system will create a db on your behalf and name it `assistant_api_db` using your token. Note, this means that the first request will hang until your db is ready (could be a couple of minutes). This will only happen once.
@@ -139,6 +146,9 @@ or locally with poetry:
 
     poetry run python run.py
 
+## Feedback / Help
+For help or feedback file an [issue](https://github.com/datastax/astra-assistants-api/issues) or reach out to us on [Discord](https://discord.gg/j6vgnRke)
+
 ## Contributing
 
 Check out our [contributing guide](./CONTRIBUTING.md)
@@ -151,4 +161,4 @@ See our coverage report [here](./coverage.md)
  - [X] Support for other embedding models and LLMs
  - [X] function calling
  - [X] Streaming support
- - [ ] Configurable RAG
+ - [X] Assistants V2 with vector_store support
