@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "streaming-assistants"
-version = "0.18.7-pre"
-description = "Streaming enabled Assistants API"
+name = "astra-assistants"
+version = "2.0.0"
+description = "Astra Assistants API - drop in replacement for OpenAI Assistants, powered by AstraDB"
 authors = ["phact <estevezsebastian@gmail.com>"]
 readme = "README.md"
 
@@ -24,5 +24,5 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [[tool.poetry.packages]]
-include = "streaming_assistants"
+include = "astra_assistants"
 

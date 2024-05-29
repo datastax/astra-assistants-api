@@ -2,18 +2,16 @@ import inspect
 import os
 import io
 from functools import wraps
-from types import MethodType, FunctionType
-from typing import Callable, Literal, Union, List, Dict, Any, TypedDict, cast, Optional
+from types import MethodType
+from typing import Callable, Literal, Union
 import contextlib
 
 import httpx
-from openai import Stream, OpenAI, AsyncOpenAI
+from openai import OpenAI, AsyncOpenAI
 from openai._base_client import make_request_options
 from openai._models import BaseModel
 from openai._types import NOT_GIVEN, Headers, Query, Body, NotGiven
 from openai._utils import maybe_transform
-from openai.pagination import SyncCursorPage
-from openai.types.beta.thread_create_and_run_params import ThreadMessage
 
 from litellm import utils
 from openai.types.beta.threads import message_create_params, Message
