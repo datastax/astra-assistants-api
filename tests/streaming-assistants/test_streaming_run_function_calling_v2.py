@@ -136,7 +136,7 @@ def function_calling(model, client):
     with client.beta.threads.runs.create_and_stream(
         thread_id=thread.id,
         assistant_id=assistant.id,
-        event_handler=event_handler
+        event_handler=event_handler,
     ) as stream:
         #stream.until_done()
         for part in stream:
