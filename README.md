@@ -4,7 +4,7 @@
 [![PyPI version](https://badge.fury.io/py/astra-assistants.svg)](https://badge.fury.io/py/astra-assistants)
 [![Discord chat](https://img.shields.io/static/v1?label=Chat%20on&message=Discord&color=blue&logo=Discord&style=flat-square)](https://discord.gg/j6vgnRke)
 [![Dockerhub](https://img.shields.io/static/v1?label=Pull%20from&message=DockerHub&color=blue&logo=Docker&style=flat-square)](https://hub.docker.com/r/datastax/astra-assistants)
-
+[![Stars](https://img.shields.io/github/stars/datastax/astra-assistants-api?style=social)](https://github.com/datastax/astra-assistants-api/stargazers)
 
 A drop-in compatible service for the latest OpenAI Assistants API v2 (with streaming) with support for persistent threads, files, vector_stores, assistants, retreival, function calling and more using [AstraDB](https://astra.datastax.com) (DataStax's db as a service offering powered by [Apache Cassandra](https://cassandra.apache.org/_/index.html) and [jvector](https://github.com/jbellis/jvector)).
 
