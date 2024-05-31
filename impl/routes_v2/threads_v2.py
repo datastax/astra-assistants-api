@@ -465,7 +465,7 @@ async def run_event_stream(run, message_id, astradb):
         #event_json = event.json()
         #yield f"data: {event_json}\n\n"
 
-    async for event in stream_message_events(astradb, run.thread_id, None, "desc", None, None, run):
+    async for event in stream_message_events(astradb, run.thread_id, 1, "desc", None, None, run):
         yield event
 
 
@@ -474,9 +474,6 @@ async def stream_message_events(astradb, thread_id, limit, order, after, before,
         logger.debug(background_task_set)
         logger.info(f"fetching messages for thread {thread_id}")
         messages = await get_and_process_assistant_messages(astradb, thread_id, limit, order, after, before)
-
-        first_id = messages[0].id
-        last_id = messages[len(messages) - 1].id
 
         current_message = None
         last_message_length = 0
@@ -1363,7 +1360,7 @@ def get_messages_by_thread(astradb, thread_id, limit=None, order=None, after=Non
 async def get_and_process_assistant_messages(astradb, thread_id, limit, order, after, before):
     messages = get_and_process_messages(astradb, thread_id, limit, order, after, before)
 
-    if messages[0].run_id is None:
+    if len(messages) == 0 or messages[0].run_id is None:
         await asyncio.sleep(1)
         return await get_and_process_assistant_messages(astradb, thread_id, limit, order, after, before)
     return messages
