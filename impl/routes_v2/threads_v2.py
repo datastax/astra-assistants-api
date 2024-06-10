@@ -111,6 +111,68 @@ async def create_thread(
     )
     return astradb.upsert_table_from_base_model("threads", thread)
 
+@router.get(
+    "/threads/{thread_id}",
+    responses={
+        200: {"model": ThreadObject, "description": "OK"},
+    },
+    tags=["Assistants"],
+    summary="Retrieves a thread.",
+    response_model_by_alias=True,
+    response_model=False,
+)
+async def get_thread(
+        thread_id: str = Path(..., description="The ID of the thread to retrieve."),
+        astradb: CassandraClient = Depends(verify_db_client),
+) -> ThreadObject:
+    return astradb.get_thread(thread_id)
+
+
+@router.post(
+    "/threads/{thread_id}",
+    responses={
+        200: {"model": ThreadObject, "description": "OK"},
+    },
+    tags=["Assistants"],
+    summary="Modifies a thread.",
+    response_model_by_alias=True,
+)
+async def modify_thread(
+        thread_id: str = Path(...,
+                              description="The ID of the thread to modify. Only the &#x60;metadata&#x60; can be modified."),
+        modify_thread_request: ModifyThreadRequest = Body(None, description=""),
+        astradb: CassandraClient = Depends(verify_db_client),
+) -> ThreadObject:
+    metadata = modify_thread_request.metadata
+    return astradb.upsert_thread(
+        id=thread_id,
+        object="thread",
+        created_at=None,
+        metadata=metadata
+    )
+
+
+@router.delete(
+    "/threads/{thread_id}",
+    responses={
+        200: {"model": DeleteThreadResponse, "description": "OK"},
+    },
+    tags=["Assistants"],
+    summary="Delete a thread.",
+    response_model_by_alias=True,
+)
+async def delete_thread(
+        thread_id: str = Path(..., description="The ID of the thread to delete."),
+        astradb: CassandraClient = Depends(verify_db_client),
+) -> DeleteThreadResponse:
+    astradb.delete_by_pk(table="threads", key="id", value=thread_id)
+    return DeleteThreadResponse(
+        id=thread_id,
+        object="thread",
+        deleted=True
+    )
+
+
 
 @router.post(
     "/threads/{thread_id}/messages",
@@ -1391,66 +1453,6 @@ async def extract_message_delta(message, last_message_length, index):
         )
     )
     return message_delta, this_message_length
-
-@router.get(
-    "/threads/{thread_id}",
-    responses={
-        200: {"model": ThreadObject, "description": "OK"},
-    },
-    tags=["Assistants"],
-    summary="Retrieves a thread.",
-    response_model_by_alias=True,
-)
-async def get_thread(
-        thread_id: str = Path(..., description="The ID of the thread to retrieve."),
-        astradb: CassandraClient = Depends(verify_db_client),
-) -> ThreadObject:
-    return astradb.get_thread(thread_id)
-
-
-@router.post(
-    "/threads/{thread_id}",
-    responses={
-        200: {"model": ThreadObject, "description": "OK"},
-    },
-    tags=["Assistants"],
-    summary="Modifies a thread.",
-    response_model_by_alias=True,
-)
-async def modify_thread(
-        thread_id: str = Path(...,
-                              description="The ID of the thread to modify. Only the &#x60;metadata&#x60; can be modified."),
-        modify_thread_request: ModifyThreadRequest = Body(None, description=""),
-        astradb: CassandraClient = Depends(verify_db_client),
-) -> ThreadObject:
-    metadata = modify_thread_request.metadata
-    return astradb.upsert_thread(
-        id=thread_id,
-        object="thread",
-        created_at=None,
-        metadata=metadata
-    )
-
-
-@router.delete(
-    "/threads/{thread_id}",
-    responses={
-        200: {"model": DeleteThreadResponse, "description": "OK"},
-    },
-    tags=["Assistants"],
-    summary="Delete a thread.",
-    response_model_by_alias=True,
-)
-async def delete_thread(
-        thread_id: str = Path(..., description="The ID of the thread to delete."),
-        astradb: CassandraClient = Depends(verify_db_client),
-) -> DeleteThreadResponse:
-    astradb.delete_by_pk(table="threads", key="id", value=thread_id)
-    return DeleteThreadResponse(
-        id=thread_id,
-        object="thread",
-        deleted=True
-    )
 
 
 @router.post(

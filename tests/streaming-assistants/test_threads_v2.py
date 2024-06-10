@@ -3,6 +3,9 @@ def test_threads(patched_openai_client):
     client = patched_openai_client
 
     thread = client.beta.threads.create()
+    the_same_thread = client.beta.threads.retrieve(thread_id=thread.id)
+
+    assert the_same_thread.id == thread.id
 
     message = client.beta.threads.messages.create(
         thread_id=thread.id, role="user", content=user_message

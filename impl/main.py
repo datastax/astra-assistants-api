@@ -76,8 +76,13 @@ class APIVersionMiddleware(BaseHTTPMiddleware):
             if 'raw_path' in request.scope:
                 request.scope['raw_path'] = request.scope['raw_path'].replace(b'v1', b'v2')
             logger.info(f"scope before call_next {request.scope}")
-            response = await call_next(request)
-            return response
+            try:
+                response = await call_next(request)
+                return response
+            except Exception as e:
+                print(e)
+                raise e
+
         else:
             return Response(
                 f"Unsupported version: {version_header})",
