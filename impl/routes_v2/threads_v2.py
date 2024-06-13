@@ -5,7 +5,6 @@ import logging
 import re
 import time
 from typing import Dict, Any, Union, get_origin, Type, List, Optional
-from uuid import uuid1
 
 
 from fastapi import APIRouter, Body, Depends, Path, HTTPException, Query
@@ -22,7 +21,7 @@ from impl.routes.utils import verify_db_client, get_litellm_kwargs, infer_embedd
 from impl.routes_v2.assistants_v2 import get_assistant_obj
 from impl.routes_v2.vector_stores import read_vsf
 from impl.services.inference_utils import get_chat_completion, get_async_chat_completion_response
-from impl.utils import map_model, store_object, read_object, read_objects
+from impl.utils import map_model, store_object, read_object, read_objects, generate_id
 from openapi_server_v2.models.assistants_api_response_format_option import AssistantsApiResponseFormatOption
 from openapi_server_v2.models.assistants_api_tool_choice_option import AssistantsApiToolChoiceOption
 from openapi_server_v2.models.message_delta_object_delta_content_inner import MessageDeltaObjectDeltaContentInner
@@ -94,7 +93,7 @@ async def create_thread(
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> ThreadObject:
     created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
-    thread_id = str(uuid1())
+    thread_id = generate_id("thread")
 
     messages = []
     if create_thread_request.messages is not None:
@@ -193,7 +192,7 @@ async def create_message(
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> MessageObject:
     created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
-    message_id = str(uuid1())
+    message_id = generate_id("msg")
 
     content = MessageContentTextObject(
         text=MessageContentTextObjectText(
@@ -473,7 +472,8 @@ async def run_event_stream(run, message_id, astradb):
         return
 
     # this works because we make the run_step id the same as the message_id
-    run_step = astradb.get_run_step(run_id=run.id, id=message_id)
+    run_step_id = message_id.replace("msg_", "step_")
+    run_step = astradb.get_run_step(run_id=run.id, id=run_step_id)
     if run_step is not None:
         async for event in yield_events_from_object(
             obj=run_step,
@@ -500,7 +500,7 @@ async def run_event_stream(run, message_id, astradb):
         # tool_call_delta_object = ToolCallDeltaObject(type="tool_calls", tool_calls=retrieval_tool_call_deltas)
 
         while run_step.status != "completed":
-            run_step = astradb.get_run_step(run_id=run.id, id=message_id)
+            run_step = astradb.get_run_step(run_id=run.id, id=run_step_id)
             await asyncio.sleep(1)
         tool_call_delta_object = RunStepDeltaStepDetailsToolCallsObject(type="tool_calls", tool_calls=None)
         step_details = RunStepDeltaObjectDeltaStepDetails(actual_instance=tool_call_delta_object)
@@ -630,7 +630,7 @@ async def stream_message_events(astradb, thread_id, limit, order, after, before,
 async def init_message(thread_id, assistant_id, run_id, astradb, created_at, content=None):
     if content is None:
         content = []
-    message_id = str(uuid1())
+    message_id = generate_id("msg")
     message_obj = MessageObject(
         id=message_id,
         object="thread.message",
@@ -674,7 +674,7 @@ async def create_run(
     # New Messages cannot be added to the Thread.
     # New Runs cannot be created on the Thread.
     created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
-    run_id = str(uuid1())
+    run_id = generate_id("run")
     status = "queued"
 
     tools = create_run_request.tools
@@ -741,6 +741,7 @@ async def create_run(
 
             # create run_step
             # Note the run_step id is the same as the message_id
+            run_step_id = message_id.replace("msg_", "step_")
             run_step = RunStepObject(
                 id=message_id,
                 assistant_id=assistant.id,
@@ -756,7 +757,7 @@ async def create_run(
                         tool_calls=[
                             RunStepDetailsToolCallsObjectToolCallsInner(
                                 actual_instance=RunStepDetailsToolCallsFileSearchObject(
-                                    id=message_id,
+                                    id=run_step_id,
                                     type="file_search",
                                     file_search={},
                                 )
@@ -806,7 +807,7 @@ async def create_run(
         message_content = summarize_message_content(instructions, messages.data, False)
         message = await get_chat_completion(messages=message_content, model=model, **litellm_kwargs)
 
-        tool_call_object_id = str(uuid1())
+        tool_call_object_id = generate_id("call")
         run_tool_calls = []
         if message.content is None:
             for tool_call in message.tool_calls:
@@ -825,7 +826,7 @@ async def create_run(
             except Exception as e:
                 logger.info("did not find function call in message content")
                 status = "completed"
-                message_id = str(uuid1())
+                message_id = generate_id("msg")
                 created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
 
                 content = MessageContentTextObject(
@@ -859,7 +860,7 @@ async def create_run(
             required_action = RunObjectRequiredAction(type='submit_tool_outputs', submit_tool_outputs=tool_outputs)
             status = "requires_action"
 
-            message_id = str(uuid1())
+            message_id = generate_id("msg")
             created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
 
             # groq can't handle an assistant call with no content and perplexity can't handle non-alternating user/assistant messages
@@ -1069,13 +1070,14 @@ async def process_rag(
                 completed_at = int(time.mktime(datetime.now().timetuple()))
 
                 # TODO: consider [optionally?] excluding the content payload because it can be big
+                run_step_id = message_id.replace("msg_", "step_")
                 details = RunStepObjectStepDetails(
                     actual_instance=RunStepDetailsToolCallsObject(
                         type="tool_calls",
                         tool_calls=[
                             RunStepDetailsToolCallsObjectToolCallsInner(
                                 actual_instance=RunStepDetailsToolCallsFileSearchObject(
-                                    id=message_id,
+                                    id=run_step_id,
                                     type="file_search",
                                     file_search={"chunks": context_json_meta},
                                 )
@@ -1085,7 +1087,7 @@ async def process_rag(
                 )
 
                 run_step = RunStepObject(
-                    id=message_id,
+                    id=run_step_id,
                     assistant_id=assistant_id,
                     completed_at=completed_at,
                     created_at=created_at,
@@ -1499,7 +1501,7 @@ async def submit_tool_ouputs_to_run(
             )
             text = message.content
 
-            id = str(uuid1())
+            id = generate_id("msg")
             created_at = int(time.mktime(datetime.now().timetuple())*1000)
 
 
