@@ -1,5 +1,8 @@
+import base64
+import hashlib
 import json
 import logging
+import secrets
 from typing import Type, Dict, Any, List, get_origin, Annotated, get_args, Union
 
 from fastapi import HTTPException
@@ -140,3 +143,20 @@ def read_objects(astradb: CassandraClient, target_class: Type[BaseModel], table_
             msg += f"for object {obj}"
         logger.error(msg)
         raise HTTPException(status_code=500, detail=f"Error reading {table_name}: {e}")
+
+
+def generate_id(prefix: str, num_bytes=24):
+    random_bytes = secrets.token_bytes(num_bytes)
+    random_string = base64.urlsafe_b64encode(random_bytes).rstrip(b'=').decode('utf-8')
+    return f"{prefix}_{random_string}"
+
+
+def generate_id_from_upload_file(upload_file, prefix="file", length=24):
+    spooled_file = upload_file.file
+    spooled_file.seek(0)
+    file_data = upload_file.filename.encode('utf-8') + spooled_file.read()
+    sha256_hash = hashlib.sha256(file_data).digest()
+    base64_encoded_hash = base64.urlsafe_b64encode(sha256_hash).rstrip(b'=').decode('utf-8')[:length]
+    spooled_file.seek(0)
+
+    return f"{prefix}_{base64_encoded_hash}"

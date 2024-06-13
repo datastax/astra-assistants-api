@@ -2,7 +2,6 @@ import asyncio
 from datetime import datetime
 import logging
 import time
-from uuid import uuid1
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Path
 
@@ -10,7 +9,7 @@ from impl.astra_vector import CassandraClient
 from impl.model_v2.create_assistant_request import CreateAssistantRequest
 from impl.model_v2.modify_assistant_request import ModifyAssistantRequest
 from impl.routes.utils import verify_db_client
-from impl.utils import store_object, read_object, read_objects
+from impl.utils import store_object, read_object, read_objects, generate_id
 from openapi_server_v2.models.assistant_object import AssistantObject
 from openapi_server_v2.models.assistants_api_response_format_option import AssistantsApiResponseFormatOption
 from openapi_server_v2.models.delete_assistant_response import DeleteAssistantResponse
@@ -83,7 +82,7 @@ async def create_assistant(
         create_assistant_request: CreateAssistantRequest = Body(None, description=""),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> AssistantObject:
-    assistant_id = str(uuid1())
+    assistant_id = generate_id("asst")
     created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
     logging.info(f"going to create assistant with id: {assistant_id} and details {create_assistant_request}")
 

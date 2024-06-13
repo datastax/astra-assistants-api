@@ -1,6 +1,5 @@
 import os
 import concurrent.futures
-import uuid
 from typing import Any, Dict, List, Optional, Tuple
 
 import tiktoken
@@ -8,6 +7,7 @@ import tiktoken
 from impl.models import Document, DocumentChunk, DocumentChunkMetadata
 #from impl.services.code_chunks import get_code_chunks
 from impl.services.inference_utils import get_embeddings
+from impl.utils import generate_id
 
 # Global variables
 tokenizer = tiktoken.get_encoding(
@@ -119,10 +119,10 @@ def create_document_chunks(
     """
     # Check if the document text is empty or whitespace
     if not doc.text or doc.text.isspace():
-        return [], doc.id or str(uuid.uuid1())
+        return [], doc.id or generate_id("doc")
 
     # Generate a document id if not provided
-    doc_id = doc.id or str(uuid.uuid1())
+    doc_id = doc.id or generate_id("doc")
 
     # Split the document text into chunks
     if format in ("c", "cpp", "css", "html", "java", "js", "json", "md", "php", "py", "rb", "ts", "xml"):
@@ -145,7 +145,7 @@ def create_document_chunks(
 
     # Assign each chunk a sequential number and create a DocumentChunk object
     for i, text_chunk in enumerate(text_chunks):
-        chunk_id = f"{doc_id}_{i}"
+        chunk_id = f"chunk_{doc_id}_{i}"
         doc_chunk = DocumentChunk(
             id=chunk_id,
             text=text_chunk,

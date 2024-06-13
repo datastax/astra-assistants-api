@@ -1,15 +1,13 @@
 """The stateless endpoints that do not depend on information from DB"""
 import logging
 import time
-import uuid
 from typing import Any, Dict
 
-import litellm
 from fastapi.encoders import jsonable_encoder
 import json
 
 
-from fastapi import APIRouter, Depends, Request, HTTPException
+from fastapi import APIRouter, Depends, Request
 from litellm import ModelResponse
 from starlette.responses import StreamingResponse, JSONResponse
 
@@ -28,6 +26,7 @@ from ..model.create_chat_completion_request import CreateChatCompletionRequest
 from ..model.create_chat_completion_response_choices_inner import CreateChatCompletionResponseChoicesInner
 from ..model.create_embedding_request import CreateEmbeddingRequest
 from ..model.embedding import Embedding
+from ..utils import generate_id
 
 router = APIRouter()
 
@@ -159,7 +158,7 @@ async def chat_completion_streamer(response, model):
     # Logic for streaming chat completions
         if (response.__class__.__name__ == "GenerateContentResponse"):
             i = 0
-            id = str(uuid.uuid1())
+            id = generate_id("cmpl")
             created_time = int(time.time())
             for part in response:
                 choices = []

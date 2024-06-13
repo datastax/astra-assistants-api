@@ -1,13 +1,12 @@
 from datetime import datetime
 import logging
 import time
-from uuid import uuid1
 
 from fastapi import APIRouter, Path, Depends, Body, Query
 
 from impl.astra_vector import CassandraClient
 from impl.routes.utils import verify_db_client
-from impl.utils import read_object, store_object, read_objects
+from impl.utils import read_object, store_object, read_objects, generate_id
 from openapi_server_v2.models.create_vector_store_file_request import CreateVectorStoreFileRequest
 from openapi_server_v2.models.create_vector_store_request import CreateVectorStoreRequest
 from openapi_server_v2.models.list_vector_store_files_response import ListVectorStoreFilesResponse
@@ -59,7 +58,7 @@ async def create_vector_store(
         create_vector_store_request: CreateVectorStoreRequest = Body(None, description=""),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> VectorStoreObject:
-    vector_store_id = str(uuid1())
+    vector_store_id = generate_id("vs")
     created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
 
     usage_bytes = 0

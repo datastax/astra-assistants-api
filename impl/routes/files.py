@@ -1,10 +1,7 @@
-import hashlib
 import time
 import logging
-import uuid
 from datetime import datetime
 from typing import Any, Dict
-from uuid import uuid1
 
 from fastapi import (
     APIRouter,
@@ -35,21 +32,12 @@ from .utils import (
 )
 from ..model.open_ai_file import OpenAIFile
 from ..rate_limiter import limiter
+from ..utils import generate_id_from_upload_file
 
 router = APIRouter()
 
 logger = logging.getLogger(__name__)
 
-
-def upload_file_to_uuid_str(upload_file):
-    spooled_file = upload_file.file
-    spooled_file.seek(0)
-    file_data = upload_file.filename.encode('utf-8') + spooled_file.read()
-    sha256_hash = hashlib.sha256(file_data).hexdigest()
-    hash_as_uuid = uuid.UUID(sha256_hash[:32])
-    spooled_file.seek(0)
-
-    return str(hash_as_uuid)
 
 @router.post(
     "/files",
@@ -81,7 +69,7 @@ async def create_file(
         else:
             raise NotImplementedError("File upload is currently only supported for OpenAI")
 
-    file_id = upload_file_to_uuid_str(file)
+    file_id = generate_id_from_upload_file(file)
     if purpose in ["auth"]:
         created_at = int(time.mktime(datetime.now().timetuple()))
         obj = "file"
