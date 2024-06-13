@@ -1,4 +1,4 @@
-from typing import Optional, Annotated, List
+from typing import Optional, Annotated, List, Any
 
 from pydantic import Field
 
@@ -8,3 +8,4 @@ from openapi_server_v2.models.modify_assistant_request import ModifyAssistantReq
 
 class ModifyAssistantRequest(ModifyAssistantRequestGenerated):
     tools: Optional[Annotated[List[AssistantObjectToolsInner], Field(max_length=128)]] = Field(default=None, description="assistant_tools_param_description")
+    response_format: Optional[Any] = None

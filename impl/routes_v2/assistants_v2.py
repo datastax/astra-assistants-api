@@ -123,7 +123,12 @@ async def modify_assistant(
         modify_assistant_request: ModifyAssistantRequest = Body(None, description=""),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> AssistantObject:
-    extra_fields = {"id": assistant_id, "object": "assistant"}
+    extra_fields = {
+        "id": assistant_id,
+        "object": "assistant"
+    }
+    if modify_assistant_request.response_format is not None:
+        extra_fields['response_format'] = AssistantsApiResponseFormatOption(actual_instance=modify_assistant_request.response_format)
     await store_object(astradb=astradb, obj=modify_assistant_request, target_class=AssistantObject,
                        table_name="assistants_v2", extra_fields=extra_fields)
     # combined_fields = combine_fields(extra_fields, modify_assistant_request, AssistantObject)

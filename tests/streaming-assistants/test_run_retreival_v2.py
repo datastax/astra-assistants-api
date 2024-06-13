@@ -94,6 +94,7 @@ def test_run_gpt3_5(patched_openai_client):
         name=name,
         instructions=instructions,
         model=model,
+        response_format='auto',
     )
     run_with_assistant(gpt3_assistant, patched_openai_client)
 

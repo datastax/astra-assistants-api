@@ -124,7 +124,10 @@ def read_objects(astradb: CassandraClient, target_class: Type[BaseModel], table_
                 elif get_origin(annotation) is Union:
                     if hasattr(get_args(annotation)[0], 'from_json'):
                         if json_obj[field_name] is not None and isinstance(json_obj[field_name], str):
-                            json_obj[field_name] = get_args(annotation)[0].from_json(json_obj[field_name])
+                            if 'actual_instance' in get_args(annotation)[0].__fields__:
+                                json_obj[field_name] = get_args(annotation)[0](actual_instance=json_obj[field_name])
+                            else:
+                                json_obj[field_name] = get_args(annotation)[0].from_json(json_obj[field_name])
 
             obj = target_class(**json_obj)
             obj_list.append(obj)
@@ -132,5 +135,8 @@ def read_objects(astradb: CassandraClient, target_class: Type[BaseModel], table_
     except Exception as e:
         if hasattr(e, 'status_code') and e.status_code== 404:
             raise e
-        logger.error(f"read_objects failed {e} for table {table_name} and object {obj}")
+        msg = f"read_objects failed {e} for table {table_name}"
+        if obj is not None:
+            msg += f"for object {obj}"
+        logger.error(msg)
         raise HTTPException(status_code=500, detail=f"Error reading {table_name}: {e}")
