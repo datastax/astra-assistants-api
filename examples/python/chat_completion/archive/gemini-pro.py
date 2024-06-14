@@ -52,7 +52,7 @@ client = OpenAI(
     }
 )
 
-model="gemini-pro"
+model="gemini-1.5-pro-latest"
 
 prompt = "Hi what is your favorite ice cream"
 response = client.chat.completions.create(

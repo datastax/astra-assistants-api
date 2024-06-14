@@ -95,7 +95,7 @@ model="gpt-4-1106-preview"
 #model="perplexity/mixtral-8x7b-instruct"
 #model="perplexity/llama-3-sonar-large-32k-online"
 #model="anthropic.claude-v2"
-#model="gemini/gemini-pro"
+#model="gemini/gemini-1.5-pro-latest"
 #model = "meta.llama2-13b-chat-v1"
 
 assistant = client.beta.assistants.create(

@@ -36,7 +36,7 @@ def test_function_calling_claude(streaming_assistants_openai_client):
 
 @pytest.mark.skip(reason="litellm does not use the latest gemini tool support yet and gemini refuses without it, skip")
 def test_function_calling_gemini(streaming_assistants_openai_client):
-    model="gemini/gemini-pro"
+    model="gemini/gemini-1.5-pro-latest"
     function_calling(model, streaming_assistants_openai_client)
 
 def test_function_calling_groq_llama3(streaming_assistants_openai_client):

@@ -40,7 +40,7 @@ model="anthropic/claude-3-sonnet-20240229"
 #model="perplexity/pplx-70b-online"
 #model="anthropic.claude-v2"
 #model="groq/llama3-8b-8192"
-#model="gemini/gemini-pro"
+#model="gemini/gemini-1.5-pro-latest"
 #model = "meta.llama2-13b-chat-v1"
 
 

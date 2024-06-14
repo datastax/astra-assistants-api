@@ -97,5 +97,5 @@ def test_chat_completion_claude(patched_openai_client):
 
 @pytest.mark.skip(reason="Tool choice not supporeted / working consistently")
 def test_chat_completion_gemini_pro(patched_openai_client):
-    model="gemini/gemini-pro"
+    model="gemini/gemini-1.5-pro-latest"
     print_chat_completion(model, patched_openai_client)

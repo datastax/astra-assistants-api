@@ -55,7 +55,7 @@ client = OpenAI(
     }
 )
 
-model="gemini-pro"
+model="gemini-1.5-pro-latest"
 
 
 print("generating assistants")

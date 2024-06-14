@@ -99,6 +99,6 @@ def test_run_gemini(streaming_assistants_openai_client):
     gemini_assistant = streaming_assistants_openai_client.beta.assistants.create(
         name="Gemini Animal Tutor",
         instructions=instructions,
-        model="gemini/gemini-pro",
+        model="gemini/gemini-1.5-pro-latest",
     )
     run_with_assistant(gemini_assistant, streaming_assistants_openai_client)
