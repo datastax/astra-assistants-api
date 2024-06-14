@@ -1,10 +1,6 @@
-import json
 import time
 import pytest
 import logging
-
-from openapi_server_v2.models.assistant_object_tools_inner import AssistantObjectToolsInner
-from openapi_server_v2.models.assistant_tools_function import AssistantToolsFunction
 
 logger = logging.getLogger(__name__)
 
