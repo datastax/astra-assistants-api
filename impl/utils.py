@@ -159,4 +159,8 @@ def generate_id_from_upload_file(upload_file, prefix="file", length=24):
     base64_encoded_hash = base64.urlsafe_b64encode(sha256_hash).rstrip(b'=').decode('utf-8')[:length]
     spooled_file.seek(0)
 
-    return f"{prefix}_{base64_encoded_hash}"
+    delim = "_"
+    if prefix == "file":
+        delim = "-"
+
+    return f"{prefix}{delim}{base64_encoded_hash}"

@@ -9,9 +9,11 @@ from impl.astra_vector import CassandraClient
 from impl.model_v2.create_assistant_request import CreateAssistantRequest
 from impl.model_v2.modify_assistant_request import ModifyAssistantRequest
 from impl.routes.utils import verify_db_client
+from impl.routes_v2.vector_stores import create_vector_store
 from impl.utils import store_object, read_object, read_objects, generate_id
 from openapi_server_v2.models.assistant_object import AssistantObject
 from openapi_server_v2.models.assistants_api_response_format_option import AssistantsApiResponseFormatOption
+from openapi_server_v2.models.create_vector_store_request import CreateVectorStoreRequest
 from openapi_server_v2.models.delete_assistant_response import DeleteAssistantResponse
 from openapi_server_v2.models.list_assistants_response import ListAssistantsResponse
 
@@ -85,6 +87,15 @@ async def create_assistant(
     assistant_id = generate_id("asst")
     created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
     logging.info(f"going to create assistant with id: {assistant_id} and details {create_assistant_request}")
+
+    if len(create_assistant_request.tool_resources.file_search.vector_stores) > 0:
+        if create_assistant_request.tool_resources.file_search.vector_store_ids is None:
+            create_assistant_request.tool_resources.file_search.vector_store_ids = []
+        for vector_store in create_assistant_request.tool_resources.file_search.vector_stores:
+            request = CreateVectorStoreRequest(file_ids=vector_store.file_ids, name=None)
+            vs = await create_vector_store(request, astradb)
+            create_assistant_request.tool_resources.file_search.vector_store_ids.append(vs.id)
+        create_assistant_request.tool_resources.file_search.vector_stores = None
 
     extra_fields = {
         "id": assistant_id,

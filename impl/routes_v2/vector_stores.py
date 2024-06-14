@@ -5,13 +5,13 @@ import time
 from fastapi import APIRouter, Path, Depends, Body, Query
 
 from impl.astra_vector import CassandraClient
+from impl.model_v2.vector_store_object import VectorStoreObject
 from impl.routes.utils import verify_db_client
 from impl.utils import read_object, store_object, read_objects, generate_id
 from openapi_server_v2.models.create_vector_store_file_request import CreateVectorStoreFileRequest
 from openapi_server_v2.models.create_vector_store_request import CreateVectorStoreRequest
 from openapi_server_v2.models.list_vector_store_files_response import ListVectorStoreFilesResponse
 from openapi_server_v2.models.vector_store_file_object import VectorStoreFileObject
-from openapi_server_v2.models.vector_store_object import VectorStoreObject
 from openapi_server_v2.models.vector_store_object_file_counts import VectorStoreObjectFileCounts
 
 router = APIRouter()

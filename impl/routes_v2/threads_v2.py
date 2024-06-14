@@ -1031,10 +1031,11 @@ async def process_rag(
             logger.debug(f"ANN search_string {search_string}")
 
             file_ids = []
-            for vector_store_id in tool_resources.file_search.vector_store_ids:
-                vector_store_files = await read_vsf(vector_store_id=vector_store_id, astradb=astradb)
-                for vector_store_file in vector_store_files:
-                    file_ids.append(vector_store_file.id)
+            if tool_resources.file_search is not None:
+                for vector_store_id in tool_resources.file_search.vector_store_ids:
+                    vector_store_files = await read_vsf(vector_store_id=vector_store_id, astradb=astradb)
+                    for vector_store_file in vector_store_files:
+                        file_ids.append(vector_store_file.id)
             if len(file_ids) > 0:
                 created_at = int(time.mktime(datetime.now().timetuple())*1000)
                 context_json = astradb.annSearch(
