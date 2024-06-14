@@ -1010,9 +1010,9 @@ async def process_rag(
     try:
         logger.info(f"Processing RAG {run_id}")
         # TODO: Deal with run status better
-        message_content = summarize_message_content(instructions, messages, True)
-
+        message_content = []
         if run_step_id is not None:
+            message_content = summarize_message_content(instructions, messages, True)
             search_string_messages = message_content.copy()
 
             # TODO: enforce this with instructor?
@@ -1124,6 +1124,9 @@ async def process_rag(
                     )
                     message_content.append({"role": "system", "content": content})
                 message_content.append(user_message)
+
+        else:
+            message_content = summarize_message_content(instructions, messages, False)
 
         litellm_kwargs["stream"] = True
 
