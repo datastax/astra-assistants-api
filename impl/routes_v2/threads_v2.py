@@ -403,12 +403,13 @@ async def run_event_stream(run, message_id, astradb):
             actual_instance=RunStepDetailsToolCallsObject(type="tool_calls", tool_calls=[])
 
         )
+        run_step_id = run.id.replace("run_", "run_step_")
         run_step = RunStepObject(
             type="tool_calls",
             thread_id=run.thread_id,
             run_id=run.id,
             # TODO: maybe change this ID.
-            id=run.id,
+            id=run_step_id,
             status="in_progress",
             created_at=run.created_at,
             assistant_id=run.assistant_id,
@@ -743,7 +744,7 @@ async def create_run(
             # Note the run_step id is the same as the message_id
             run_step_id = message_id.replace("msg_", "step_")
             run_step = RunStepObject(
-                id=message_id,
+                id=run_step_id,
                 assistant_id=assistant.id,
                 created_at=created_at,
                 object="thread.run.step",
@@ -1574,11 +1575,12 @@ async def message_delta_streamer(message_id, created_at, response, run, astradb)
         message_creation = RunStepDetailsMessageCreationObjectMessageCreation(message_id=message_id)
         message_step_details = RunStepDetailsMessageCreationObject(type="message_creation", message_creation=message_creation)
         step_details = RunStepObjectStepDetails(actual_instance=message_step_details)
+        run_step_id = run.id.replace("run_", "run_step_")
         run_step = RunStepObject(
             type="message_creation",
             thread_id=run.thread_id,
             run_id=run.id,
-            id=run.id,
+            id=run_step_id,
             status="in_progress",
             created_at=run.created_at,
             assistant_id=run.assistant_id,
