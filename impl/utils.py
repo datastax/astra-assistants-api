@@ -83,7 +83,11 @@ async def store_object(astradb: CassandraClient, obj: BaseModel, target_class: T
 
 def read_object(astradb: CassandraClient, target_class: Type[BaseModel], table_name: str, partition_keys: List[str],
                  args: Dict[str, Any]):
-    objs = read_objects(astradb, target_class, table_name, partition_keys, args)
+    try:
+        objs = read_objects(astradb, target_class, table_name, partition_keys, args)
+    except Exception as e:
+        logger.error(f"read_object failed {e} for table {table_name}")
+        raise HTTPException(status_code=404, detail=f"{target_class.__name__} not found.")
     if len(objs) == 0:
         # Maybe pass down name
         raise HTTPException(status_code=404, detail=f"{target_class.__name__} not found.")
@@ -96,7 +100,7 @@ def read_objects(astradb: CassandraClient, target_class: Type[BaseModel], table_
     try:
         json_objs = astradb.select_from_table_by_pk(table=table_name, partition_keys=partition_keys, args=args)
         if len(json_objs) == 0:
-            raise HTTPException(status_code=404, detail=f"{table_name} not found.")
+            raise HTTPException(status_code=404, detail=f"{args} not found in table {table_name}.")
 
         obj_list = []
         for json_obj in json_objs:
