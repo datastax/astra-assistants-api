@@ -1,17 +1,12 @@
-import asyncio
 import os
 import logging
-import threading
 import time
 
 import pytest
 import requests
-import uvicorn
 from dotenv import load_dotenv
 from openai import OpenAI
 from astra_assistants import patch
-
-from impl.main import app
 
 load_dotenv("./../../.env")
 load_dotenv("./.env")
