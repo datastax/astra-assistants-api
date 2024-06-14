@@ -1,6 +1,6 @@
 user_message = "puppies"
-def test_threads(patched_openai_client):
-    client = patched_openai_client
+def test_threads(streaming_assistants_openai_client):
+    client = streaming_assistants_openai_client
 
     thread = client.beta.threads.create()
 

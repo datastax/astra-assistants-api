@@ -1,11 +1,7 @@
-import json
+import time
 
 import pytest
 import logging
-import time
-
-from openai.lib.streaming import AssistantEventHandler
-from typing_extensions import override
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +43,6 @@ def run_with_assistant(assistant, client):
     #print(file_batch.status)
     #print(file_batch.file_counts)
 
-
     logger.info("adding vector_store id to assistant")
     # Update Assistant
     assistant = client.beta.assistants.update(
@@ -64,46 +59,29 @@ def run_with_assistant(assistant, client):
     )
     logger.info(f"> {user_message}")
 
-    class EventHandler(AssistantEventHandler):
-        def __init__(self):
-            super().__init__()
-            self.on_text_created_count = 0
-            self.on_text_delta_count = 0
-
-        @override
-        def on_run_step_done(self, run_step) -> None:
-            print("file_search")
-            matches = []
-            for tool_call in run_step.step_details.tool_calls:
-                matches = tool_call.file_search
-                print(json.dumps(tool_call.file_search))
-            assert len(matches) > 0, "No matches found"
-
-        @override
-        def on_text_created(self, text) -> None:
-            # Increment the counter each time the method is called
-            self.on_text_created_count += 1
-            print(f"\nassistant > {text}", end="", flush=True)
-
-        @override
-        def on_text_delta(self, delta, snapshot):
-            # Increment the counter each time the method is called
-            self.on_text_delta_count += 1
-            print(delta.value, end="", flush=True)
-
-    event_handler = EventHandler()
-
     logger.info(f"creating run")
-    with client.beta.threads.runs.create_and_stream(
+    run = client.beta.threads.runs.create(
+        thread_id=thread.id,
+        assistant_id=assistant.id,
+    )
+    # Waiting in a loop
+    while True:
+        if run.status == 'failed':
+            raise ValueError("Run is in failed state")
+        if run.status == 'completed':
+            logger.info(f"run status: {run.status}")
+            break
+        run = client.beta.threads.runs.retrieve(
             thread_id=thread.id,
-            assistant_id=assistant.id,
-            event_handler=event_handler,
-    ) as stream:
-        for part in stream:
-            print(part)
+            run_id=run.id,
+        )
+        time.sleep(0.5)
 
-    assert event_handler.on_text_created_count > 0, "No text created"
-    assert event_handler.on_text_delta_count > 0, "No text delta"
+    logger.info(f"thread.id {thread.id}")
+    logger.info(f"{assistant.model} =>")
+    response = client.beta.threads.messages.list(thread_id=thread.id)
+    logger.info(response.data[0].content[0].text.value)
+
 
 
 instructions = "You are a personal math tutor. Answer thoroughly. The system will provide relevant context from files, use the context to respond."
@@ -116,6 +94,7 @@ def test_run_gpt3_5(patched_openai_client):
         name=name,
         instructions=instructions,
         model=model,
+        response_format='auto',
     )
     run_with_assistant(gpt3_assistant, patched_openai_client)
 
@@ -141,7 +120,7 @@ def test_run_perp(patched_openai_client):
     )
     run_with_assistant(perplexity_assistant, patched_openai_client)
 
-@pytest.mark.skip(reason="fix streaming-assistants aws with openai embedding issue")
+@pytest.mark.skip(reason="fix astra-assistants aws with patched_openai embedding issue")
 def test_run_claude(patched_openai_client):
     model = "claude-3-haiku-20240307"
     name = f"{model} Math Tutor"

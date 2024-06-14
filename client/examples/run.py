@@ -1,5 +1,5 @@
 from openai import OpenAI
-from streaming_assistants import patch
+from astra_assistants import patch
 
 from dotenv import load_dotenv
 import time

@@ -4,7 +4,7 @@ from openai import OpenAI
 from openai.lib.streaming import AssistantEventHandler
 from typing_extensions import override
 
-from streaming_assistants import patch
+from astra_assistants import patch
 
 class EventHandler(AssistantEventHandler):
     @override

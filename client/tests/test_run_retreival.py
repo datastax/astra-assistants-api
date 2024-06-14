@@ -106,7 +106,7 @@ def test_run_perp(openai_client):
     )
     run_with_assistant(perplexity_assistant, openai_client)
 
-@pytest.mark.skip(reason="fix streaming-assistants aws with openai embedding issue")
+@pytest.mark.skip(reason="fix astra-assistants aws with openai embedding issue")
 def test_run_claude(openai_client):
     model = "anthropic.claude-v2"
     name = f"{model} Math Tutor"

@@ -1,7 +1,7 @@
 import time
 from openai import OpenAI
 from dotenv import load_dotenv
-from streaming_assistants import patch
+from astra_assistants import patch
 
 load_dotenv("./.env")
 

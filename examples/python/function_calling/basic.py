@@ -1,7 +1,7 @@
 import time
 from openai import OpenAI
 from dotenv import load_dotenv
-from streaming_assistants import patch
+from astra_assistants import patch
 from openai.lib.streaming import AssistantEventHandler
 from typing_extensions import override
 from openai.types.beta.threads.runs import ToolCall

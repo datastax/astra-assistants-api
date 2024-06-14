@@ -2,7 +2,7 @@ import pytest
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from streaming_assistants import patch
+from astra_assistants import patch
 
 
 load_dotenv("./../.env")

@@ -5,9 +5,9 @@ on:
 
 jobs:
 
-  run-streaming-assistants-tests-chat:
+  run-astra-assistants-tests-chat:
     runs-on: ubuntu-latest
-    name: run streaming-assistants cat tests
+    name: run astra-assistants cat tests
     env:
         ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -41,9 +41,9 @@ jobs:
         run: |
           poetry run pytest -s --disable-warnings tests/test_chat_completion.py
 
-  run-streaming-assistants-tests-embedding:
+  run-astra-assistants-tests-embedding:
     runs-on: ubuntu-latest
-    name: run streaming-assistants embedding tests
+    name: run astra-assistants embedding tests
     env:
         ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -76,9 +76,9 @@ jobs:
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/test_embedding.py
-  run-streaming-assistants-tests-file-embedding:
+  run-astra-assistants-tests-file-embedding:
     runs-on: ubuntu-latest
-    name: run streaming-assistants file embedding tests
+    name: run astra-assistants file embedding tests
     env:
         ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -111,9 +111,9 @@ jobs:
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/test_file_embedding.py
-  run-streaming-assistants-tests-function-calling:
+  run-astra-assistants-tests-function-calling:
     runs-on: ubuntu-latest
-    name: run streaming-assistants function calling tests
+    name: run astra-assistants function calling tests
     env:
         ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -146,9 +146,9 @@ jobs:
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/test_function_calling.py
-  run-streaming-assistants-tests-run:
+  run-astra-assistants-tests-run:
     runs-on: ubuntu-latest
-    name: run streaming-assistants run tests
+    name: run astra-assistants run tests
     env:
         ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -181,9 +181,9 @@ jobs:
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/test_run.py
-  run-streaming-assistants-tests-run-retrieval:
+  run-astra-assistants-tests-run-retrieval:
     runs-on: ubuntu-latest
-    name: run streaming-assistants run retrieval tests
+    name: run astra-assistants run retrieval tests
     env:
         ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -216,9 +216,9 @@ jobs:
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/test_run_retreival.py
-  run-streaming-assistants-tests-create-and-stream-run:
+  run-astra-assistants-tests-create-and-stream-run:
     runs-on: ubuntu-latest
-    name: run streaming-assistants create and stream run tests
+    name: run astra-assistants create and stream run tests
     env:
         ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -251,9 +251,9 @@ jobs:
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/test_create_and_stream_run.py
-  run-streaming-assistants-tests-streaming-function-calling:
+  run-astra-assistants-tests-streaming-function-calling:
     runs-on: ubuntu-latest
-    name: run streaming-assistants streaming function calling tests
+    name: run astra-assistants streaming function calling tests
     env:
         ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -286,9 +286,9 @@ jobs:
       - name: run tests
         run: |
           poetry run pytest -s --disable-warnings tests/test_streaming_function_calling.py
-  run-streaming-assistants-tests-streaming-calling-run:
+  run-astra-assistants-tests-streaming-calling-run:
     runs-on: ubuntu-latest
-    name: run streaming-assistants streaming run tests
+    name: run astra-assistants streaming run tests
     env:
         ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
