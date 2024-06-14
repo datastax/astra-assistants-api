@@ -88,7 +88,12 @@ async def create_assistant(
     created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
     logging.info(f"going to create assistant with id: {assistant_id} and details {create_assistant_request}")
 
-    if len(create_assistant_request.tool_resources.file_search.vector_stores) > 0:
+    if (
+            create_assistant_request.tool_resources is not None
+            and create_assistant_request.tool_resources.file_search is not None
+            and create_assistant_request.tool_resources.file_search.vector_stores is not None
+            and len(create_assistant_request.tool_resources.file_search.vector_stores) > 0
+    ):
         if create_assistant_request.tool_resources.file_search.vector_store_ids is None:
             create_assistant_request.tool_resources.file_search.vector_store_ids = []
         for vector_store in create_assistant_request.tool_resources.file_search.vector_stores:
