@@ -8,34 +8,63 @@ def test_assistants_crud(openai_client):
     except Exception as e:
         assert e.status_code == 404
 
-    asst = openai_client.beta.assistants.create(
-        name="Math Tutor",
-        instructions="You are a personal math tutor. Answer questions briefly, in a sentence or less.",
-        model="gpt-4-1106-preview",
-    )
+    with open("tests/fixtures/fake_content.txt", "rb") as f:
+        file = openai_client.files.create(
+            purpose="assistants",
+            file=f,
+        )
 
-    assistants = openai_client.beta.assistants.list().data
-    assert len(assistants) > 0
+        tools=[{'type': 'file_search'}]
+        tool_resources={'file_search': {'vector_stores': [{'file_ids': [file.id]}]}}
+        metadata={}
+        temperature=0.3
+        top_p=1.0
+        response_format="auto"
+        asst = openai_client.beta.assistants.create(
+            name="Math Tutor",
+            instructions="You are a personal math tutor. Answer questions briefly, in a sentence or less.",
+            model="gpt-4-1106-preview",
+            description="a nice assistant",
+            tools=tools,
+            tool_resources=tool_resources,
+            metadata=metadata,
+            temperature=temperature,
+            top_p=top_p,
+            response_format=response_format,
+        )
 
-    assert asst.name == "Math Tutor"
-    assert asst.instructions == "You are a personal math tutor. Answer questions briefly, in a sentence or less."
-    assert asst.model == "gpt-4-1106-preview"
+        assistants = openai_client.beta.assistants.list().data
+        assert len(assistants) > 0
 
-    asst = openai_client.beta.assistants.retrieve(asst.id)
-    assert asst.name == "Math Tutor"
+        assert asst.tools[0].type == tools[0]['type']
+        assert asst.metadata == metadata
+        assert asst.temperature == temperature
+        assert asst.top_p == top_p
+        assert asst.response_format == response_format
+        assert len(asst.tool_resources.file_search.vector_store_ids[0]) > 0
 
-    asst = openai_client.beta.assistants.update(asst.id, name="Math Tutor 2")
-    assert asst.name == "Math Tutor 2"
-    assert asst.instructions == "You are a personal math tutor. Answer questions briefly, in a sentence or less."
-    assert asst.model == "gpt-4-1106-preview"
+        vs = openai_client.beta.vector_stores.retrieve(asst.tool_resources.file_search.vector_store_ids[0])
+        assert vs.id == asst.tool_resources.file_search.vector_store_ids[0]
 
-    asst = openai_client.beta.assistants.retrieve(asst.id)
-    assert asst.name == "Math Tutor 2"
+        assert asst.name == "Math Tutor"
+        assert asst.instructions == "You are a personal math tutor. Answer questions briefly, in a sentence or less."
+        assert asst.model == "gpt-4-1106-preview"
 
-    openai_client.beta.assistants.delete(asst.id)
+        asst = openai_client.beta.assistants.retrieve(asst.id)
+        assert asst.name == "Math Tutor"
 
-    assistants = openai_client.beta.assistants.list().data
-    print(assistants)
+        asst = openai_client.beta.assistants.update(asst.id, name="Math Tutor 2")
+        assert asst.name == "Math Tutor 2"
+        assert asst.instructions == "You are a personal math tutor. Answer questions briefly, in a sentence or less."
+        assert asst.model == "gpt-4-1106-preview"
+
+        asst = openai_client.beta.assistants.retrieve(asst.id)
+        assert asst.name == "Math Tutor 2"
+
+        openai_client.beta.assistants.delete(asst.id)
+
+        assistants = openai_client.beta.assistants.list().data
+        print(assistants)
 
 
 def test_no_collisions(openai_client):

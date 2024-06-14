@@ -142,3 +142,4 @@ cython_debug/
 
 kittens*
 node_modules/
+settings.json
