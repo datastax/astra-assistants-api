@@ -80,435 +80,17 @@ jobs:
     runs-on: ubuntu-latest
     name: run openai-sdk test files
     env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Set up Python 3.11.8
-        uses: actions/setup-python@v2
-        with:
-           python-version: '3.11.8'
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-      - name: Check Poetry Version
-        run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        run: poetry env use python3.10
-      - name: get dependencies
-        run: |
-          poetry install
-      - name: run tests
-        run: |
-          poetry run pytest -s --disable-warnings tests/openai-sdk/test_files.py
-
-  run-openai-sdk-test_assistants_v1:
-    runs-on: ubuntu-latest
-    name: run openai-sdk test assistants_v1
-    env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Set up Python 3.11.8
-        uses: actions/setup-python@v2
-        with:
-           python-version: '3.11.8'
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-      - name: Check Poetry Version
-        run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        run: poetry env use python3.10
-      - name: get dependencies
-        run: |
-          poetry install
-      - name: Install dependencies with specific client version
-        run: |
-          poetry add openai@1.20.0
-      - name: run tests
-        run: |
-          poetry run pytest -s --disable-warnings tests/openai-sdk/test_assistants_v1.py
-
-  run-openai-sdk-test_assistants_v2:
-    runs-on: ubuntu-latest
-    name: run openai-sdk test assistants_v2
-    env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Set up Python 3.11.8
-        uses: actions/setup-python@v2
-        with:
-           python-version: '3.11.8'
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-      - name: Check Poetry Version
-        run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        run: poetry env use python3.10
-      - name: get dependencies
-        run: |
-          poetry install
-      - name: run tests
-        run: |
-          poetry run pytest -s --disable-warnings tests/openai-sdk/test_assistants_v2.py
-
-  run-astra-assistants-tests-chat:
-    runs-on: ubuntu-latest
-    name: run astra-assistants chat tests
-    env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Set up Python 3.11.8
-        uses: actions/setup-python@v2
-        with:
-           python-version: '3.11.8'
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-      - name: Check Poetry Version
-        run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        run: poetry env use python3.10
-      - name: get dependencies
-        run: |
-          poetry install
-      - name: run tests
-        run: |
-          poetry run pytest -s --disable-warnings tests/astra-assistants/test_chat_completion.py
-
-  run-astra-assistants-tests-embedding:
-    runs-on: ubuntu-latest
-    name: run astra-assistants embedding tests
-    env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Set up Python 3.11.8
-        uses: actions/setup-python@v2
-        with:
-           python-version: '3.11.8'
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-      - name: Check Poetry Version
-        run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        run: poetry env use python3.10
-      - name: get dependencies
-        run: |
-          poetry install
-      - name: run tests
-        run: |
-          poetry run pytest -s --disable-warnings tests/astra-assistants/test_embedding.py
-  run-astra-assistants-tests-file-embedding:
-    runs-on: ubuntu-latest
-    name: run astra-assistants file embedding tests
-    env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Set up Python 3.11.8
-        uses: actions/setup-python@v2
-        with:
-           python-version: '3.11.8'
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-      - name: Check Poetry Version
-        run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        run: poetry env use python3.10
-      - name: get dependencies
-        run: |
-          poetry install
-      - name: run tests
-        run: |
-          poetry run pytest -s --disable-warnings tests/astra-assistants/test_file_embedding.py
-  run-streaming-assistants-tests-function-calling_v1:
-    runs-on: ubuntu-latest
-    name: run streaming-assistants v1 function calling tests
-    env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Set up Python 3.11.8
-        uses: actions/setup-python@v2
-        with:
-           python-version: '3.11.8'
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-      - name: Check Poetry Version
-        run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        run: poetry env use python3.10
-      - name: get dependencies
-        run: |
-          poetry install
-      - name: Install openai dependency
-        run: |
-          poetry add openai@1.20.0 streaming-assistants@0.15.10
-      - name: run tests
-        run: |
-          poetry run pytest -s --disable-warnings tests/streaming-assistants/test_function_calling_v1.py
-  run-streaming-assistants-tests-run_v1:
-    runs-on: ubuntu-latest
-    name: run streaming-assistants v1 run tests
-    env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Set up Python 3.11.8
-        uses: actions/setup-python@v2
-        with:
-           python-version: '3.11.8'
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-      - name: Check Poetry Version
-        run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        run: poetry env use python3.10
-      - name: get dependencies
-        run: |
-          poetry install
-      - name: Install openai dependency
-        run: |
-          poetry add openai@1.20.0 streaming-assistants@0.15.10
-      - name: run tests
-        run: |
-          poetry run pytest -s --disable-warnings tests/streaming-assistants/test_run_v1.py
-  run-streaming-assistants-tests-run-retrieval_v1:
-    runs-on: ubuntu-latest
-    name: run streaming-assistants run retrieval v1 tests
-    env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Set up Python 3.11.8
-        uses: actions/setup-python@v2
-        with:
-           python-version: '3.11.8'
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-      - name: Check Poetry Version
-        run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        run: poetry env use python3.10
-      - name: get dependencies
-        run: |
-          poetry install
-      - name: Install openai dependency
-        run: |
-          poetry add openai@1.20.0 streaming-assistants@0.15.10
-      - name: run tests
-        run: |
-          poetry run pytest -s --disable-warnings tests/streaming-assistants/test_run_retreival_v1.py
-  run-streaming-assistants-tests-streaming-run-retrieval_v1:
-    runs-on: ubuntu-latest
-    name: run streaming-assistants v1 streaming run retrieval tests
-    env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Set up Python 3.11.8
-        uses: actions/setup-python@v2
-        with:
-           python-version: '3.11.8'
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-      - name: Check Poetry Version
-        run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        run: poetry env use python3.10
-      - name: get dependencies
-        run: |
-          poetry install
-      - name: Install openai dependency
-        run: |
-          poetry add openai@1.20.0 streaming-assistants@0.15.10
-      - name: run tests
-        run: |
-          poetry run pytest -s --disable-warnings tests/streaming-assistants/test_streaming_run_retrieval_v1.py
-  run-streaming-assistants-tests-streaming-run_v1:
-    runs-on: ubuntu-latest
-    name: run streaming-assistants v1 streaming run tests
-    env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Set up Python 3.11.8
-        uses: actions/setup-python@v2
-        with:
-           python-version: '3.11.8'
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-      - name: Check Poetry Version
-        run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        run: poetry env use python3.10
-      - name: get dependencies
-        run: |
-          poetry install
-      - name: Install openai dependency
-        run: |
-          poetry add openai@1.20.0 streaming-assistants@0.15.10
-      - name: run tests
-        run: |
-          poetry run pytest -s --disable-warnings tests/streaming-assistants/test_streaming_run_v1.py
-  run-streaming-assistants-tests-streaming-run-function-calling_v1:
-    runs-on: ubuntu-latest
-    name: run streaming-assistants v1 streaming run function calling tests
-    env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -523,16 +105,665 @@ jobs:
       - name: Check Poetry Version
         run: poetry --version
       - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
         run: poetry env use python3.10
-      - name: get dependencies
+      - name: get client dependencies
+        working-directory: ./client
         run: |
           poetry install
-      - name: Install openai dependency
+      - name: get server dependencies
         run: |
-          poetry add openai@1.20.0 streaming-assistants@0.15.10
+          poetry install
       - name: run tests
         run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+
+          # Wait for the server to be ready
+          sleep 10
+
+          # Run the client tests that depend on the server
+          pushd client
+          poetry run pytest -s --disable-warnings tests/openai-sdk/test_files.py
+          popd
+
+          # Kill the server
+          kill $SERVER_PID
+
+  run-openai-sdk-test_assistants_v1:
+    runs-on: ubuntu-latest
+    name: run openai-sdk test assistants_v1
+    env:
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Set up Python 3.11.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11.8'
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+      - name: Check Poetry Version
+        run: poetry --version
+      - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
+        run: poetry env use python3.10
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: Install dependencies with specific client version
+        working-directory: ./client
+        run: |
+          poetry add openai@1.20.0
+      - name: get server dependencies
+        run: |
+          poetry install
+      - name: run tests
+        run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
+          poetry run pytest -s --disable-warnings tests/openai-sdk/test_assistants_v1.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
+  run-openai-sdk-test_assistants_v2:
+    runs-on: ubuntu-latest
+    name: run openai-sdk test assistants_v2
+    env:
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Set up Python 3.11.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11.8'
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+      - name: Check Poetry Version
+        run: poetry --version
+      - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
+        run: poetry env use python3.10
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: get server dependencies
+        run: |
+          poetry install
+      - name: run tests
+        run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
+          poetry run pytest -s --disable-warnings tests/openai-sdk/test_assistants_v2.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
+  run-astra-assistants-tests-chat:
+    runs-on: ubuntu-latest
+    name: run astra-assistants chat tests
+    env:
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Set up Python 3.11.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11.8'
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+      - name: Check Poetry Version
+        run: poetry --version
+      - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
+        run: poetry env use python3.10
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: get server dependencies
+        run: |
+          poetry install
+      - name: run tests
+        run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
+          poetry run pytest -s --disable-warnings tests/astra-assistants/test_chat_completion.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
+  run-astra-assistants-tests-embedding:
+    runs-on: ubuntu-latest
+    name: run astra-assistants embedding tests
+    env:
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Set up Python 3.11.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11.8'
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+      - name: Check Poetry Version
+        run: poetry --version
+      - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
+        run: poetry env use python3.10
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: get server dependencies
+        run: |
+          poetry install
+      - name: run tests
+        run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
+          poetry run pytest -s --disable-warnings tests/astra-assistants/test_embedding.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
+  run-astra-assistants-tests-file-embedding:
+    runs-on: ubuntu-latest
+    name: run astra-assistants file embedding tests
+    env:
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Set up Python 3.11.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11.8'
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+      - name: Check Poetry Version
+        run: poetry --version
+      - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
+        run: poetry env use python3.10
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: get server dependencies
+        run: |
+          poetry install
+      - name: run tests
+        run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
+          poetry run pytest -s --disable-warnings tests/astra-assistants/test_file_embedding.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
+  run-streaming-assistants-tests-function-calling_v1:
+    runs-on: ubuntu-latest
+    name: run streaming-assistants v1 function calling tests
+    env:
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Set up Python 3.11.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11.8'
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+      - name: Check Poetry Version
+        run: poetry --version
+      - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
+        run: poetry env use python3.10
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: Install dependencies with specific client version
+        working-directory: ./client
+        run: |
+          poetry add openai@1.20.0 streaming-assistants@0.15.10
+      - name: get server dependencies
+        run: |
+          poetry install
+      - name: run tests
+        run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
+          poetry run pytest -s --disable-warnings tests/streaming-assistants/test_function_calling_v1.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
+  run-streaming-assistants-tests-run_v1:
+    runs-on: ubuntu-latest
+    name: run streaming-assistants v1 run tests
+    env:
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Set up Python 3.11.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11.8'
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+      - name: Check Poetry Version
+        run: poetry --version
+      - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
+        run: poetry env use python3.10
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: Install dependencies with specific client version
+        working-directory: ./client
+        run: |
+          poetry add openai@1.20.0 streaming-assistants@0.15.10
+      - name: get server dependencies
+        run: |
+          poetry install
+      - name: run tests
+        run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
+          poetry run pytest -s --disable-warnings tests/streaming-assistants/test_run_v1.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
+  run-streaming-assistants-tests-run-retrieval_v1:
+    runs-on: ubuntu-latest
+    name: run streaming-assistants run retrieval v1 tests
+    env:
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Set up Python 3.11.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11.8'
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+      - name: Check Poetry Version
+        run: poetry --version
+      - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
+        run: poetry env use python3.10
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: Install dependencies with specific client version
+        working-directory: ./client
+        run: |
+          poetry add openai@1.20.0 streaming-assistants@0.15.10
+      - name: get server dependencies
+        run: |
+          poetry install
+      - name: run tests
+        run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
+          poetry run pytest -s --disable-warnings tests/streaming-assistants/test_run_retreival_v1.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
+  run-streaming-assistants-tests-streaming-run-retrieval_v1:
+    runs-on: ubuntu-latest
+    name: run streaming-assistants v1 streaming run retrieval tests
+    env:
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Set up Python 3.11.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11.8'
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+      - name: Check Poetry Version
+        run: poetry --version
+      - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
+        run: poetry env use python3.10
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: Install dependencies with specific client version
+        working-directory: ./client
+        run: |
+          poetry add openai@1.20.0 streaming-assistants@0.15.10
+      - name: get server dependencies
+        run: |
+          poetry install
+      - name: run tests
+        run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
+          poetry run pytest -s --disable-warnings tests/streaming-assistants/test_streaming_run_retrieval_v1.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
+  run-streaming-assistants-tests-streaming-run_v1:
+    runs-on: ubuntu-latest
+    name: run streaming-assistants v1 streaming run tests
+    env:
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Set up Python 3.11.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11.8'
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+      - name: Check Poetry Version
+        run: poetry --version
+      - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
+        run: poetry env use python3.10
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: Install dependencies with specific client version
+        working-directory: ./client
+        run: |
+          poetry add openai@1.20.0 streaming-assistants@0.15.10
+      - name: get server dependencies
+        run: |
+          poetry install
+      - name: run tests
+        run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
+          poetry run pytest -s --disable-warnings tests/streaming-assistants/test_streaming_run_v1.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
+  run-streaming-assistants-tests-streaming-run-function-calling_v1:
+    runs-on: ubuntu-latest
+    name: run streaming-assistants v1 streaming run function calling tests
+    env:
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Set up Python 3.11.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11.8'
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+      - name: Check Poetry Version
+        run: poetry --version
+      - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
+        run: poetry env use python3.10
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: Install dependencies with specific client version
+        working-directory: ./client
+        run: |
+          poetry add openai@1.20.0 streaming-assistants@0.15.10
+      - name: get server dependencies
+        run: |
+          poetry install
+      - name: run tests
+        run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
           poetry run pytest -s --disable-warnings tests/streaming-assistants/test_streaming_run_function_calling_v1.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
   run-streaming-assistants-tests-threads-v1:
     runs-on: ubuntu-latest
     name: run streaming-assistants v1 threads tests
@@ -563,16 +794,36 @@ jobs:
       - name: Check Poetry Version
         run: poetry --version
       - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
         run: poetry env use python3.10
-      - name: get dependencies
+      - name: get client dependencies
+        working-directory: ./client
         run: |
           poetry install
-      - name: Install openai dependency
+      - name: Install dependencies with specific client version
+        working-directory: ./client
         run: |
           poetry add openai@1.20.0 streaming-assistants@0.15.10
+      - name: get server dependencies
+        run: |
+          poetry install
       - name: run tests
         run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
           poetry run pytest -s --disable-warnings tests/streaming-assistants/test_threads_v1.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
   run-streaming-assistants-tests-auto-tool-call-v1:
     runs-on: ubuntu-latest
     name: run streaming-assistants v1 test auto tool_call
@@ -603,31 +854,51 @@ jobs:
       - name: Check Poetry Version
         run: poetry --version
       - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
         run: poetry env use python3.10
-      - name: get dependencies
+      - name: get client dependencies
+        working-directory: ./client
         run: |
           poetry install
-      - name: Install openai dependency
+      - name: Install dependencies with specific client version
+        working-directory: ./client
         run: |
           poetry add openai@1.20.0 streaming-assistants@0.15.10
+      - name: get server dependencies
+        run: |
+          poetry install
       - name: run tests
         run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
           poetry run pytest -s --disable-warnings tests/streaming-assistants/test_auto_tool_call_v1.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
   run-astra-assistants-tests-run_v2:
     runs-on: ubuntu-latest
     name: run astra-assistants v2 run tests
     env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -635,71 +906,54 @@ jobs:
       - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.11.8'
+          python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
       - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
         run: poetry env use python3.10
-      - name: get dependencies
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: get server dependencies
         run: |
           poetry install
       - name: run tests
         run: |
-          poetry run pytest -s --disable-warnings tests/astra-assistants/test_run_v2.py
-  run-astra-assistants-tests-threads_v2:
-    runs-on: ubuntu-latest
-    name: run astra-assistants v2 threads tests
-    env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Set up Python 3.11.8
-        uses: actions/setup-python@v2
-        with:
-           python-version: '3.11.8'
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-      - name: Check Poetry Version
-        run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        run: poetry env use python3.10
-      - name: get dependencies
-        run: |
-          poetry install
-      - name: run tests
-        run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
           poetry run pytest -s --disable-warnings tests/astra-assistants/test_threads_v2.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
   run-astra-assistants-tests-run_retrieval_v2:
     runs-on: ubuntu-latest
     name: run astra-assistants v2 run retrieval tests
     env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -707,35 +961,54 @@ jobs:
       - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.11.8'
+          python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
       - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
         run: poetry env use python3.10
-      - name: get dependencies
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: get server dependencies
         run: |
           poetry install
       - name: run tests
         run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
           poetry run pytest -s --disable-warnings tests/astra-assistants/test_run_retreival_v2.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
   run-astra-assistants-tests-function_calling_v2:
     runs-on: ubuntu-latest
     name: run astra-assistants v2 function calling tests
     env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -743,35 +1016,54 @@ jobs:
       - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.11.8'
+          python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
       - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
         run: poetry env use python3.10
-      - name: get dependencies
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: get server dependencies
         run: |
           poetry install
       - name: run tests
         run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
           poetry run pytest -s --disable-warnings tests/astra-assistants/test_function_calling_v2.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
   run-astra-assistants-tests-streaming_run_v2:
     runs-on: ubuntu-latest
     name: run astra-assistants v2 streaming run tests
     env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -779,35 +1071,54 @@ jobs:
       - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.11.8'
+          python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
       - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
         run: poetry env use python3.10
-      - name: get dependencies
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: get server dependencies
         run: |
           poetry install
       - name: run tests
         run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
           poetry run pytest -s --disable-warnings tests/astra-assistants/test_streaming_run_v2.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
   run-astra-assistants-tests-streaming_run_retrieval_v2:
     runs-on: ubuntu-latest
     name: run astra-assistants v2 streaming run retrieval tests
     env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -815,35 +1126,54 @@ jobs:
       - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.11.8'
+          python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
       - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
         run: poetry env use python3.10
-      - name: get dependencies
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: get server dependencies
         run: |
           poetry install
       - name: run tests
         run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
           poetry run pytest -s --disable-warnings tests/astra-assistants/test_streaming_run_retrieval_v2.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
   run-astra-assistants-tests-streaming_run_function_calling_v2:
     runs-on: ubuntu-latest
     name: run astra-assistants v2 streaming run function calling tests
     env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -851,35 +1181,54 @@ jobs:
       - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.11.8'
+          python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
       - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
         run: poetry env use python3.10
-      - name: get dependencies
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: get server dependencies
         run: |
           poetry install
       - name: run tests
         run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
           poetry run pytest -s --disable-warnings tests/astra-assistants/test_streaming_run_function_calling_v2.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
   run-astra-assistants-tests-auto_tool_call_v2:
     runs-on: ubuntu-latest
     name: run astra-assistants v2 auto tool call tests
     env:
-        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        base_url: ${{ secrets.BASE_URL }}
-        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
     steps:
       - name: Git checkout
@@ -887,17 +1236,35 @@ jobs:
       - name: Set up Python 3.11.8
         uses: actions/setup-python@v2
         with:
-           python-version: '3.11.8'
+          python-version: '3.11.8'
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
       - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
         run: poetry env use python3.10
-      - name: get dependencies
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: get server dependencies
         run: |
           poetry install
       - name: run tests
         run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
           poetry run pytest -s --disable-warnings tests/astra-assistants/test_auto_tool_call_v2.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
