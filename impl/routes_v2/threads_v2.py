@@ -374,7 +374,10 @@ async def yield_events_from_object(
         extra_fields = {}
     holder = obj.copy()
     for key, value in extra_fields.items():
-        setattr(holder, key, value)
+        if hasattr(holder, key):
+            setattr(holder, key, value)
+        else:
+            logger.warn(f"key {key} not found in {holder}, could be a bug.")
     assert len(obj_statuses) == len(events), "obj_statuses and events must be the same length"
     for i in range(len(obj_statuses)):
         async for event in yield_event_from_object(
@@ -474,7 +477,14 @@ async def run_event_stream(run, message_id, astradb):
 
     # this works because we make the run_step id the same as the message_id
     run_step_id = message_id.replace("msg_", "step_")
-    run_step = astradb.get_run_step(run_id=run.id, id=run_step_id)
+    run_step = read_object(
+        astradb=astradb,
+        target_class=RunStepObject,
+        table_name="run_steps",
+        partition_keys = ["run_id", "id"],
+        args={"id": run_step_id, "run_id": run.id}
+    )
+    #run_step = astradb.get_run_step(run_id=run.id, id=run_step_id)
     if run_step is not None:
         async for event in yield_events_from_object(
             obj=run_step,
@@ -501,7 +511,13 @@ async def run_event_stream(run, message_id, astradb):
         # tool_call_delta_object = ToolCallDeltaObject(type="tool_calls", tool_calls=retrieval_tool_call_deltas)
 
         while run_step.status != "completed":
-            run_step = astradb.get_run_step(run_id=run.id, id=run_step_id)
+            run_step = read_object(
+                astradb=astradb,
+                target_class=RunStepObject,
+                table_name="run_steps",
+                partition_keys = ["run_id", "id"],
+                args={"id": run_step_id, "run_id": run.id}
+            )
             await asyncio.sleep(1)
         tool_call_delta_object = RunStepDeltaStepDetailsToolCallsObject(type="tool_calls", tool_calls=None)
         step_details = RunStepDeltaObjectDeltaStepDetails(actual_instance=tool_call_delta_object)

@@ -35,6 +35,7 @@ from impl.model.submit_tool_outputs_run_request import SubmitToolOutputsRunReque
 from impl.routes.files import retrieve_file
 from impl.routes.utils import verify_db_client, get_litellm_kwargs, infer_embedding_model, infer_embedding_api_key
 from impl.services.inference_utils import get_chat_completion, get_async_chat_completion_response
+from impl.utils import read_object
 
 from openapi_server.models.assistant_stream_event import AssistantStreamEvent
 from openapi_server.models.create_message_request import CreateMessageRequest
@@ -341,6 +342,7 @@ async def run_event_stream(run, message_id, astradb):
         return
 
     # this works because we make the run_step id the same as the message_id
+    run_step_id = message_id
     run_step = astradb.get_run_step(run_id=run.id, id=message_id)
     if run_step is not None:
         event = make_event(data=run_step, event=f"thread.run.step.created")
