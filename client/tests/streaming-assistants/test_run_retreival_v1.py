@@ -74,7 +74,7 @@ def test_run_gpt3_5(streaming_assistants_openai_client):
     run_with_assistant(gpt3_assistant, streaming_assistants_openai_client)
 
 def test_run_cohere(streaming_assistants_openai_client):
-    model = "command-r"
+    model = "cohere_chat/command-r"
     name = f"{model} Math Tutor"
 
     cohere_assistant = streaming_assistants_openai_client.beta.assistants.create(

@@ -120,7 +120,7 @@ def test_run_gpt3_5(patched_openai_client):
     run_with_assistant(gpt3_assistant, patched_openai_client)
 
 def test_run_cohere(patched_openai_client):
-    model = "command-r"
+    model = "cohere_chat/command-r"
     name = f"{model} Math Tutor"
 
     cohere_assistant = patched_openai_client.beta.assistants.create(
