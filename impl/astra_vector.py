@@ -26,7 +26,6 @@ from cassandra.query import (
     dict_factory,
     named_tuple_factory, PreparedStatement,
 )
-from openai.types.beta.threads.runs import RunStep, ToolCallsStepDetails
 from pydantic import BaseModel, Field
 
 from impl.model.assistant_object import AssistantObject
@@ -46,9 +45,12 @@ from impl.services.inference_utils import get_embeddings
 from openapi_server.models.message_content_text_object import MessageContentTextObject
 from openapi_server.models.message_content_text_object_text import MessageContentTextObjectText
 from openapi_server.models.run_object_required_action import RunObjectRequiredAction
+from openapi_server.models.run_step_details_tool_calls_object import RunStepDetailsToolCallsObject
+from openapi_server.models.run_step_details_tool_calls_object_tool_calls_inner import \
+    RunStepDetailsToolCallsObjectToolCallsInner
+from openapi_server.models.run_step_object import RunStepObject
+from openapi_server.models.run_step_object_step_details import RunStepObjectStepDetails
 from openapi_server.models.thread_object import ThreadObject
-
-
 
 # Create a logger for this module.
 logger = logging.getLogger(__name__)
@@ -763,8 +765,18 @@ class CassandraClient:
             failed_at = int(failed_at.timestamp() * 1000)
 
         try:
-            step_details = ToolCallsStepDetails.parse_raw(json_rows["step_details"])
-            run_step = RunStep(
+            #json(json_rows["step_details"]
+            step_details_json = json.loads(json_rows["step_details"])
+            tool_calls = []
+            for tool_call_dict in step_details_json["tool_calls"]:
+                tool_call  = RunStepDetailsToolCallsObjectToolCallsInner.from_dict(tool_call_dict)
+                tool_calls.append(tool_call)
+            step_details_tool_calls_object = RunStepDetailsToolCallsObject(type="tool_calls", tool_calls=tool_calls)
+            step_details = RunStepObjectStepDetails(actual_instance=step_details_tool_calls_object)
+            json_rows["step_details"] = step_details
+            json_rows["created_at"] = int(json_rows["created_at"].timestamp()*1000)
+            #step_details = ToolCallsStepDetails.parse_raw(json_rows["step_details"])
+            run_step = RunStepObject(
                 id=json_rows["id"],
                 assistant_id=json_rows["assistant_id"],
                 cancelled_at=cancelled_at,
@@ -971,8 +983,7 @@ class CassandraClient:
         return True
 
 
-    # TODO - stop using the object from the SDK
-    def upsert_run_step(self, run_step : RunStep):
+    def upsert_run_step(self, run_step : RunStepObject):
         query_string = f"""insert into {CASSANDRA_KEYSPACE}.run_steps(
             id,
             assistant_id,

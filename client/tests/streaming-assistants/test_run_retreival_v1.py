@@ -62,58 +62,58 @@ def run_with_assistant(assistant, client):
 
 instructions = "You are a personal math tutor. Answer thoroughly. The system will provide relevant context from files, use the context to respond."
 
-def test_run_gpt3_5(patched_openai_client):
+def test_run_gpt3_5(streaming_assistants_openai_client):
     model = "gpt-3.5-turbo"
     name = f"{model} Math Tutor"
 
-    gpt3_assistant = patched_openai_client.beta.assistants.create(
+    gpt3_assistant = streaming_assistants_openai_client.beta.assistants.create(
         name=name,
         instructions=instructions,
         model=model,
     )
-    run_with_assistant(gpt3_assistant, patched_openai_client)
+    run_with_assistant(gpt3_assistant, streaming_assistants_openai_client)
 
-def test_run_cohere(patched_openai_client):
-    model = "command-r"
+def test_run_cohere(streaming_assistants_openai_client):
+    model = "cohere_chat/command-r"
     name = f"{model} Math Tutor"
 
-    cohere_assistant = patched_openai_client.beta.assistants.create(
+    cohere_assistant = streaming_assistants_openai_client.beta.assistants.create(
         name=name,
         instructions=instructions,
         model=model,
     )
-    run_with_assistant(cohere_assistant, patched_openai_client)
+    run_with_assistant(cohere_assistant, streaming_assistants_openai_client)
 
-def test_run_perp(patched_openai_client):
+def test_run_perp(streaming_assistants_openai_client):
     model = "perplexity/mixtral-8x7b-instruct"
     name = f"{model} Math Tutor"
 
-    perplexity_assistant = patched_openai_client.beta.assistants.create(
+    perplexity_assistant = streaming_assistants_openai_client.beta.assistants.create(
         name=name,
         instructions=instructions,
         model=model,
     )
-    run_with_assistant(perplexity_assistant, patched_openai_client)
+    run_with_assistant(perplexity_assistant, streaming_assistants_openai_client)
 
-@pytest.mark.skip(reason="fix streaming-assistants aws with patched_openai embedding issue")
-def test_run_claude(patched_openai_client):
+@pytest.mark.skip(reason="fix astra-assistants aws with patched_openai embedding issue")
+def test_run_claude(streaming_assistants_openai_client):
     model = "claude-3-haiku-20240307"
     name = f"{model} Math Tutor"
 
-    claude_assistant = patched_openai_client.beta.assistants.create(
+    claude_assistant = streaming_assistants_openai_client.beta.assistants.create(
         name=name,
         instructions=instructions,
         model=model,
     )
-    run_with_assistant(claude_assistant, patched_openai_client)
+    run_with_assistant(claude_assistant, streaming_assistants_openai_client)
 
-def test_run_gemini(patched_openai_client):
-    model = "gemini/gemini-pro"
+def test_run_gemini(streaming_assistants_openai_client):
+    model = "gemini/gemini-1.5-pro-latest"
     name = f"{model} Math Tutor"
 
-    gemini_assistant = patched_openai_client.beta.assistants.create(
+    gemini_assistant = streaming_assistants_openai_client.beta.assistants.create(
         name=name,
         instructions=instructions,
         model=model,
     )
-    run_with_assistant(gemini_assistant, patched_openai_client)
+    run_with_assistant(gemini_assistant, streaming_assistants_openai_client)

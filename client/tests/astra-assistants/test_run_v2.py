@@ -1,9 +1,6 @@
 import time
 import logging
 
-from openai.lib.streaming import AssistantEventHandler
-from typing_extensions import override
-
 logger = logging.getLogger(__name__)
 def run_with_assistant(assistant, client):
     user_message = "What's your favorite animal."
@@ -13,45 +10,32 @@ def run_with_assistant(assistant, client):
     client.beta.threads.messages.create(
         thread_id=thread.id, role="user", content=user_message
     )
+    run = client.beta.threads.runs.create(
+        thread_id=thread.id,
+        assistant_id=assistant.id,
+        temperature=0,
+    )
 
-    class EventHandler(AssistantEventHandler):
-        def __init__(self):
-            super().__init__()
-            self.on_message_created_count = 0
-            self.on_text_created_count = 0
-            self.on_text_delta_count = 0
-
-        @override
-        def on_message_created(self, message) -> None:
-            # Increment the counter each time the method is called
-            self.on_message_created_count += 1
-            print(message.id)
-
-        @override
-        def on_text_created(self, text) -> None:
-            # Increment the counter each time the method is called
-            self.on_text_created_count += 1
-            print(f"\nassistant > {text}", end="", flush=True)
-
-        @override
-        def on_text_delta(self, delta, snapshot):
-            # Increment the counter each time the method is called
-            self.on_text_delta_count += 1
-            print(delta.value, end="", flush=True)
-
-    event_handler = EventHandler()
-
-    with client.beta.threads.runs.create_and_stream(
+    # Waiting in a loop
+    i = 0
+    while True:
+        print(f'loop {i}')
+        if run.status == 'failed':
+            raise ValueError("Run is in failed state")
+        if run.status == 'completed':
+            logger.info(f"run status: {run.status}")
+            break
+        run = client.beta.threads.runs.retrieve(
             thread_id=thread.id,
-            assistant_id=assistant.id,
-            #instructions="Speak in spanish",
-            event_handler=event_handler,
-    ) as stream:
-        for part in stream:
-            print(part)
+            run_id=run.id,
+        )
+        time.sleep(0.5)
 
-    assert event_handler.on_text_created_count > 0
-    assert event_handler.on_text_delta_count > 0
+
+    logger.info(f"thread.id {thread.id}")
+    logger.info(f"{assistant.model} =>")
+    response = client.beta.threads.messages.list(thread_id=thread.id)
+    logger.info(response.data[0].content[0].text.value)
 
 
 
@@ -69,20 +53,19 @@ def test_run_gpt3_5(patched_openai_client):
 
     run_with_assistant(gpt3_assistant, patched_openai_client)
 
-def test_run_groq_llama3(patched_openai_client):
-    groq_assistant = patched_openai_client.beta.assistants.create(
-        name="Groq Llama3 Animal Tutor",
-        instructions=instructions,
-        model="groq/llama3-8b-8192",
-    )
-    run_with_assistant(groq_assistant, patched_openai_client)
-
-
 def test_run_cohere(patched_openai_client):
     cohere_assistant = patched_openai_client.beta.assistants.create(
         name="Cohere Animal Tutor",
         instructions=instructions,
         model="cohere_chat/command-r"
+    )
+    run_with_assistant(cohere_assistant, patched_openai_client)
+
+def test_run_groq(patched_openai_client):
+    cohere_assistant = patched_openai_client.beta.assistants.create(
+        name="Groq Animal Tutor",
+        instructions=instructions,
+        model="groq/llama3-8b-8192"
     )
     run_with_assistant(cohere_assistant, patched_openai_client)
 
@@ -106,6 +89,6 @@ def test_run_gemini(patched_openai_client):
     gemini_assistant = patched_openai_client.beta.assistants.create(
         name="Gemini Animal Tutor",
         instructions=instructions,
-        model="gemini/gemini-pro",
+        model="gemini/gemini-1.5-pro-latest",
     )
     run_with_assistant(gemini_assistant, patched_openai_client)

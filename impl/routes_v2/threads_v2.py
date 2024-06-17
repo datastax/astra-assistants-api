@@ -374,7 +374,10 @@ async def yield_events_from_object(
         extra_fields = {}
     holder = obj.copy()
     for key, value in extra_fields.items():
-        setattr(holder, key, value)
+        if hasattr(holder, key):
+            setattr(holder, key, value)
+        else:
+            logger.warn(f"key {key} not found in {holder}, could be a bug.")
     assert len(obj_statuses) == len(events), "obj_statuses and events must be the same length"
     for i in range(len(obj_statuses)):
         async for event in yield_event_from_object(
@@ -403,7 +406,8 @@ async def run_event_stream(run, message_id, astradb):
             actual_instance=RunStepDetailsToolCallsObject(type="tool_calls", tool_calls=[])
 
         )
-        run_step_id = run.id.replace("run_", "run_step_")
+
+        run_step_id = message_id.replace("msg_", "step_")
         run_step = RunStepObject(
             type="tool_calls",
             thread_id=run.thread_id,
@@ -474,7 +478,22 @@ async def run_event_stream(run, message_id, astradb):
 
     # this works because we make the run_step id the same as the message_id
     run_step_id = message_id.replace("msg_", "step_")
-    run_step = astradb.get_run_step(run_id=run.id, id=run_step_id)
+    try:
+        run_step = read_object(
+            astradb=astradb,
+            target_class=RunStepObject,
+            table_name="run_steps",
+            partition_keys = ["run_id", "id"],
+            args={"id": run_step_id, "run_id": run.id}
+        )
+    except Exception as e:
+        if e.status_code == 404:
+            run_step = None
+        else:
+            logger.error(e)
+            raise e
+
+    #run_step = astradb.get_run_step(run_id=run.id, id=run_step_id)
     if run_step is not None:
         async for event in yield_events_from_object(
             obj=run_step,
@@ -501,7 +520,13 @@ async def run_event_stream(run, message_id, astradb):
         # tool_call_delta_object = ToolCallDeltaObject(type="tool_calls", tool_calls=retrieval_tool_call_deltas)
 
         while run_step.status != "completed":
-            run_step = astradb.get_run_step(run_id=run.id, id=run_step_id)
+            run_step = read_object(
+                astradb=astradb,
+                target_class=RunStepObject,
+                table_name="run_steps",
+                partition_keys = ["run_id", "id"],
+                args={"id": run_step_id, "run_id": run.id}
+            )
             await asyncio.sleep(1)
         tool_call_delta_object = RunStepDeltaStepDetailsToolCallsObject(type="tool_calls", tool_calls=None)
         step_details = RunStepDeltaObjectDeltaStepDetails(actual_instance=tool_call_delta_object)
@@ -1575,7 +1600,7 @@ async def message_delta_streamer(message_id, created_at, response, run, astradb)
         message_creation = RunStepDetailsMessageCreationObjectMessageCreation(message_id=message_id)
         message_step_details = RunStepDetailsMessageCreationObject(type="message_creation", message_creation=message_creation)
         step_details = RunStepObjectStepDetails(actual_instance=message_step_details)
-        run_step_id = run.id.replace("run_", "run_step_")
+        run_step_id = message_id.replace("msg_", "step_")
         run_step = RunStepObject(
             type="message_creation",
             thread_id=run.thread_id,

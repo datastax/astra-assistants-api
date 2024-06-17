@@ -4,7 +4,7 @@ from openai import OpenAI
 from openai.lib.streaming import AssistantEventHandler
 from typing_extensions import override
 
-from streaming_assistants import patch
+from astra_assistants import patch
 
 class EventHandler(AssistantEventHandler):
     @override
@@ -108,7 +108,7 @@ claude_assistant = client.beta.assistants.create(
 )
 run_with_assistant(claude_assistant, client)
 
-model = "gemini/gemini-pro"
+model = "gemini/gemini-1.5-pro-latest"
 name = f"{model} Math Tutor"
 
 gemini_assistant = client.beta.assistants.create(

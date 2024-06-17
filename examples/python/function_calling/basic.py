@@ -1,7 +1,7 @@
 import time
 from openai import OpenAI
 from dotenv import load_dotenv
-from streaming_assistants import patch
+from astra_assistants import patch
 from openai.lib.streaming import AssistantEventHandler
 from typing_extensions import override
 from openai.types.beta.threads.runs import ToolCall
@@ -22,7 +22,7 @@ model="gpt-4-1106-preview"
 #model="perplexity/mixtral-8x7b-instruct"
 #model="perplexity/pplx-70b-online"
 #model="anthropic.claude-v2"
-#model="gemini/gemini-pro"
+#model="gemini/gemini-1.5-pro-latest"
 #model = "meta.llama2-13b-chat-v1"
 
 

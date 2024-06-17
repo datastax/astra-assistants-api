@@ -1,5 +1,5 @@
 from openai import OpenAI
-from streaming_assistants import patch
+from astra_assistants import patch
 
 from dotenv import load_dotenv
 import time
@@ -90,6 +90,6 @@ test_run_with_assistant(claude_assistant, client)
 gemini_assistant = client.beta.assistants.create(
     name="Gemini Animal Tutor",
     instructions=instructions,
-    model="gemini/gemini-pro",
+    model="gemini/gemini-1.5-pro-latest",
 )
 test_run_with_assistant(gemini_assistant, client)

@@ -80,7 +80,7 @@ def function_calling(model, client):
         logger.info(f"streamed response: {text}")
     logger.info(text)
 
-def test_function_calling_gpt_4(patched_openai_client):
+def test_function_calling_gpt_4(streaming_assistants_openai_client):
     model="gpt-4-1106-preview"
-    function_calling(model, patched_openai_client)
+    function_calling(model, streaming_assistants_openai_client)
 

@@ -50,55 +50,55 @@ def run_with_assistant(assistant, client):
 
 
 instructions="You're an animal expert who gives very long winded answers with flowery prose. Keep answers below 3 sentences."
-def test_run_gpt3_5(patched_openai_client):
-    gpt3_assistant = patched_openai_client.beta.assistants.create(
+def test_run_gpt3_5(streaming_assistants_openai_client):
+    gpt3_assistant = streaming_assistants_openai_client.beta.assistants.create(
         name="GPT3 Animal Tutor",
         instructions=instructions,
         model="gpt-3.5-turbo",
     )
 
-    assistant = patched_openai_client.beta.assistants.retrieve(gpt3_assistant.id)
+    assistant = streaming_assistants_openai_client.beta.assistants.retrieve(gpt3_assistant.id)
     logger.info(assistant)
 
-    run_with_assistant(gpt3_assistant, patched_openai_client)
+    run_with_assistant(gpt3_assistant, streaming_assistants_openai_client)
 
-def test_run_groq_llama3(patched_openai_client):
-    groq_assistant = patched_openai_client.beta.assistants.create(
+def test_run_groq_llama3(streaming_assistants_openai_client):
+    groq_assistant = streaming_assistants_openai_client.beta.assistants.create(
         name="Groq Llama3 Animal Tutor",
         instructions=instructions,
         model="groq/llama3-8b-8192",
     )
-    run_with_assistant(groq_assistant, patched_openai_client)
+    run_with_assistant(groq_assistant, streaming_assistants_openai_client)
 
 
-def test_run_cohere(patched_openai_client):
-    cohere_assistant = patched_openai_client.beta.assistants.create(
+def test_run_cohere(streaming_assistants_openai_client):
+    cohere_assistant = streaming_assistants_openai_client.beta.assistants.create(
         name="Cohere Animal Tutor",
         instructions=instructions,
         model="cohere_chat/command-r"
     )
-    run_with_assistant(cohere_assistant, patched_openai_client)
+    run_with_assistant(cohere_assistant, streaming_assistants_openai_client)
 
-def test_run_perp(patched_openai_client):
-    perplexity_assistant = patched_openai_client.beta.assistants.create(
+def test_run_perp(streaming_assistants_openai_client):
+    perplexity_assistant = streaming_assistants_openai_client.beta.assistants.create(
         name="Perplexity/Mixtral Animal Tutor",
         instructions=instructions,
         model="perplexity/mixtral-8x7b-instruct",
     )
-    run_with_assistant(perplexity_assistant, patched_openai_client)
+    run_with_assistant(perplexity_assistant, streaming_assistants_openai_client)
 
-def test_run_claude(patched_openai_client):
-    claude_assistant = patched_openai_client.beta.assistants.create(
+def test_run_claude(streaming_assistants_openai_client):
+    claude_assistant = streaming_assistants_openai_client.beta.assistants.create(
         name="Claude Animal Tutor",
         instructions=instructions,
         model="claude-3-haiku-20240307",
     )
-    run_with_assistant(claude_assistant, patched_openai_client)
+    run_with_assistant(claude_assistant, streaming_assistants_openai_client)
 
-def test_run_gemini(patched_openai_client):
-    gemini_assistant = patched_openai_client.beta.assistants.create(
+def test_run_gemini(streaming_assistants_openai_client):
+    gemini_assistant = streaming_assistants_openai_client.beta.assistants.create(
         name="Gemini Animal Tutor",
         instructions=instructions,
-        model="gemini/gemini-pro",
+        model="gemini/gemini-1.5-pro-latest",
     )
-    run_with_assistant(gemini_assistant, patched_openai_client)
+    run_with_assistant(gemini_assistant, streaming_assistants_openai_client)

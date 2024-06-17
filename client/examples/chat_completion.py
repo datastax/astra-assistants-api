@@ -1,5 +1,5 @@
 from openai import OpenAI
-from streaming_assistants import patch
+from astra_assistants import patch
 from dotenv import load_dotenv
 
 load_dotenv('./.env')
@@ -51,5 +51,5 @@ print_chat_completion(model)
 model="anthropic.claude-v2"
 print_chat_completion(model)
 
-model="gemini/gemini-pro"
+model="gemini/gemini-1.5-pro-latest"
 print_chat_completion(model)

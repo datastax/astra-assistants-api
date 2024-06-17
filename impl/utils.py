@@ -1,4 +1,5 @@
 import base64
+import datetime
 import hashlib
 import json
 import logging
@@ -112,7 +113,13 @@ def read_objects(astradb: CassandraClient, target_class: Type[BaseModel], table_
                         and hasattr(annotation, 'from_json')
                 ):
                     if 'actual_instance' in annotation.__fields__:
-                        json_obj[field_name] = annotation(actual_instance=json_obj[field_name])
+                        try:
+                            json_obj[field_name] = annotation(actual_instance=json_obj[field_name])
+                        except Exception as e:
+                            try:
+                                json_obj[field_name] = annotation.from_json(json_obj[field_name])
+                            except Exception as e:
+                                raise e
                     else:
                         json_obj[field_name] = annotation.from_json(json_obj[field_name])
                 elif get_origin(annotation) is list:
@@ -135,6 +142,11 @@ def read_objects(astradb: CassandraClient, target_class: Type[BaseModel], table_
                                 json_obj[field_name] = get_args(annotation)[0](actual_instance=json_obj[field_name])
                             else:
                                 json_obj[field_name] = get_args(annotation)[0].from_json(json_obj[field_name])
+                    if get_origin(get_args(annotation)[0]) is Annotated:
+                        if get_args(get_args(annotation)[0])[0] is int and isinstance(json_obj[field_name], datetime.datetime):
+                            json_obj[field_name] = int(json_obj[field_name].timestamp()*1000)
+                elif annotation is int and isinstance(json_obj[field_name], datetime.datetime):
+                    json_obj[field_name] = int(json_obj[field_name].timestamp()*1000)
 
             obj = target_class(**json_obj)
             obj_list.append(obj)
