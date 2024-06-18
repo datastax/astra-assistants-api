@@ -13,6 +13,7 @@ from starlette.responses import StreamingResponse
 
 from impl.astra_vector import CassandraClient
 from impl.background import background_task_set, add_background_task
+from impl.model_v2.create_run_request import CreateRunRequest
 from impl.model_v2.message_object import MessageObject
 from impl.model_v2.modify_message_request import ModifyMessageRequest
 from impl.model_v2.run_object import RunObject
@@ -35,7 +36,6 @@ from openapi_server_v2.models.run_stream_event import RunStreamEvent
 from openapi_server_v2.models.truncation_object import TruncationObject
 from openapi_server_v2.models.assistant_stream_event import AssistantStreamEvent
 from openapi_server_v2.models.create_message_request import CreateMessageRequest
-from openapi_server_v2.models.create_run_request import CreateRunRequest
 from openapi_server_v2.models.create_thread_and_run_request import CreateThreadAndRunRequest
 from openapi_server_v2.models.create_thread_request import CreateThreadRequest
 from openapi_server_v2.models.delete_message_response import DeleteMessageResponse
@@ -345,22 +345,30 @@ def extractFunctionName(content: str, candidates: [str]):
 
 
 def make_event(target_class: Type[BaseModel],data: BaseModel, event: str) -> AssistantStreamEvent:
-    event = target_class.from_dict(
-        {
-            "event":event,
-            "data": data.to_dict()
-        }
-    )
-    return event
+    try:
+        event = target_class.from_dict(
+            {
+                "event":event,
+                "data": data.to_dict()
+            }
+        )
+        return event
+    except Exception as e:
+        logger.error(e)
+        raise e
 
 
 async def yield_event_from_object(obj: BaseModel, target_class: Type[BaseModel], event: str, obj_status: str = None):
-    holder = obj.copy()
-    if obj_status is not None:
-        holder.status = obj_status
-    event = make_event(target_class=target_class, data=holder, event=event)
-    event_json = event.to_json()
-    yield f"data: {event_json}\n\n"
+    try:
+        holder = obj.copy()
+        if obj_status is not None:
+            holder.status = obj_status
+        event = make_event(target_class=target_class, data=holder, event=event)
+        event_json = event.to_json()
+        yield f"data: {event_json}\n\n"
+    except Exception as e:
+        logger.error(e)
+        raise e
 
 
 async def yield_events_from_object(
@@ -370,156 +378,122 @@ async def yield_events_from_object(
         events: List[str],
         extra_fields: Dict[str, Any] = None
 ):
-    if extra_fields is None:
-        extra_fields = {}
-    holder = obj.copy()
-    for key, value in extra_fields.items():
-        if hasattr(holder, key):
-            setattr(holder, key, value)
-        else:
-            logger.warn(f"key {key} not found in {holder}, could be a bug.")
-    assert len(obj_statuses) == len(events), "obj_statuses and events must be the same length"
-    for i in range(len(obj_statuses)):
-        async for event in yield_event_from_object(
-            obj=holder,
-            target_class=target_class,
-            obj_status=obj_statuses[i],
-            event=events[i],
-        ):
-            yield event
+    try:
+        if extra_fields is None:
+            extra_fields = {}
+        holder = obj.copy()
+        for key, value in extra_fields.items():
+            if hasattr(holder, key):
+                setattr(holder, key, value)
+            else:
+                logger.warn(f"key {key} not found in {holder}, could be a bug.")
+        assert len(obj_statuses) == len(events), "obj_statuses and events must be the same length"
+        for i in range(len(obj_statuses)):
+            async for event in yield_event_from_object(
+                obj=holder,
+                target_class=target_class,
+                obj_status=obj_statuses[i],
+                event=events[i],
+            ):
+                yield event
+    except Exception as e:
+        logger.error(e)
+        raise e
 
 async def run_event_stream(run, message_id, astradb):
-    # this kicks all three required events
-    async for event in yield_events_from_object(
-        obj=run,
-        target_class=RunStreamEvent,
-        obj_statuses=["queued", "queued", "in_progress"],
-        events=["thread.run.created", "thread.run.queued", "thread.run.in_progress"],
-        extra_fields={"required_action": None}
-    ):
-        yield event
-
-    if run.status == "requires_action":
-        # annoyingly the sdk looks for a run step even though the data we need is in the RunRequiresAction
-        # data.delta.step_details_tool_calls
-        step_details = RunStepObjectStepDetails(
-            actual_instance=RunStepDetailsToolCallsObject(type="tool_calls", tool_calls=[])
-
-        )
-
-        run_step_id = message_id.replace("msg_", "step_")
-        run_step = RunStepObject(
-            type="tool_calls",
-            thread_id=run.thread_id,
-            run_id=run.id,
-            # TODO: maybe change this ID.
-            id=run_step_id,
-            status="in_progress",
-            created_at=run.created_at,
-            assistant_id=run.assistant_id,
-            step_details=step_details,
-            object="thread.run.step",
-            last_error=None,
-            expired_at=None,
-            cancelled_at=None,
-            completed_at=None,
-            failed_at=None,
-            metadata=None,
-            usage=None,
-        )
-        async for event in yield_event_from_object(
-            obj=run_step,
-            target_class=RunStepStreamEvent,
-            obj_status="in_progress",
-            event="thread.run.step.created",
-        ):
-            yield event
-
-        async for event in yield_event_from_object(
+    try:
+        # this kicks all three required events
+        async for event in yield_events_from_object(
             obj=run,
             target_class=RunStreamEvent,
-            obj_status="in_progress",
-            event="thread.run.in_progress",
+            obj_statuses=["queued", "queued", "in_progress"],
+            events=["thread.run.created", "thread.run.queued", "thread.run.in_progress"],
+            extra_fields={
+                "required_action": None,
+            }
         ):
             yield event
 
+        if run.status == "requires_action":
+            # annoyingly the sdk looks for a run step even though the data we need is in the RunRequiresAction
+            # data.delta.step_details_tool_calls
+            step_details = RunStepObjectStepDetails(
+                actual_instance=RunStepDetailsToolCallsObject(type="tool_calls", tool_calls=[])
 
-        tool_calls = []
-        index = 0
-        for run_tool_call in run.required_action.submit_tool_outputs.tool_calls:
-            func_tool_call = RunStepDeltaStepDetailsToolCallsFunctionObject(**run_tool_call.dict(), index=index)
-            tool_call = RunStepDeltaStepDetailsToolCallsObjectToolCallsInner(actual_instance=func_tool_call)
-            index += 1
-            tool_calls.append(tool_call)
+            )
 
-        tool_call_delta_object = RunStepDeltaStepDetailsToolCallsObject(type="tool_calls", tool_calls=tool_calls)
-        step_details = RunStepDeltaObjectDeltaStepDetails(actual_instance=tool_call_delta_object)
-        step_delta = RunStepDeltaObjectDelta(step_details=step_details)
-        # TODO: maybe change this ID.
-        run_step_delta = RunStepDeltaObject(id=run_step.id, delta=step_delta, object="thread.run.step.delta")
+            run_step_id = message_id.replace("msg_", "step_")
+            run_step = RunStepObject(
+                type="tool_calls",
+                thread_id=run.thread_id,
+                run_id=run.id,
+                # TODO: maybe change this ID.
+                id=run_step_id,
+                status="in_progress",
+                created_at=run.created_at,
+                assistant_id=run.assistant_id,
+                step_details=step_details,
+                object="thread.run.step",
+                last_error=None,
+                expired_at=None,
+                cancelled_at=None,
+                completed_at=None,
+                failed_at=None,
+                metadata=None,
+                usage=None,
+            )
+            async for event in yield_event_from_object(
+                obj=run_step,
+                target_class=RunStepStreamEvent,
+                obj_status="in_progress",
+                event="thread.run.step.created",
+            ):
+                yield event
 
-        async for event in yield_event_from_object(obj=run_step_delta, target_class=RunStepStreamEvent, obj_status=None, event="thread.run.step.delta"):
-            yield event
+            async for event in yield_event_from_object(
+                obj=run,
+                target_class=RunStreamEvent,
+                obj_status="in_progress",
+                event="thread.run.in_progress",
+            ):
+                yield event
 
-        #event = make_event(data=run_step_delta, event="thread.run.step.delta")
-        #event_json = event.json()
-        #yield f"data: {event_json}\n\n"
 
-        # persist run step
-        astradb.upsert_run_step(run_step)
+            tool_calls = []
+            index = 0
+            for run_tool_call in run.required_action.submit_tool_outputs.tool_calls:
+                func_tool_call = RunStepDeltaStepDetailsToolCallsFunctionObject(**run_tool_call.dict(), index=index)
+                tool_call = RunStepDeltaStepDetailsToolCallsObjectToolCallsInner(actual_instance=func_tool_call)
+                index += 1
+                tool_calls.append(tool_call)
 
-        async for event in yield_event_from_object(obj=run, target_class=RunStreamEvent, obj_status=run.status, event=f"thread.run.{run.status}"):
-            yield event
-        #run_holder = RunObject(**run.dict())
-        #event = make_event(data=run_holder, event=f"thread.run.{run_holder.status}")
-        #event_json = event.json()
-        #yield f"data: {event_json}\n\n"
-        return
+            tool_call_delta_object = RunStepDeltaStepDetailsToolCallsObject(type="tool_calls", tool_calls=tool_calls)
+            step_details = RunStepDeltaObjectDeltaStepDetails(actual_instance=tool_call_delta_object)
+            step_delta = RunStepDeltaObjectDelta(step_details=step_details)
+            # TODO: maybe change this ID.
+            run_step_delta = RunStepDeltaObject(id=run_step.id, delta=step_delta, object="thread.run.step.delta")
 
-    # this works because we make the run_step id the same as the message_id
-    run_step_id = message_id.replace("msg_", "step_")
-    try:
-        run_step = read_object(
-            astradb=astradb,
-            target_class=RunStepObject,
-            table_name="run_steps",
-            partition_keys = ["run_id", "id"],
-            args={"id": run_step_id, "run_id": run.id}
-        )
-    except Exception as e:
-        if e.status_code == 404:
-            run_step = None
-        else:
-            logger.error(e)
-            raise e
+            async for event in yield_event_from_object(obj=run_step_delta, target_class=RunStepStreamEvent, obj_status=None, event="thread.run.step.delta"):
+                yield event
 
-    #run_step = astradb.get_run_step(run_id=run.id, id=run_step_id)
-    if run_step is not None:
-        async for event in yield_events_from_object(
-            obj=run_step,
-            target_class=RunStepStreamEvent,
-            obj_statuses=["in_progress", "in_progress"],
-            events=["thread.run.step.created", "thread.run.step.in_progress"],
-            extra_fields={"required_action": None}
-        ):
-            yield event
+            #event = make_event(data=run_step_delta, event="thread.run.step.delta")
+            #event_json = event.json()
+            #yield f"data: {event_json}\n\n"
 
-        #event = make_event(data=run_step, event=f"thread.run.step.created")
-        #event_json = event.json()
-        #yield f"data: {event_json}\n\n"
-        #event = make_event(data=run_step, event=f"thread.run.step.in_progress")
-        #event_json = event.json()
-        #yield f"data: {event_json}\n\n"
+            # persist run step
+            astradb.upsert_run_step(run_step)
 
-        # retrieval_tool_call_deltas = []
-        # index = 0
-        # for run_tool_call in run_step.step_details.tool_calls:
-        #    tool_call = RetrievalToolCallDelta(**run_tool_call.dict(), index=index)
-        #    index += 1
-        #    retrieval_tool_call_deltas.append(tool_call)
-        # tool_call_delta_object = ToolCallDeltaObject(type="tool_calls", tool_calls=retrieval_tool_call_deltas)
+            async for event in yield_event_from_object(obj=run, target_class=RunStreamEvent, obj_status=run.status, event=f"thread.run.{run.status}"):
+                yield event
+            #run_holder = RunObject(**run.dict())
+            #event = make_event(data=run_holder, event=f"thread.run.{run_holder.status}")
+            #event_json = event.json()
+            #yield f"data: {event_json}\n\n"
+            return
 
-        while run_step.status != "completed":
+        # this works because we make the run_step id the same as the message_id
+        run_step_id = message_id.replace("msg_", "step_")
+        try:
             run_step = read_object(
                 astradb=astradb,
                 target_class=RunStepObject,
@@ -527,34 +501,79 @@ async def run_event_stream(run, message_id, astradb):
                 partition_keys = ["run_id", "id"],
                 args={"id": run_step_id, "run_id": run.id}
             )
-            await asyncio.sleep(1)
-        tool_call_delta_object = RunStepDeltaStepDetailsToolCallsObject(type="tool_calls", tool_calls=None)
-        step_details = RunStepDeltaObjectDeltaStepDetails(actual_instance=tool_call_delta_object)
-        step_delta = RunStepDeltaObjectDelta(step_details=step_details)
-        run_step_delta = RunStepDeltaObject(id=run_step.id, delta=step_delta, object="thread.run.step.delta")
-        async for event in yield_event_from_object(
-            obj=run_step_delta,
-            target_class=RunStepStreamEvent,
-            obj_status=None,
-            event="thread.run.step.delta",
-        ):
-            yield event
-        #event = make_event(data=run_step_delta, event="thread.run.step.delta")
-        #event_json = event.json()
-        #yield f"data: {event_json}\n\n"
-        async for event in yield_event_from_object(
+        except Exception as e:
+            if e.status_code == 404:
+                run_step = None
+            else:
+                logger.error(e)
+                raise e
+
+        #run_step = astradb.get_run_step(run_id=run.id, id=run_step_id)
+        if run_step is not None:
+            async for event in yield_events_from_object(
                 obj=run_step,
                 target_class=RunStepStreamEvent,
-                obj_status=None,
-                event="thread.run.step.completed",
-        ):
-            yield event
-        #event = make_event(data=run_step, event=f"thread.run.step.completed")
-        #event_json = event.json()
-        #yield f"data: {event_json}\n\n"
+                obj_statuses=["in_progress", "in_progress"],
+                events=["thread.run.step.created", "thread.run.step.in_progress"],
+                extra_fields={"required_action": None}
+            ):
+                yield event
 
-    async for event in stream_message_events(astradb, run.thread_id, 1, "desc", None, None, run):
-        yield event
+            #event = make_event(data=run_step, event=f"thread.run.step.created")
+            #event_json = event.json()
+            #yield f"data: {event_json}\n\n"
+            #event = make_event(data=run_step, event=f"thread.run.step.in_progress")
+            #event_json = event.json()
+            #yield f"data: {event_json}\n\n"
+
+            # retrieval_tool_call_deltas = []
+            # index = 0
+            # for run_tool_call in run_step.step_details.tool_calls:
+            #    tool_call = RetrievalToolCallDelta(**run_tool_call.dict(), index=index)
+            #    index += 1
+            #    retrieval_tool_call_deltas.append(tool_call)
+            # tool_call_delta_object = ToolCallDeltaObject(type="tool_calls", tool_calls=retrieval_tool_call_deltas)
+
+            while run_step.status != "completed":
+                run_step = read_object(
+                    astradb=astradb,
+                    target_class=RunStepObject,
+                    table_name="run_steps",
+                    partition_keys = ["run_id", "id"],
+                    args={"id": run_step_id, "run_id": run.id}
+                )
+                await asyncio.sleep(1)
+            tool_call_delta_object = RunStepDeltaStepDetailsToolCallsObject(type="tool_calls", tool_calls=None)
+            step_details = RunStepDeltaObjectDeltaStepDetails(actual_instance=tool_call_delta_object)
+            step_delta = RunStepDeltaObjectDelta(step_details=step_details)
+            run_step_delta = RunStepDeltaObject(id=run_step.id, delta=step_delta, object="thread.run.step.delta")
+            async for event in yield_event_from_object(
+                obj=run_step_delta,
+                target_class=RunStepStreamEvent,
+                obj_status=None,
+                event="thread.run.step.delta",
+            ):
+                yield event
+            #event = make_event(data=run_step_delta, event="thread.run.step.delta")
+            #event_json = event.json()
+            #yield f"data: {event_json}\n\n"
+            async for event in yield_event_from_object(
+                    obj=run_step,
+                    target_class=RunStepStreamEvent,
+                    obj_status=None,
+                    event="thread.run.step.completed",
+            ):
+                yield event
+            #event = make_event(data=run_step, event=f"thread.run.step.completed")
+            #event_json = event.json()
+            #yield f"data: {event_json}\n\n"
+
+        async for event in stream_message_events(astradb, run.thread_id, 1, "desc", None, None, run):
+            yield event
+    except Exception as e:
+        # This usually means the client is broken
+        # TODO: cancel the run.
+        logger.error(e)
 
 
 async def stream_message_events(astradb, thread_id, limit, order, after, before, run):
@@ -829,7 +848,7 @@ async def create_run(
 
     if len(toolsJson) > 0:
         litellm_kwargs["tools"] = toolsJson
-        litellm_kwargs["tool_choice"] = "auto"
+        litellm_kwargs["tool_choice"] = create_run_request.tool_choice.to_dict()
         message_content = summarize_message_content(instructions, messages.data, False)
         message = await get_chat_completion(messages=message_content, model=model, **litellm_kwargs)
 
@@ -925,7 +944,7 @@ async def create_run(
         tools=tools,
         instructions=instructions,
         create_run_request=create_run_request,
-        astradb=astradb
+        astradb=astradb,
     )
     logger.info(f"created run {run.id} for thread {run.thread_id}")
     if create_run_request.stream:
