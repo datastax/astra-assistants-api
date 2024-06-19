@@ -1,3 +1,4 @@
+import logging
 import time
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -6,23 +7,30 @@ from astra_assistants import patch
 load_dotenv("./.env")
 
 def run_with_assistant(assistant, client):
-    print(f"created assistant: {assistant.name}")
+    print(f"using assistant: {assistant}")
     print("Uploading file:")
     # Upload the file
     file = client.files.create(
         file=open(
-            "./examples/python/language_models_are_unsupervised_multitask_learners.pdf",
+            "./tests/fixtures/language_models_are_unsupervised_multitask_learners.pdf",
             "rb",
         ),
         purpose="assistants",
     )
-    print("adding file id to assistant")
+
+    vector_store = client.beta.vector_stores.create(
+        name="papers",
+        file_ids=[file.id]
+    )
+
+    print("adding vector_store id to assistant")
     # Update Assistant
     assistant = client.beta.assistants.update(
         assistant.id,
-        tools=[{"type": "retrieval"}],
-        file_ids=[file.id],
+        tools=[{"type": "file_search"}],
+        tool_resources={"file_search": {"vector_store_ids": [vector_store.id]}},
     )
+    print(f"updated assistant: {assistant}")
     user_message = "What are some cool math concepts behind this ML paper pdf? Explain in two sentences."
     print("creating persistent thread and message")
     thread = client.beta.threads.create()
@@ -49,10 +57,10 @@ def run_with_assistant(assistant, client):
         )
         time.sleep(0.5)
 
-    print("-->", end="")
+    print(f"thread.id {thread.id}")
+    print(f"{assistant.model} =>")
     response = client.beta.threads.messages.list(thread_id=thread.id)
-    print(f"{response.data[0].content[0].text.value}", end="")
-    print("\n")
+    print(response.data[0].content[0].text.value)
 
 
 client = patch(OpenAI())
