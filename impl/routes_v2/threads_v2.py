@@ -848,7 +848,10 @@ async def create_run(
 
     if len(toolsJson) > 0:
         litellm_kwargs["tools"] = toolsJson
-        litellm_kwargs["tool_choice"] = create_run_request.tool_choice.to_dict()
+        if create_run_request.tool_choice is not None and hasattr(create_run_request.tool_choice, "to_dict"):
+            litellm_kwargs["tool_choice"] = create_run_request.tool_choice.to_dict()
+        else:
+            litellm_kwargs["tool_choice"] = "auto"
         message_content = summarize_message_content(instructions, messages.data, False)
         message = await get_chat_completion(messages=message_content, model=model, **litellm_kwargs)
 
