@@ -17,6 +17,10 @@ python-dotenv = "^1.0.1"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"
 
+
+[tool.poetry.group.optional.dependencies]
+astrapy = "^1.2.1"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
