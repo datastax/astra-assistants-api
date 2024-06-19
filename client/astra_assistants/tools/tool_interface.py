@@ -7,7 +7,7 @@ class ToolInterface(ABC):
         pass
 class ToolInterface(ABC):
     @abstractmethod
-    def search(self, query):
+    def call(self, query):
         pass
 
     def name(self):
@@ -17,7 +17,7 @@ class ToolInterface(ABC):
         return {"type": "function", "function": {"name": self.name()}}
 
     def to_function(self):
-        search_sig = inspect.signature(self.search)
+        search_sig = inspect.signature(self.call)
         parameters = {
             name: {
                 "type": "string",  # Assuming all parameters are strings for simplicity

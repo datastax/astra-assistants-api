@@ -40,8 +40,7 @@ class AstraEventHandler(AssistantEventHandler):
         if tool_name in self.tools:
             tool = self.tools[tool_name]
             arguments = json.loads(tool_call.function.arguments)
-            query = arguments['query']
-            results = tool.search(query)
+            results = tool.call(arguments)
             return results
         else:
             self.logger.error(f"Tool {tool_name} not found.")

@@ -28,7 +28,8 @@ class AstraDataAPITool(ToolInterface):
         self.openai_client = openai_client
         self.embedding_model = embedding_model
 
-    def search(self, query):
+    def call(self, arguments):
+        query = arguments['arguments']
         try:
             if self.vectorize:
                 results = self.collection.find(

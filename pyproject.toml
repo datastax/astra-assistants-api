@@ -71,6 +71,7 @@ openai = "^1.20.0"
 pytest = "^8.0.2"
 pytest-asyncio = "^0.23.5.post1"
 
+
 [tool.ruff.lint]
 # Allow bare except (`E722`), ignore F-strings without placeholder (`F541`)
 ignore = ["E722", "F541"]
