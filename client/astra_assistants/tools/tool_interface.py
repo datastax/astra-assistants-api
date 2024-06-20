@@ -1,5 +1,7 @@
+import json
 from abc import ABC, abstractmethod
 import inspect
+from pydantic import BaseModel
 
 class ToolInterface(ABC):
     @abstractmethod
@@ -7,7 +9,7 @@ class ToolInterface(ABC):
         pass
 class ToolInterface(ABC):
     @abstractmethod
-    def call(self, query):
+    def call(self, arguments: BaseModel) -> str:
         pass
 
     def name(self):
@@ -16,26 +18,50 @@ class ToolInterface(ABC):
     def tool_choice_object(self):
         return {"type": "function", "function": {"name": self.name()}}
 
-    def to_function(self):
-        search_sig = inspect.signature(self.call)
-        parameters = {
-            name: {
-                "type": "string",  # Assuming all parameters are strings for simplicity
-                "description": f"The {name} parameter."
-            }
-            for name, param in search_sig.parameters.items()
-        }
-        required = [name for name, param in search_sig.parameters.items() if param.default == inspect.Parameter.empty]
+    def get_model(self):
+        call_sig = inspect.signature(self.call)
+        # Get the first parameter of the call method
+        return list(call_sig.parameters.values())[0].annotation
 
-        return {
+    def to_function(self):
+        call_sig = inspect.signature(self.call)
+
+        parameters = {}
+        for name, param in call_sig.parameters.items():
+            if param.annotation != param.empty:
+                param_type = param.annotation
+                if issubclass(param_type, BaseModel):
+                    parameters = param_type.schema()
+                else:
+                    parameters = {
+                        "type": "object",
+                        "properties": {
+                            name: {
+                                "type": param.annotation.__name__.lower(),
+                                "description": f"The {name} parameter."
+                            }
+                        },
+                        "required": [name for name, param in call_sig.parameters.items() if param.default == inspect.Parameter.empty]
+                    }
+            else:
+                parameters = {
+                    "type": "object",
+                    "properties": {
+                        name: {
+                            "type": "string",  # Defaulting to string if type is not specified
+                            "description": f"The {name} parameter."
+                        }
+                    },
+                    "required": [name for name, param in call_sig.parameters.items() if param.default == inspect.Parameter.empty]
+               }
+
+        function = {
             "type": "function",
             "function": {
                 "name": self.__class__.__name__,
                 "description": f"{self.__class__.__name__} function.",
-                "parameters": {
-                    "type": "object",
-                    "properties": parameters,
-                    "required": required
-                }
+                "parameters": parameters
             }
         }
+        #print(json.dumps(function))
+        return function
