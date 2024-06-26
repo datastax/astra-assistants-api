@@ -7,6 +7,8 @@ services:
       - "11434:11434"
     networks:
       - my_network
+    volumes:
+      - ~/.ollama:/root/.ollama  #map to local volume to keep models
 
   assistants:
     image: datastax/astra-assistants

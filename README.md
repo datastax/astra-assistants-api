@@ -164,7 +164,13 @@ or with docker-compose for integration with ollama
 
     docker-compose up -d
 
+you need to pull the model you want to ollama before using it
 
+    curl http://localhost:11434/api/pull -d '{ "name": "deepseek-coder-v2" }'
+
+your assistants client should route to the ollama container by passing the llm-param-base-url header:
+
+    client = patch(OpenAI(default_headers={"LLM-PARAM-base-url": "http://ollama:11434"}))
 
 
 ## Feedback / Help
