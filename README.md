@@ -160,7 +160,7 @@ or locally with poetry:
 
 or with docker-compose for integration with ollama
 
-    cd examples/ollama/
+    cd examples/ollama/gpu # or examples/ollama/cpu for cpu only for gpu you need docker-toolkit
 
     docker-compose up -d
 
