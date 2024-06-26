@@ -140,7 +140,15 @@ and
 
 ## Running yourself
 
-with docker:
+with docker, first pull the image from docker hub
+
+    docker pull datastax/astra-assistants
+
+or a specific version if you don't want latest:
+
+    docker pull datastax/astra-assistants:v0.2.12
+
+then run:
 
     docker run datastax/astra-assistants
 
