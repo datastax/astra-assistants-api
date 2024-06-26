@@ -141,7 +141,6 @@ def test_run_perp(patched_openai_client):
     )
     run_with_assistant(perplexity_assistant, patched_openai_client)
 
-@pytest.mark.skip(reason="fix astra-assistants aws with openai embedding issue")
 def test_run_claude(patched_openai_client):
     model = "claude-3-haiku-20240307"
     name = f"{model} Math Tutor"
