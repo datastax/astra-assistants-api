@@ -1071,19 +1071,21 @@ async def process_rag(
                 {"role": "assistant", "content": "I need more information to generate a good response."})
             search_string_messages.append({"role": "user", "content": search_string_prompt})
 
-            search_string = (await get_chat_completion(
+            search_completion_response = await get_chat_completion(
                 messages=search_string_messages,
                 model=model,
                 **litellm_kwargs,
-            )).content
+            )
+            search_string = search_completion_response.content
             logger.debug(f"ANN search_string {search_string}")
 
             file_ids = []
             if tool_resources.file_search is not None:
-                for vector_store_id in tool_resources.file_search.vector_store_ids:
-                    vector_store_files = await read_vsf(vector_store_id=vector_store_id, astradb=astradb)
-                    for vector_store_file in vector_store_files:
-                        file_ids.append(vector_store_file.id)
+                if tool_resources.file_search.vector_store_ids is not None:
+                    for vector_store_id in tool_resources.file_search.vector_store_ids:
+                        vector_store_files = await read_vsf(vector_store_id=vector_store_id, astradb=astradb)
+                        for vector_store_file in vector_store_files:
+                            file_ids.append(vector_store_file.id)
             if len(file_ids) > 0:
                 created_at = int(time.mktime(datetime.now().timetuple())*1000)
                 context_json = astradb.annSearch(
@@ -1188,11 +1190,19 @@ async def process_rag(
             model=model,
             **litellm_kwargs,
         )
-    except asyncio.CancelledError:
+    except asyncio.CancelledError as e:
+        logger.error(e)
         # TODO maybe do a cancelled run step with more details?
         await update_run_status(thread_id=thread_id, id=run_id, status="failed", astradb=astradb)
         logger.error("process_rag cancelled")
         raise RuntimeError("process_rag cancelled")
+    except Exception as e:
+        logger.error(e)
+        # TODO maybe do a cancelled run step with more details?
+        await update_run_status(thread_id=thread_id, id=run_id, status="failed", astradb=astradb)
+        logger.error("process_rag cancelled")
+        raise RuntimeError("process_rag cancelled")
+
     try:
         text = ""
         start_time = time.time()

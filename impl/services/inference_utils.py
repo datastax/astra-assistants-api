@@ -3,9 +3,10 @@ from typing import Any, Dict, List, Optional, Union, AsyncGenerator, get_type_hi
 
 
 import litellm
+from fastapi import HTTPException
 from litellm import (
     EmbeddingResponse,
-    embedding as get_litellm_embedding, acompletion
+    embedding as get_litellm_embedding, acompletion, get_llm_provider
 )
 from loguru import logger
 from tenacity import retry, stop_after_attempt, wait_random_exponential
@@ -90,6 +91,14 @@ async def get_async_chat_completion_response(
     if model is None and deployment_id is None:
         raise ValueError("Must provide either a model or a deployment id")
 
+    triple = get_llm_provider(model)
+    provider = triple[1]
+    if provider == "ollama_chat" or provider == "ollama":
+        litellm_kwargs.pop("api_key")
+        if "frequency_penalty" in litellm_kwargs and litellm_kwargs["frequency_penalty"] == 0:
+            litellm_kwargs["frequency_penalty"] = 1.1
+
+
     try:
         if model is None:
             model = deployment_id
@@ -117,7 +126,7 @@ async def get_async_chat_completion_response(
             logger.error(f"Error: error {model} is not currently supported")
             raise ValueError(f"Model {model} is not currently supported")
         logger.error(f"Error: {e}")
-        raise ValueError(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Error: {e}")
     except asyncio.CancelledError:
         logger.error("litellm call cancelled")
         raise RuntimeError("litellm call cancelled")
@@ -129,13 +138,17 @@ async def get_chat_completion(
     deployment_id: Optional[str] = None,
     **litellm_kwargs: Any,
 ) -> Any:
-    response = await get_async_chat_completion_response(
-        messages=messages,
-        model=model,
-        deployment_id=deployment_id,
-        **litellm_kwargs,
-    )
+    try:
+        response = await get_async_chat_completion_response(
+            messages=messages,
+            model=model,
+            deployment_id=deployment_id,
+            **litellm_kwargs,
+        )
 
-    choices = response.choices
-    message = choices[0].message
-    return message
+        choices = response.choices
+        message = choices[0].message
+        return message
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Error: {e}")

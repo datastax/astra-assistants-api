@@ -120,11 +120,10 @@ async def _completion_from_request(
     if chat_request.user is not None:
         kwargs["user"] = chat_request.user
 
-    #litellm.verbose_logger = True
     response = await get_async_chat_completion_response(**kwargs)
 
     # TODO fix this
-    if response is not ModelResponse:
+    if not isinstance(response, ModelResponse):
         logger.error("Internal Error calling liteLLM")
 
     choices = []
