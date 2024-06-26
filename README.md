@@ -158,6 +158,15 @@ or locally with poetry:
 
     poetry run python run.py
 
+or with docker-compose for integration with ollama
+
+    cd examples/ollama/
+
+    docker-compose up -d
+
+
+
+
 ## Feedback / Help
 For help or feedback file an [issue](https://github.com/datastax/astra-assistants-api/issues) or reach out to us on [Discord](https://discord.gg/j6vgnRke)
 
