@@ -148,9 +148,9 @@ or a specific version if you don't want latest:
 
     docker pull datastax/astra-assistants:v0.2.12
 
-then run:
+then run (-p to map your docker port 8080 to your host port 8080):
 
-    docker run datastax/astra-assistants
+    docker run -p 8080:8080 datastax/astra-assistants
 
 or locally with poetry:
 
