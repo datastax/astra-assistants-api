@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    networks:
+      - my_network
+
+  assistants:
+    image: datastax/astra-assistants
+    ports:
+      - "8080:8000"
+    networks:
+      - my_network
+    depends_on:
+      - ollama
+
+
+networks:
+  my_network:
+    driver: bridge
