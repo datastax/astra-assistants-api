@@ -143,6 +143,8 @@ and
 
 ## Running yourself
 
+### Docker
+
 with docker, first pull the image from docker hub
 
     docker pull datastax/astra-assistants
@@ -155,11 +157,16 @@ then run (-p to map your docker port 8080 to your host port 8080):
 
     docker run -p 8080:8080 datastax/astra-assistants
 
+
+### Locally with poetry
+
 or locally with poetry:
 
     poetry install
 
     poetry run python run.py
+
+### Docker-compose with ollama
 
 or with docker-compose for integration with ollama
 
