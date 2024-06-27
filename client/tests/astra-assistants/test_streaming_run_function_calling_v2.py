@@ -30,7 +30,6 @@ def test_function_calling_pplx_online(patched_openai_client):
     model="perplexity/pplx-70b-online"
     function_calling(model, patched_openai_client)
 
-@pytest.mark.skip(reason="claude does not consistently work with function calling, skip")
 def test_function_calling_claude(patched_openai_client):
     model="claude-3-haiku-20240307"
     function_calling(model, patched_openai_client)
