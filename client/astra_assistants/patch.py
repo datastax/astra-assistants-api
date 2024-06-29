@@ -3,7 +3,7 @@ import os
 import io
 from functools import wraps
 from types import MethodType
-from typing import Callable, Literal, Union
+from typing import Callable, Literal, Union, Dict, List
 import contextlib
 
 import httpx
@@ -14,17 +14,19 @@ from openai._types import NOT_GIVEN, Headers, Query, Body, NotGiven
 from openai._utils import maybe_transform
 
 from litellm import utils
+from openai.types import FileObject
 from openai.types.beta.threads import message_create_params, Message
 
 from dotenv import load_dotenv
+from openai.types.beta.vector_stores import VectorStoreFile
 
 load_dotenv("./.env")
 
 
 
-LLM_PARAM_AWS_REGION_NAME = "LLM-PARAM-aws-region-name"
-LLM_PARAM_AWS_SECRET_ACCESS_KEY = "LLM-PARAM-aws-secret-access-key"
-LLM_PARAM_AWS_ACCESS_KEY_ID = "LLM-PARAM-aws-access-key-id"
+AWS_REGION_NAME = "aws-region-name"
+AWS_SECRET_ACCESS_KEY = "aws-secret-access-key"
+AWS_ACCESS_KEY_ID = "aws-access-key-id"
 
 DOCS_URL="https://docs.datastax.com/en/astra-db-serverless/tutorials/astra-assistants-api.html"
 
@@ -201,6 +203,11 @@ def wrap_create(original_create, client):
     def patched_create(self, *args, **kwargs):
         # Assuming the argument we"re interested in is named "special_argument"
         model = kwargs.get("model")
+        embedding_model = None
+        if original_create.__self__.__class__.__name__ == "Embeddings":
+            embedding_model = model
+            model = None
+
 
         assistant_id = kwargs.get("assistant_id")
         if assistant_id is not None and "beta.threads.runs" in str(type(self)):
@@ -214,17 +221,20 @@ def wrap_create(original_create, client):
             ):
                 # TODO figure out how to get the model from the tool resources
                 vector_store_id = assistant.tool_resources.file_search.vector_store_ids[0]
-                vector_store = client.beta.vector_stores.retrieve(vector_store_id)
-                #file_id = assistant.file_ids[0]
-                #file = client.files.retrieve(file_id)
-                #if file.embedding_model is not None:
-                #    extra_headers = kwargs.get("extra_headers", None)
-                #    extra_headers = {**BETA_HEADER, "embedding-model": file.embedding_model, **(extra_headers or {})}
-                #    kwargs["extra_headers"] = extra_headers
+                vs_files = client.beta.vector_stores.files.list(vector_store_id=vector_store_id).data
+                if len(vs_files) > 0:
+                    # use the first file
+                    vs_file: VectorStoreFile= vs_files[0]
+                    file: FileObject = client.files.retrieve(vs_file.id)
+                    if file.embedding_model is not None:
+                        embedding_model = file.embedding_model
+                        extra_headers = kwargs.get("extra_headers", None)
+                        extra_headers = {**BETA_HEADER, "embedding-model": embedding_model, **(extra_headers or {})}
+                        kwargs["extra_headers"] = extra_headers
 
-        if model is not None:
+        if model is not None or embedding_model is not None:
             try:
-                assign_key_based_on_model(model, client)
+                assign_key_based_on_models(model, embedding_model, client)
             except Exception as e:
                 raise RuntimeError(f"Invalid model {model} or key. Make sure you set the right environment variable.") from None
 
@@ -237,21 +247,20 @@ def wrap_create(original_create, client):
 def wrap_file_create(original_create, client):
     @wraps(original_create)
     def patched_create(self, *args, **kwargs):
-        # Assuming the argument we"re interested in is named "special_argument"
-        model = kwargs.get("embedding_model")
-        if model is not None:
+        embedding_model = kwargs.get("embedding_model")
+        if embedding_model is not None:
             extra_headers = kwargs.get("extra_headers", None)
-            extra_headers = {**BETA_HEADER, "embedding-model": model, **(extra_headers or {})}
+            extra_headers = {**BETA_HEADER, "embedding-model": embedding_model, **(extra_headers or {})}
             kwargs["extra_headers"] = extra_headers
             kwargs.pop("embedding_model")
             try:
-                assign_key_based_on_model(model, client)
+                assign_key_based_on_models(None, embedding_model, client)
             except Exception as e:
-                raise RuntimeError(f"Invalid model {model} or key. Make sure you set the right environment variable.") from None
+                raise RuntimeError(f"Invalid embedding_model {embedding_model} or key. Make sure you set the right environment variable.") from None
         else:
             if kwargs.get("extra_headers") is not None:
                 if "embedding_model" in kwargs.get("extra_headers"):
-                    kwargs.get("extra_headers").pop("embedding-model")
+                    kwargs.get("extra_headers").pop("embedding_model")
             if "api-key" in client._custom_headers:
                 client._custom_headers.pop("api-key")
         # Call the original "create" method
@@ -260,7 +269,29 @@ def wrap_file_create(original_create, client):
         return result
     return patched_create
 
-def assign_key_based_on_model(model, client):
+def assign_key_based_on_models(llm_model, embedding_model, client):
+    embedding_headers: Dict[str, str] = {}
+    llm_headers: Dict[str, str] = {}
+    if embedding_model is not None:
+        embedding_headers = get_headers_for_model(embedding_model)
+    if llm_model is not None:
+        llm_headers = get_headers_for_model(llm_model)
+
+    # Clear LLM and EMBEDDING headers
+    for header_key, header_value in client._custom_headers.copy().items():
+        if header_key.startswith("LLM-PARAM-"):
+            client._custom_headers.pop(header_key)
+        if header_key.startswith("EMBEDDING-PARAM-"):
+            client._custom_headers.pop(header_key)
+
+    for header_key, header_value in llm_headers.items():
+        client._custom_headers["LLM-PARAM-" + header_key] = header_value
+    for header_key, header_value in embedding_headers.items():
+        client._custom_headers["EMBEDDING-PARAM-" + header_key] = header_value
+    return client
+
+def get_headers_for_model(model):
+    headers = {}
     with contextlib.redirect_stdout(io.StringIO()):
         key = None
         triple = utils.get_llm_provider(model)
@@ -271,26 +302,16 @@ def assign_key_based_on_model(model, client):
         if provider == "bedrock":
             if os.getenv("AWS_ACCESS_KEY_ID") is None or os.getenv("AWS_SECRET_ACCESS_KEY") is None or os.getenv("AWS_REGION_NAME") is None:
                 raise Exception("For bedrock models you must set the AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION_NAME environment variables")
-            client._custom_headers[LLM_PARAM_AWS_ACCESS_KEY_ID] = os.getenv("AWS_ACCESS_KEY_ID")
-            client._custom_headers[LLM_PARAM_AWS_SECRET_ACCESS_KEY] = os.getenv("AWS_SECRET_ACCESS_KEY")
-            client._custom_headers[LLM_PARAM_AWS_REGION_NAME] = os.getenv("AWS_REGION_NAME")
-        else:
-            if LLM_PARAM_AWS_ACCESS_KEY_ID in client._custom_headers:
-                client._custom_headers.pop(LLM_PARAM_AWS_ACCESS_KEY_ID)
-            if LLM_PARAM_AWS_SECRET_ACCESS_KEY in client._custom_headers:
-                client._custom_headers.pop(LLM_PARAM_AWS_SECRET_ACCESS_KEY)
-            if LLM_PARAM_AWS_REGION_NAME in client._custom_headers:
-                client._custom_headers.pop(LLM_PARAM_AWS_REGION_NAME)
+            headers[AWS_ACCESS_KEY_ID] = os.getenv("AWS_ACCESS_KEY_ID")
+            headers[AWS_SECRET_ACCESS_KEY] = os.getenv("AWS_SECRET_ACCESS_KEY")
+            headers[AWS_REGION_NAME] = os.getenv("AWS_REGION_NAME")
         if provider != "openai":
             key = utils.get_api_key(provider, dynamic_key)
         if provider == "gemini":
             key = os.getenv("GEMINI_API_KEY")
         if key is not None:
-            client._custom_headers["api-key"] = key
-        else:
-            if "api-key" in client._custom_headers:
-                client._custom_headers.pop("api-key")
-    return client
+            headers["api-key"] = key
+    return headers
 
 
 def add_astra_header(client):

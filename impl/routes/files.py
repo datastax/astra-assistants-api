@@ -56,7 +56,7 @@ async def create_file(
         None,
         description="The intended purpose of the uploaded file.  Use \\\&quot;fine-tune\\\&quot; for [Fine-tuning](/docs/api-reference/fine-tuning) and \\\&quot;assistants\\\&quot; for [Assistants](/docs/api-reference/assistants) and [Messages](/docs/api-reference/messages). This allows us to validate the format of the uploaded file is correct for fine-tuning. ",
     ),
-    litellm_kwargs: Dict[str, Any] = Depends(get_litellm_kwargs),
+    litellm_kwargs: tuple[Dict[str, Any]] = Depends(get_litellm_kwargs),
     embedding_model: str = Depends(infer_embedding_model),
     astradb: CassandraClient = Depends(verify_db_client),
     using_openai: bool = Depends(check_if_using_openai),
@@ -98,19 +98,26 @@ async def create_file(
     fmt = file.content_type
     bytes = len(file.file.read())
     file.file.seek(0)
-
+    existing_file = None
     try:
         existing_file = await retrieve_file(file_id, astradb)
-        return existing_file
-
     except HTTPException as e:
         if e.status_code != 404:
-            raise e
+            raise HTTPException(status_code=400, detail="Error retrieving file")
+    if existing_file is not None:
+        existing_embedding_model_name_only = existing_file.embedding_model.split('/', 1)[-1]
+        embedding_model_name_only = embedding_model.split('/', 1)[-1]
+        if existing_embedding_model_name_only == embedding_model_name_only:
+            return existing_file
+        if existing_embedding_model_name_only != embedding_model_name_only:
+            raise HTTPException(status_code=409, detail=f"File ({existing_file.id}) already exists but with different embedding model (existing: {existing_file.embedding_model}, requested {embedding_model}). Please delete the existing file and try again if you wish to switch models.")
+    else:
         document = await get_document_from_file(file, file_id)
 
-        litellm_kwargs_embedding = litellm_kwargs.copy()
+        litellm_kwargs_embedding = litellm_kwargs[1].copy()
         triple = utils.get_llm_provider(embedding_model)
         provider = triple[1]
+        # TODO, this might be unnecessary now
         if provider != "bedrock":
             if litellm_kwargs_embedding.get("aws_access_key_id") is not None:
                 litellm_kwargs_embedding.pop("aws_access_key_id")
@@ -139,7 +146,7 @@ async def create_file(
             bytes=bytes,
             chunks=chunks,
             embedding_model=embedding_model,
-            **litellm_kwargs,
+            **litellm_kwargs_embedding,
         )
         logger.info(f"File created {openAIFile}")
         return openAIFile

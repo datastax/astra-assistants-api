@@ -235,10 +235,10 @@ async def create_moderation(
 )
 async def create_chat_completion(
     create_chat_completion_request: CreateChatCompletionRequest,
-    litellm_kwargs: Dict[str, Any] = Depends(get_litellm_kwargs),
+    litellm_kwargs: tuple[Dict[str, Any]] = Depends(get_litellm_kwargs),
     using_openai: bool = Depends(check_if_using_openai),
 ) -> Any:
-    return await _completion_from_request(create_chat_completion_request, using_openai, **litellm_kwargs)
+    return await _completion_from_request(create_chat_completion_request, using_openai, **litellm_kwargs[0])
 
 
 @router.post(
@@ -307,8 +307,9 @@ async def create_image_variation(
 )
 async def create_embedding(
     create_embedding_request: CreateEmbeddingRequest,
-    litellm_kwargs: Dict[str, Any] = Depends(get_litellm_kwargs),
+    litellm_kwargs: tuple[Dict[str, Any]] = Depends(get_litellm_kwargs),
 ) -> CreateEmbeddingResponse:
+    litellm_kwargs = litellm_kwargs[1]
     if create_embedding_request.encoding_format is not None:
         litellm_kwargs["encoding_format"] = create_embedding_request.encoding_format
     if create_embedding_request.user is not None:

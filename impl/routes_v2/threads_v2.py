@@ -710,7 +710,7 @@ async def init_message(thread_id, assistant_id, run_id, astradb, created_at, con
 async def create_run(
         thread_id: str = Path(..., description="The ID of the thread to run."),
         create_run_request: CreateRunRequest = Body(None, description=""),
-        litellm_kwargs: Dict[str, Any] = Depends(get_litellm_kwargs),
+        litellm_kwargs: tuple[Dict[str, Any]] = Depends(get_litellm_kwargs),
         astradb: CassandraClient = Depends(verify_db_client),
         embedding_model: str = Depends(infer_embedding_model),
         embedding_api_key: str = Depends(infer_embedding_api_key),
@@ -847,17 +847,19 @@ async def create_run(
     required_action = None
 
     if len(toolsJson) > 0:
-        litellm_kwargs["tools"] = toolsJson
+        litellm_kwargs[0]["tools"] = toolsJson
         if create_run_request.tool_choice is not None and hasattr(create_run_request.tool_choice, "to_dict"):
-            litellm_kwargs["tool_choice"] = create_run_request.tool_choice.to_dict()
+            litellm_kwargs[0]["tool_choice"] = create_run_request.tool_choice.to_dict()
         else:
-            litellm_kwargs["tool_choice"] = "auto"
+            litellm_kwargs[0]["tool_choice"] = "auto"
         message_content = summarize_message_content(instructions, messages.data, False)
-        message = await get_chat_completion(messages=message_content, model=model, **litellm_kwargs)
+        message = await get_chat_completion(messages=message_content, model=model, **litellm_kwargs[0])
 
         tool_call_object_id = generate_id("call")
         run_tool_calls = []
-        if message.content is None:
+        # TODO: fix this, we can't hang off message.content because it turns out you can have both a message and a tool call.
+        #if message.content is None:
+        if hasattr(message, "tool_calls"):
             for tool_call in message.tool_calls:
                 tool_call_object_function = RunToolCallObjectFunction(name=tool_call.function.name, arguments=tool_call.function.arguments)
                 run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=tool_call_object_function))
@@ -1074,7 +1076,7 @@ async def process_rag(
             search_completion_response = await get_chat_completion(
                 messages=search_string_messages,
                 model=model,
-                **litellm_kwargs,
+                **litellm_kwargs[0],
             )
             search_string = search_completion_response.content
             logger.debug(f"ANN search_string {search_string}")
@@ -1093,7 +1095,7 @@ async def process_rag(
                     vector_index_column="embedding",
                     search_string=search_string,
                     partitions=file_ids,
-                    litellm_kwargs=litellm_kwargs,
+                    litellm_kwargs=litellm_kwargs[1],
                     embedding_model=embedding_model,
                     embedding_api_key=embedding_api_key,
                 )
@@ -1178,7 +1180,7 @@ async def process_rag(
         else:
             message_content = summarize_message_content(instructions, messages, False)
 
-        litellm_kwargs["stream"] = True
+        litellm_kwargs[0]["stream"] = True
 
         logger.info(f"generating for message_content: {message_content}")
 
@@ -1188,7 +1190,7 @@ async def process_rag(
         response = await get_async_chat_completion_response(
             messages=message_content,
             model=model,
-            **litellm_kwargs,
+            **litellm_kwargs[0],
         )
     except asyncio.CancelledError as e:
         logger.error(e)
@@ -1535,7 +1537,7 @@ async def submit_tool_ouputs_to_run(
         run_id: str = Path(..., description="The ID of the run that requires the tool output submission."),
         # TODO - impl
         submit_tool_outputs_run_request: SubmitToolOutputsRunRequest = Body(None, description=""),
-        litellm_kwargs: Dict[str, Any] = Depends(get_litellm_kwargs),
+        litellm_kwargs: tuple[Dict[str, Any]] = Depends(get_litellm_kwargs),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> RunObject | StreamingResponse:
     try:
@@ -1559,7 +1561,7 @@ async def submit_tool_ouputs_to_run(
             message = await get_chat_completion(
                 messages=message_content,
                 model=model,
-                **litellm_kwargs,
+                **litellm_kwargs[0],
             )
             text = message.content
 
@@ -1595,7 +1597,7 @@ async def submit_tool_ouputs_to_run(
                     messages=message_content,
                     model=model,
                     stream=True,
-                    **litellm_kwargs,
+                    **litellm_kwargs[0],
                 )
                 return StreamingResponse(message_delta_streamer(message_id, created_at, response, run, astradb),
                                          media_type="text/event-stream")
@@ -1800,7 +1802,7 @@ async def create_thread_and_run(
         astradb: CassandraClient = Depends(verify_db_client),
         embedding_model: str = Depends(infer_embedding_model),
         embedding_api_key: str = Depends(infer_embedding_api_key),
-        litellm_kwargs: Dict[str, Any] = Depends(get_litellm_kwargs),
+        litellm_kwargs: tuple[Dict[str, Any]] = Depends(get_litellm_kwargs),
 ) -> RunObject:
     create_thread_request = create_thread_and_run_request.thread
     if create_thread_request is None:
