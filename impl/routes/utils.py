@@ -2,7 +2,7 @@ import os
 import re
 from json import JSONDecodeError
 from functools import lru_cache
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple, Type
 
 from async_lru import alru_cache
 from fastapi import Depends, Header, HTTPException, Request
@@ -51,7 +51,8 @@ async def verify_openai_token(
     return token
 
 
-LITELLM_HEADER_PREFIX = "LLM-PARAM-"
+LLM_HEADER_PREFIX = "LLM-PARAM-"
+EMBEDDING_HEADER_PREFIX = "EMBEDDING-PARAM-"
 
 
 async def get_body(request: Request) -> Any:
@@ -66,7 +67,7 @@ async def get_body(request: Request) -> Any:
             request.state.body = {}
     return request.state.body
 
-def get_litellm_kwargs(
+async def get_litellm_kwargs(
         request: Request,
         api_key: Annotated[Optional[str], Header()] = None,
         base_url: Annotated[Optional[str], Header()] = None,
@@ -75,7 +76,7 @@ def get_litellm_kwargs(
         openai_token: str = Depends(verify_openai_token),
         astra_api_token: Annotated[Optional[str], Header()] = None,
         astra_db_id: Annotated[Optional[str], Header()] = None,
-) -> Dict[str, Any]:
+) -> tuple[dict[str, str | None], dict[str, str | None]]:
     """Dependency to get kwargs for litellm completion"""
     # NOTE: If api_key header is present, it will override the openai_token
     lite_llm_kwargs = dict(
@@ -84,6 +85,16 @@ def get_litellm_kwargs(
         api_version=api_version,
         custom_llm_provider=custom_llm_provider,
     )
+
+    embedding_lite_llm_kwargs = dict(
+        api_key=api_key or openai_token,
+        base_url=base_url,
+        api_version=api_version,
+        custom_llm_provider=custom_llm_provider,
+    )
+
+    non_openai_embedding = False
+
     # security
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ""
     # Add any additional headers passed with prefix as kwargs
@@ -92,20 +103,43 @@ def get_litellm_kwargs(
             os.environ["VERTEXAI_PROJECT"] = value
         if key == "vertexai-location":
             os.environ["VERTEXAI_LOCATION"] = value
-        if key.lower().startswith(LITELLM_HEADER_PREFIX.lower()):
-            lite_llm_kwargs[key[len(LITELLM_HEADER_PREFIX):].replace("-","_")] = value
+        if key.lower().startswith(LLM_HEADER_PREFIX.lower()):
+            lite_llm_kwargs[key[len(LLM_HEADER_PREFIX):].replace("-", "_")] = value
+            # Are there cases where we give the embedding the llm params?
+            # embedding_lite_llm_kwargs[key[len(LITELLM_HEADER_PREFIX):].replace("-","_")] = value
+        if key.lower().startswith(EMBEDDING_HEADER_PREFIX.lower()):
+            non_openai_embedding = True
+            embedding_lite_llm_kwargs[key[len(EMBEDDING_HEADER_PREFIX):].replace("-","_")] = value
+
+    if non_openai_embedding:
+        if embedding_lite_llm_kwargs["api_key"] == openai_token:
+            # handle aws case where api_key should not be passed if aws tokens are used.
+            embedding_lite_llm_kwargs.pop("api_key")
 
     # custom header for google
     if "google-application-credentials-file-id" in request.headers.keys():
-        astradb = verify_db_client(request, astra_api_token, astra_db_id)
+        astradb: CassandraClient = await verify_db_client(request, astra_api_token, astra_db_id)
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = astradb.load_auth_file(request.headers.get("google-application-credentials-file-id"))
 
-    return lite_llm_kwargs
+    if "model" in embedding_lite_llm_kwargs:
+        embedding_lite_llm_kwargs.pop("model")
+    return lite_llm_kwargs, embedding_lite_llm_kwargs
+
 
 async def check_if_using_openai(
         body: Any = Depends(get_body),
-        litellm_kwargs: Dict[str, Any] = Depends(get_litellm_kwargs),
+        litellm_kwargs: tuple[Dict[str, Any]] = Depends(get_litellm_kwargs),
         openai_token: str = Depends(verify_openai_token),
+) -> bool:
+    llm_is_openai = await is_using_openai(body, litellm_kwargs[0], openai_token)
+    embedding_is_openai = await is_using_openai(body, litellm_kwargs[1], openai_token)
+    return llm_is_openai or embedding_is_openai
+
+
+async def is_using_openai(
+        body: Any,
+        litellm_kwargs: Dict[str, str],
+        openai_token: str,
 ) -> bool:
     """Dependency to check if using OpenAI API based on headers"""
     # Kind of hack to get model from request, since can't declare multiple Body fields
@@ -166,7 +200,7 @@ def infer_embedding_model(
     if embedding_model is not None:
         return embedding_model
     elif using_openai:
-        return "openai/text-embedding-ada-002"
+        return "openai/text-embedding-3-large"
     else:
         # TODO: do we want other defaults?
         return None
@@ -175,6 +209,7 @@ def infer_embedding_model(
 def infer_embedding_api_key(
         embedding_model: str = Depends(infer_embedding_model),
         openai_token: str = Depends(verify_openai_token),
+        embedding_param_api_key: Annotated[Optional[str], Header()] = None,
         api_key: Annotated[Optional[str], Header()] = None,
 ) -> str:
     if embedding_model is None:
@@ -184,7 +219,11 @@ def infer_embedding_api_key(
     if provider == "openai":
         return openai_token
     else:
-        return api_key
+        if embedding_param_api_key is not None:
+            return embedding_param_api_key
+        else:
+            logger.warning("Probably should never reach here")
+            return api_key
 
 
 async def forward_request(request: Request) -> StreamingResponse:
