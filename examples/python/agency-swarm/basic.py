@@ -6,7 +6,9 @@ from dotenv import load_dotenv
 load_dotenv("./.env")
 load_dotenv("../../../.env")
 
-client = patch(OpenAI())
+# for docker, pass custom header to point to the ollama container instead of localhost
+client = patch(OpenAI(default_headers={"LLM-PARAM-base-url": "http://ollama:11434"}))
+#client = patch(OpenAI())
 #client = OpenAI()
 
 set_openai_client(client)
