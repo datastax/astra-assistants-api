@@ -210,6 +210,7 @@ def wrap_create(original_create, client):
 
 
         assistant_id = kwargs.get("assistant_id")
+        run_id = kwargs.get("run_id")
         if assistant_id is not None and "beta.threads.runs" in str(type(self)):
             print(assistant_id)
             assistant = client.beta.assistants.retrieve(assistant_id)
@@ -231,7 +232,11 @@ def wrap_create(original_create, client):
                         extra_headers = kwargs.get("extra_headers", None)
                         extra_headers = {**BETA_HEADER, "embedding-model": embedding_model, **(extra_headers or {})}
                         kwargs["extra_headers"] = extra_headers
-
+        else:
+            run_id = kwargs.get("run_id")
+            thread_id = kwargs.get("thread_id")
+            if assistant_id is None and run_id is not None and thread_id is not None:
+                model = client.beta.threads.runs.retrieve(run_id=run_id, thread_id=thread_id).model
         if model is not None or embedding_model is not None:
             try:
                 assign_key_based_on_models(model, embedding_model, client)
@@ -402,7 +407,10 @@ def patch(client: Union[OpenAI, AsyncOpenAI]):
         client.chat.completions.create,
         client.embeddings.create,
         client.beta.threads.runs.create,
+        client.beta.threads.runs.create_and_poll,
         client.beta.threads.runs.create_and_stream,
+        client.beta.threads.runs.submit_tool_outputs,
+        client.beta.threads.runs.submit_tool_outputs_and_poll,
     ]
     for original_method in methods_to_wrap_with_model_arg:
         bound_instance = original_method.__self__
