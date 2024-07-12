@@ -314,6 +314,8 @@ def get_headers_for_model(model):
             key = utils.get_api_key(provider, dynamic_key)
         if provider == "gemini":
             key = os.getenv("GEMINI_API_KEY")
+        if provider == "ollama":
+            headers["base_url"]= os.getenv("OLLAMA_API_BASE_URL")
         if key is not None:
             headers["api-key"] = key
     return headers
@@ -407,9 +409,11 @@ def patch(client: Union[OpenAI, AsyncOpenAI]):
         client.chat.completions.create,
         client.embeddings.create,
         client.beta.threads.runs.create,
+        client.beta.threads.runs.stream,
         client.beta.threads.runs.create_and_poll,
         client.beta.threads.runs.create_and_stream,
         client.beta.threads.runs.submit_tool_outputs,
+        client.beta.threads.runs.submit_tool_outputs_stream,
         client.beta.threads.runs.submit_tool_outputs_and_poll,
     ]
     for original_method in methods_to_wrap_with_model_arg:
