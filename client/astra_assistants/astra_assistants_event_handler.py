@@ -1,6 +1,7 @@
 import json
 import logging
 from openai.lib.streaming import AssistantEventHandler
+from openai.types.beta.threads.run_submit_tool_outputs_params import ToolOutput
 from typing_extensions import override
 from pydantic import BaseModel
 
@@ -11,7 +12,8 @@ class AstraEventHandler(AssistantEventHandler):
         self.client = client
         self.logger = logging.getLogger(__name__)
         self.tools = {}
-        self.tool_outputs = []
+        self.tool_output = ToolOutput
+        self.tool_call_results = None
         self.stream = None
 
     def register_tool(self, tool):
@@ -21,16 +23,18 @@ class AstraEventHandler(AssistantEventHandler):
     def on_tool_call_done(self, tool_call):
         self.logger.info(tool_call)
         self.logger.info(f'arguments: {tool_call.function.arguments}')
-        results = self.run_tool(tool_call)
-        self.tool_outputs.append({
-            'tool_call_id': tool_call.id,
-            'output': results
-        })
+        self.tool_call_results = self.run_tool(tool_call)
+        if not isinstance(self.tool_call_results, str) and self.tool_call_results is not None:
+            tool_call_results = self.tool_call_results["output"].to_string()
+        self.tool_output = ToolOutput(
+            tool_call_id=tool_call.id,
+            output=self.tool_call_results
+        )
 
         self.stream = self.client.beta.threads.runs.submit_tool_outputs_stream(
             thread_id=self._AssistantEventHandler__current_run.thread_id,
             run_id=self._AssistantEventHandler__current_run.id,
-            tool_outputs=self.tool_outputs,
+            tool_outputs=[self.tool_output],
             event_handler=AssistantEventHandler()
         )
         print("got the stream")
@@ -42,7 +46,7 @@ class AstraEventHandler(AssistantEventHandler):
                 tool = self.tools[tool_name]
                 arguments = json.loads(tool_call.function.arguments)
                 model: BaseModel = tool.get_model()
-                if issubclass(model , BaseModel):
+                if issubclass(model, BaseModel):
                     arguments = model(**arguments)
                 results = tool.call(arguments)
                 return results

@@ -13,9 +13,8 @@ class E2BCodeInterpreter(ToolInterface):
         running_sandboxes = Sandbox.list()
         # Find the sandbox by metadata
         for running_sandbox in running_sandboxes:
-            if running_sandbox.metadata.get("user_id", "") == 'uniqueID':
-                sandbox = Sandbox.reconnect(running_sandbox.sandbox_id)
-                sandbox.close()
+            sandbox = Sandbox.reconnect(running_sandbox.sandbox_id)
+            sandbox.close()
         else:
             # Sandbox not found
             pass

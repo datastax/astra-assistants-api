@@ -1,15 +1,17 @@
-import json
 from abc import ABC, abstractmethod
 import inspect
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+
+class ToolResult(BaseModel):
+    # has an id and output text
+    cache_id: str = Field(str, description="The cache ID of the tool call.")
+    output: str = Field(str, description="The output of the tool call.")
+
 
 class ToolInterface(ABC):
     @abstractmethod
-    def search(self, query):
-        pass
-class ToolInterface(ABC):
-    @abstractmethod
-    def call(self, arguments: BaseModel) -> str:
+    def call(self, arguments: BaseModel) -> ToolResult:
         pass
 
     def name(self):
@@ -63,5 +65,5 @@ class ToolInterface(ABC):
                 "parameters": parameters
             }
         }
-        #print(json.dumps(function))
+        # print(json.dumps(function))
         return function
