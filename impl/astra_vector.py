@@ -719,7 +719,7 @@ class CassandraClient:
         statement = self.session.prepare(query_string)
         statement.consistency_level = ConsistencyLevel.QUORUM
         bound = statement.bind((id,))
-        self.session.execute(bound)
+        response = self.session.execute(bound)
         return True
 
     def get_run_step(self, id, run_id):

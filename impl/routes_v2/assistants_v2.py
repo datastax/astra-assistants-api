@@ -167,10 +167,15 @@ async def delete_assistant(
         assistant_id: str,
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> DeleteAssistantResponse:
-    astradb.delete_assistant(id=assistant_id)
-    return DeleteAssistantResponse(
+    astradb.delete_by_pks(
+        keys=['id'],
+        values=[assistant_id],
+        table="assistants_v2",
+    )
+    response = DeleteAssistantResponse(
         id=str(assistant_id), deleted=True, object="assistant"
     )
+    return response
 
 
 @router.get(

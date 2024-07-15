@@ -63,7 +63,15 @@ def test_assistants_crud(openai_client):
 
         openai_client.beta.assistants.delete(asst.id)
 
+        try:
+            asst = openai_client.beta.assistants.retrieve(asst.id)
+        except Exception as e:
+            assert e.status_code == 404
+
         assistants = openai_client.beta.assistants.list().data
+        for assistant in assistants:
+            assert asst.id != assistant.id
+
         print(assistants)
 
 
