@@ -53,7 +53,7 @@ use the structured code tool to generate code to help the user.
     event_handler = AstraEventHandler(patched_openai_client)
     event_handler.register_tool(code_editor)
     program_id = programs[0]['program_id']
-    program = programs[0]['program']
+    program = programs[0]['output']
     patched_openai_client.beta.threads.messages.create(thread.id, content=f"nice, now add trigonometric functions to program_id {program_id}: \n{program.to_string()}" , role="user")
     with patched_openai_client.beta.threads.runs.create_and_stream(
             thread_id=thread.id,
