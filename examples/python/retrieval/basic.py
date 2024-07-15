@@ -67,7 +67,8 @@ client = patch(OpenAI())
 
 instructions = "You are a personal math tutor. Answer thoroughly. The system will provide relevant context from files, use the context to respond."
 
-model = "gpt-3.5-turbo"
+model="deepseek/deepseek-coder"
+#model = "gpt-3.5-turbo"
 name = f"{model} Math Tutor"
 
 gpt3_assistant = client.beta.assistants.create(
@@ -76,6 +77,8 @@ gpt3_assistant = client.beta.assistants.create(
     model=model,
 )
 run_with_assistant(gpt3_assistant, client)
+
+exit
 
 model="cohere_chat/command-r"
 name = f"{model} Math Tutor"
