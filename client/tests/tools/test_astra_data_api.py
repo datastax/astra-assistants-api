@@ -49,7 +49,7 @@ def test_astra_data_api(patched_openai_client):
        for text in stream.text_deltas:
            print(text, end="", flush=True)
        print()
-       print(f"tool_outputs: {event_handler.tool_outputs}")
+       print(f"tool_output: {event_handler.tool_output}")
 
 @pytest.mark.asyncio
 async def test_astra_data_api_with_manager(patched_openai_client):
