@@ -47,7 +47,7 @@ use the structured code tool to generate code to help the user.
         for text in stream.text_deltas:
             print(text, end="", flush=True)
         print()
-        print(f"tool_outputs: {event_handler.tool_outputs}")
+        print(f"tool_output: {event_handler.tool_output}")
 
     # Edit the program
     event_handler = AstraEventHandler(patched_openai_client)
@@ -64,8 +64,8 @@ use the structured code tool to generate code to help the user.
         for text in stream.text_deltas:
             print(text, end="", flush=True)
         print()
-        programs = event_handler.tool_outputs
-        print(f"tool_outputs: {event_handler.tool_outputs}")
+        programs = event_handler.tool_output
+        print(f"tool_output: {event_handler.tool_output}")
 
 
 @pytest.mark.asyncio
