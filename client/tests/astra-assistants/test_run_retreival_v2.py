@@ -5,17 +5,30 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def run_with_assistant(assistant, client):
+def run_with_assistant(assistant, client, file_path, embedding_model):
     logger.info(f"using assistant: {assistant}")
     logger.info("Uploading file:")
     # Upload the file
     file = client.files.create(
         file=open(
-            "./tests/fixtures/language_models_are_unsupervised_multitask_learners.pdf",
+            file_path,
             "rb",
         ),
         purpose="assistants",
+        embedding_model=embedding_model,
     )
+    try:
+        client.files.create(
+            file=open(
+                "./tests/fixtures/language_models_are_unsupervised_multitask_learners.pdf",
+                "rb",
+            ),
+            purpose="assistants",
+            embedding_model="text-embedding-3-small",
+        )
+    except Exception as e:
+        pass
+
 
     vector_store = client.beta.vector_stores.create(
         name="papers",
@@ -86,6 +99,12 @@ def run_with_assistant(assistant, client):
 
 instructions = "You are a personal math tutor. Answer thoroughly. The system will provide relevant context from files, use the context to respond."
 
+file1_path = "./tests/fixtures/language_models_are_unsupervised_multitask_learners.pdf"
+embedding_model1 ="text-embedding-3-large"
+
+file2_path = "./tests/fixtures/language_models_are_unsupervised_multitask_learners_2.pdf"
+embedding_model2 ="embed-english-light-v3.0"
+
 def test_run_gpt3_5(patched_openai_client):
     model = "gpt-3.5-turbo"
     name = f"{model} Math Tutor"
@@ -96,7 +115,7 @@ def test_run_gpt3_5(patched_openai_client):
         model=model,
         response_format='auto',
     )
-    run_with_assistant(gpt3_assistant, patched_openai_client)
+    run_with_assistant(gpt3_assistant, patched_openai_client, file2_path, embedding_model2)
 
 def test_run_cohere(patched_openai_client):
     model = "cohere_chat/command-r"
@@ -107,7 +126,7 @@ def test_run_cohere(patched_openai_client):
         instructions=instructions,
         model=model,
     )
-    run_with_assistant(cohere_assistant, patched_openai_client)
+    run_with_assistant(cohere_assistant, patched_openai_client, file2_path, embedding_model2)
 
 def test_run_perp(patched_openai_client):
     model = "perplexity/mixtral-8x7b-instruct"
@@ -118,9 +137,8 @@ def test_run_perp(patched_openai_client):
         instructions=instructions,
         model=model,
     )
-    run_with_assistant(perplexity_assistant, patched_openai_client)
+    run_with_assistant(perplexity_assistant, patched_openai_client, file1_path, embedding_model1)
 
-@pytest.mark.skip(reason="fix astra-assistants aws with patched_openai embedding issue")
 def test_run_claude(patched_openai_client):
     model = "claude-3-haiku-20240307"
     name = f"{model} Math Tutor"
@@ -130,7 +148,7 @@ def test_run_claude(patched_openai_client):
         instructions=instructions,
         model=model,
     )
-    run_with_assistant(claude_assistant, patched_openai_client)
+    run_with_assistant(claude_assistant, patched_openai_client, file1_path, embedding_model1)
 
 def test_run_gemini(patched_openai_client):
     model = "gemini/gemini-1.5-pro-latest"
@@ -141,4 +159,4 @@ def test_run_gemini(patched_openai_client):
         instructions=instructions,
         model=model,
     )
-    run_with_assistant(gemini_assistant, patched_openai_client)
+    run_with_assistant(gemini_assistant, patched_openai_client, file1_path, embedding_model1)
