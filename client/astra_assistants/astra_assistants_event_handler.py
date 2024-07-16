@@ -26,6 +26,8 @@ class AstraEventHandler(AssistantEventHandler):
         self.tool_call_results = self.run_tool(tool_call)
         if not isinstance(self.tool_call_results, str) and self.tool_call_results is not None:
             tool_call_results_string = self.tool_call_results["output"].to_string()
+        else:
+            tool_call_results_string = self.tool_call_results
         self.tool_output = ToolOutput(
             tool_call_id=tool_call.id,
             output=tool_call_results_string
