@@ -25,10 +25,10 @@ class AstraEventHandler(AssistantEventHandler):
         self.logger.info(f'arguments: {tool_call.function.arguments}')
         self.tool_call_results = self.run_tool(tool_call)
         if not isinstance(self.tool_call_results, str) and self.tool_call_results is not None:
-            tool_call_results = self.tool_call_results["output"].to_string()
+            tool_call_results_string = self.tool_call_results["output"].to_string()
         self.tool_output = ToolOutput(
             tool_call_id=tool_call.id,
-            output=self.tool_call_results
+            output=tool_call_results_string
         )
 
         self.stream = self.client.beta.threads.runs.submit_tool_outputs_stream(
