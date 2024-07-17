@@ -287,4 +287,7 @@ async def verify_db_client(
         astra_db_id
     )
     request.state.dbid = client.dbid  # Store the dbid in the request state
+
+    # log requests and dbids
+    logger.info(f"dbid: {astra_db_id}, request: {request}")
     return client

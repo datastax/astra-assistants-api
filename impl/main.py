@@ -68,14 +68,12 @@ class APIVersionMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         version_header = request.headers.get("OpenAI-Beta")
         if version_header is None or version_header == "assistants=v1":
-            logger.info(f"scope before call_next {request.scope}")
             response = await call_next(request)
             return response
         if version_header == "assistants=v2":
             request.scope['path'] = request.scope['path'].replace("v1", "v2")
             if 'raw_path' in request.scope:
                 request.scope['raw_path'] = request.scope['raw_path'].replace(b'v1', b'v2')
-            logger.info(f"scope before call_next {request.scope}")
             try:
                 response = await call_next(request)
                 return response
