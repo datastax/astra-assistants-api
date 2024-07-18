@@ -448,7 +448,7 @@ jobs:
       - name: Install dependencies with specific client version
         working-directory: ./client
         run: |
-          poetry add openai@1.20.0 streaming-assistants@0.15.10
+          poetry add openai@1.20.0 streaming-assistants@0.15.11
       - name: get server dependencies
         run: |
           poetry install
@@ -507,7 +507,7 @@ jobs:
       - name: Install dependencies with specific client version
         working-directory: ./client
         run: |
-          poetry add openai@1.20.0 streaming-assistants@0.15.10
+          poetry add openai@1.20.0 streaming-assistants@0.15.11
       - name: get server dependencies
         run: |
           poetry install
@@ -566,7 +566,7 @@ jobs:
       - name: Install dependencies with specific client version
         working-directory: ./client
         run: |
-          poetry add openai@1.20.0 streaming-assistants@0.15.10
+          poetry add openai@1.20.0 streaming-assistants@0.15.11
       - name: get server dependencies
         run: |
           poetry install
@@ -625,7 +625,7 @@ jobs:
       - name: Install dependencies with specific client version
         working-directory: ./client
         run: |
-          poetry add openai@1.20.0 streaming-assistants@0.15.10
+          poetry add openai@1.20.0 streaming-assistants@0.15.11
       - name: get server dependencies
         run: |
           poetry install
@@ -684,7 +684,7 @@ jobs:
       - name: Install dependencies with specific client version
         working-directory: ./client
         run: |
-          poetry add openai@1.20.0 streaming-assistants@0.15.10
+          poetry add openai@1.20.0 streaming-assistants@0.15.11
       - name: get server dependencies
         run: |
           poetry install
@@ -743,7 +743,7 @@ jobs:
       - name: Install dependencies with specific client version
         working-directory: ./client
         run: |
-          poetry add openai@1.20.0 streaming-assistants@0.15.10
+          poetry add openai@1.20.0 streaming-assistants@0.15.11
       - name: get server dependencies
         run: |
           poetry install
@@ -803,7 +803,7 @@ jobs:
       - name: Install dependencies with specific client version
         working-directory: ./client
         run: |
-          poetry add openai@1.20.0 streaming-assistants@0.15.10
+          poetry add openai@1.20.0 streaming-assistants@0.15.11
       - name: get server dependencies
         run: |
           poetry install
@@ -863,7 +863,7 @@ jobs:
       - name: Install dependencies with specific client version
         working-directory: ./client
         run: |
-          poetry add openai@1.20.0 streaming-assistants@0.15.10
+          poetry add openai@1.20.0 streaming-assistants@0.15.11
       - name: get server dependencies
         run: |
           poetry install
