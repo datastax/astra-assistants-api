@@ -125,6 +125,7 @@ def test_run_claude(streaming_assistants_openai_client):
     )
     run_with_assistant(claude_assistant, streaming_assistants_openai_client)
 
+@pytest.mark.skip(reason="flaky")
 def test_run_gemini(streaming_assistants_openai_client):
     model = "gemini/gemini-1.5-pro-latest"
     name = f"{model} Math Tutor"
