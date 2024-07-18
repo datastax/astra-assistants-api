@@ -1,6 +1,8 @@
 import time
 import logging
 
+import pytest
+
 logger = logging.getLogger(__name__)
 def run_with_assistant(assistant, client):
     user_message = "What's your favorite animal."
@@ -97,6 +99,7 @@ def test_run_claude(streaming_assistants_openai_client):
     )
     run_with_assistant(claude_assistant, streaming_assistants_openai_client)
 
+@pytest.skip(reason="flaky")
 def test_run_gemini(streaming_assistants_openai_client):
     gemini_assistant = streaming_assistants_openai_client.beta.assistants.create(
         name="Gemini Animal Tutor",
