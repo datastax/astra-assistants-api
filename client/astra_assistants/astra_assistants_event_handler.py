@@ -24,8 +24,6 @@ class AstraEventHandler(AssistantEventHandler):
     def on_tool_call_done(self, tool_call):
         self.logger.info(tool_call)
         self.logger.info(f'arguments: {tool_call.function.arguments}')
-        self.tool_call_results = self.run_tool(tool_call)
-
         try:
             self.tool_call_results = self.run_tool(tool_call)
         except Exception as e:
