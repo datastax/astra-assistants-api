@@ -17,7 +17,7 @@ Supports dozens of third party LLM providers (or even local models) for both com
 
 You can use our hosted Astra Assistants service, or host the open source API server yourself.
 
-## Client Getting Started
+## Client Getting Started [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/https://colab.research.google.com/gist/phact/a80dc113dd637ba4c4193415e69198c6/assistants_api_overview_python.ipynb)
 
 To build an app that uses the Astra Asistants service install the [astra-assistants](https://pypi.org/project/astra-assistants/) python library with your favorite package manager. The code for astra-assistants can be found under (clients/)[./clients/]:
 
