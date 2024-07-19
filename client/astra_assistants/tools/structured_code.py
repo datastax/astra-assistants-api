@@ -12,8 +12,8 @@ class StructuredEdit(BaseModel):
         ...,
         description="List of strings representing each line of code. Required for insert and replace edits"
     )
-    location_start: Optional[int] = Field(None, description="Index of the line where the edit starts")
-    location_end: Optional[int] = Field(None, description="Index of the line where the edit ends")
+    location_start: int = Field(None, description="Index of the line where the edit starts")
+    location_end: Optional[int] = Field(None, description="Index of the line where the edit ends, always required for replace and delete, not required for insert")
     mode: Optional[Literal['insert', 'delete', 'replace']] = Field(
         None,
         description="Type of edit being made (must be insert, delete, or replace)"

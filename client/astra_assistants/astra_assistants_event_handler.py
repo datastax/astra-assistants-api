@@ -15,6 +15,7 @@ class AstraEventHandler(AssistantEventHandler):
         self.tool_output = ToolOutput
         self.tool_call_results = None
         self.stream = None
+        self.error = None
 
     def register_tool(self, tool):
         self.tools[tool.to_function()['function']['name']] = tool
@@ -24,6 +25,12 @@ class AstraEventHandler(AssistantEventHandler):
         self.logger.info(tool_call)
         self.logger.info(f'arguments: {tool_call.function.arguments}')
         self.tool_call_results = self.run_tool(tool_call)
+
+        try:
+            self.tool_call_results = self.run_tool(tool_call)
+        except Exception as e:
+            self.error = e
+
         if not isinstance(self.tool_call_results, str) and self.tool_call_results is not None:
             tool_call_results_string = self.tool_call_results["output"].to_string()
         else:
