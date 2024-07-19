@@ -855,7 +855,11 @@ async def create_run(
         else:
             litellm_kwargs[0]["tool_choice"] = "auto"
         message_content = summarize_message_content(instructions, messages.data, False)
-        message = await get_chat_completion(messages=message_content, model=model, **litellm_kwargs[0])
+        try:
+            message = await get_chat_completion(messages=message_content, model=model, **litellm_kwargs[0])
+        except Exception as e:
+            logger.error(f"error: {e}, tenant {astradb.dbid}, model {model}, messages.data {messages.data}, create_run_request {create_run_request}")
+            raise HTTPException(status_code=500, detail=f"Error processing message, {e}")
 
         tool_call_object_id = generate_id("call")
         run_tool_calls = []
