@@ -36,4 +36,3 @@ jobs:
           push: true
           tags: |
             datastax/astra-assistants:${{ env.VERSION }}
-            #datastax/astra-assistants:latest
