@@ -753,6 +753,9 @@ async def create_run(
     if instructions is None:
         instructions = assistant.instructions
 
+    if create_run_request.additional_instructions is not None:
+        instructions = instructions + "\n Additional Instructions:\n" + create_run_request.additional_instructions
+
     toolsJson = []
     if len(tools) == 0:
 
