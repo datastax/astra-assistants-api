@@ -10,7 +10,7 @@ class StructuredEdit(BaseModel):
     program_id: str = Field(..., description="ID of the program being edited")
     lines: Optional[List[str]] = Field(
         ...,
-        description="List of strings representing each line of code for the modification (not the entire file). Required for insert and replace edits"
+        description="List of strings representing each line of code for the modification (not the entire file). Required for insert and replace edits. ALWAYS PRESERVE INDENTATION, i.e. ['    print('puppies')'] instead of ['print('puppies')'] when replacing inside an indented block."
     )
     start_index: int = Field(None, description="Index of the line where the edit starts. ALWAYS requried")
     end_index: Optional[int] = Field(None, description="Index of the line where the edit ends (indexes are inclusive, i.e. start_index 1 end_index 1 will delete/replace 1 line, start_index 1 end_index 2 will delete/replace two lines), always required for replace and delete, not required for insert")
@@ -72,15 +72,16 @@ class StructuredCodeEditor(ToolInterface):
         print("initialized")
 
     def call(self, edit: StructuredEdit):
-        print(edit)
         try:
-            program = None
+            program : StructuredProgram = None
             for pair in self.program_cache:
                 if pair['program_id'] == edit.program_id:
                     program = pair['output'].copy()
                     break
             if not program:
                 return f"Program id {edit.program_id} not found"
+            print(f"program before edit: \n{program.to_string()}")
+            print(f"edit: {edit}")
             if edit.mode == 'insert':
                 i = 0
                 for line in edit.lines:
@@ -92,10 +93,8 @@ class StructuredCodeEditor(ToolInterface):
                 else:
                     del program.lines_of_code[edit.start_index]
             if edit.mode == 'replace':
-                program.lines_of_code[edit.start_index:edit.end_index] = edit.lines
-            #program_info = {'program_id': str(uuid1()), 'output': program}
-            #self.program_cache.append(program_info)
-            #return program_info
+                program.lines_of_code[edit.start_index-1:edit.end_index] = edit.lines
+            print(f"program after edit: \n{program.to_string()}")
             return {'program_id': edit.program_id, 'output': program}
         except Exception as e:
             print(f"Error: {e}")

@@ -18,6 +18,7 @@ class AssistantManager:
         self.instructions = instructions
         self.tools = tools
         self.name = name
+        self.additional_instructions = None
 
         self.assistant = self.create_assistant()
 
@@ -79,6 +80,7 @@ class AssistantManager:
                     assistant_id=assistant.id,
                     event_handler=event_handler,
                     tool_choice=tool.tool_choice_object(),
+                    additional_instructions=self.additional_instructions
             ) as stream:
                 for part in stream:
                     pass
@@ -88,6 +90,7 @@ class AssistantManager:
                     text += part
 
                 tool_call_results = event_handler.tool_call_results
+
                 if not isinstance(tool_call_results, str) and tool_call_results is not None:
                     tool_call_results['text'] = text
                     tool_call_results['error'] = event_handler.error
