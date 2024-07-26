@@ -78,6 +78,7 @@ class APIVersionMiddleware(BaseHTTPMiddleware):
                 response = await call_next(request)
                 return response
             except Exception as e:
+                logger.error(f"Error: {e} {request.json()}")
                 print(e)
                 raise e
 
