@@ -5,7 +5,7 @@ import time
 import pytest
 import requests
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import OpenAI, AsyncOpenAI
 from astra_assistants import patch
 
 load_dotenv("./../../.env")
@@ -53,4 +53,10 @@ def wait_for_server():
 def patched_openai_client(wait_for_server) -> OpenAI:
     oai = patch(OpenAI())
     #oai = OpenAI()
+    return oai
+
+@pytest.fixture(scope="function")
+def async_patched_openai_client(wait_for_server) -> OpenAI:
+    oai = patch(AsyncOpenAI())
+    #oai = AsyncOpenAI()
     return oai

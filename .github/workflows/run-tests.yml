@@ -1049,6 +1049,64 @@ jobs:
           # Kill the server
           kill $SERVER_PID
 
+
+  run-astra-assistants-tests-streaming-run-function_calling_async_v2:
+    runs-on: ubuntu-latest
+    name: run astra-assistants v2 streaming run function calling async tests
+    env:
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Set up Python 3.11.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11.8'
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+      - name: Check Poetry Version
+        run: poetry --version
+      - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
+        run: poetry env use python3.10
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: get server dependencies
+        run: |
+          poetry install
+      - name: run tests
+        run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
+          poetry run pytest -s --disable-warnings tests/astra-assistants/test_streaming_run_function_calling_async_v2.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
+
+
   run-astra-assistants-tests-streaming_run_v2:
     runs-on: ubuntu-latest
     name: run astra-assistants v2 streaming run tests
@@ -1154,6 +1212,62 @@ jobs:
           # Run the client tests that depend on the server
           pushd client
           poetry run pytest -s --disable-warnings tests/astra-assistants/test_streaming_run_retrieval_v2.py
+          popd
+          
+          # Kill the server
+          kill $SERVER_PID
+
+
+  run-astra-assistants-tests-streaming_run_retrieval_async_v2:
+    runs-on: ubuntu-latest
+    name: run astra-assistants v2 streaming run retrieval async tests
+    env:
+      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      base_url: ${{ secrets.BASE_URL }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERPLEXITYAI_API_KEY: ${{ secrets.PERPLEXITYAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Set up Python 3.11.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11.8'
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+      - name: Check Poetry Version
+        run: poetry --version
+      - name: Configure Poetry to Use Python 3.11.8
+        working-directory: ./client
+        run: poetry env use python3.10
+      - name: get client dependencies
+        working-directory: ./client
+        run: |
+          poetry install
+      - name: get server dependencies
+        run: |
+          poetry install
+      - name: run tests
+        run: |
+          # Start the server in the background
+          poetry run python run.py &
+          SERVER_PID=$!
+          
+          # Wait for the server to be ready
+          sleep 10
+          
+          # Run the client tests that depend on the server
+          pushd client
+          poetry run pytest -s --disable-warnings tests/astra-assistants/test_streaming_run_retrieval_async_v2.py
           popd
           
           # Kill the server
