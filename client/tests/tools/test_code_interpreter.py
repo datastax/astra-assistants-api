@@ -6,8 +6,10 @@ from astra_assistants.tools.astra_data_api import AstraDataAPITool
 
 import pytest
 import logging
+import os
 
 from astra_assistants.tools.e2b_code_interpreter import E2BCodeInterpreter
+from astra_assistants.tools.async_e2b_code_interpreter import AsyncE2BCodeInterpreter
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +40,6 @@ def test_code_interpreter(patched_openai_client):
     event_handler = AstraEventHandler(patched_openai_client)
     event_handler.register_tool(code_interpreter_tool)
 
-
     thread = patched_openai_client.beta.threads.create()
 
     patched_openai_client.beta.threads.messages.create(thread.id, content="what's 2^6 + 16", role="user")
@@ -58,7 +59,7 @@ def test_code_interpreter(patched_openai_client):
 
 @pytest.mark.asyncio
 async def test_code_interpreter_with_helper(patched_openai_client):
-    code_interpreter_tool = E2BCodeInterpreter()
+    code_interpreter_tool = await AsyncE2BCodeInterpreter.create()
 
     tools = [code_interpreter_tool]
 

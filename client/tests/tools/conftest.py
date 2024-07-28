@@ -11,6 +11,7 @@ from astra_assistants import patch
 load_dotenv("./../../.env")
 load_dotenv("./.env")
 
+
 os.environ["OPENAI_LOG"] = "WARN"
 
 

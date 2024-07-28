@@ -21,7 +21,7 @@ pytest-asyncio = "^0.23.7"
 
 [tool.poetry.group.optional.dependencies]
 astrapy = "^1.2.1"
-e2b-code-interpreter = "^0.0.9"
+e2b-code-interpreter = "0.0.11a21"
 
 [build-system]
 requires = ["poetry-core"]
