@@ -1,10 +1,11 @@
 import json
+import traceback
 
 import pytest
 import logging
 import time
 
-from openai.lib.streaming import AssistantEventHandler
+from openai.lib.streaming import AsyncAssistantEventHandler
 from typing_extensions import override
 
 logger = logging.getLogger(__name__)
@@ -64,11 +65,18 @@ async def run_with_assistant(assistant, client):
     )
     logger.info(f"> {user_message}")
 
-    class EventHandler(AssistantEventHandler):
+    class EventHandler(AsyncAssistantEventHandler):
         def __init__(self):
             super().__init__()
             self.on_text_created_count = 0
             self.on_text_delta_count = 0
+
+        @override
+        async def on_exception(self, exception: Exception):
+            logger.error(exception)
+            trace = traceback.format_exc()
+            logger.error(trace)
+            raise exception
 
         @override
         def on_run_step_done(self, run_step) -> None:
@@ -94,16 +102,22 @@ async def run_with_assistant(assistant, client):
     event_handler = EventHandler()
 
     logger.info(f"creating run")
-    async with client.beta.threads.runs.create_and_stream(
-            thread_id=thread.id,
-            assistant_id=assistant.id,
-            event_handler=event_handler,
-    ) as stream:
-        for part in stream:
-            print(part)
+    try:
+        async with client.beta.threads.runs.create_and_stream(
+                thread_id=thread.id,
+                assistant_id=assistant.id,
+                event_handler=event_handler,
+        ) as stream:
+            async for part in stream:
+                print(part)
 
-    assert event_handler.on_text_created_count > 0, "No text created"
-    assert event_handler.on_text_delta_count > 0, "No text delta"
+        assert event_handler.on_text_created_count > 0, "No text created"
+        assert event_handler.on_text_delta_count > 0, "No text delta"
+    except Exception as e:
+        print(e)
+        tcb = traceback.format_exc()
+        print(tcb)
+        raise e
 
 
 instructions = "You are a personal math tutor. Answer thoroughly. The system will provide relevant context from files, use the context to respond."
@@ -118,4 +132,4 @@ async def test_run_gpt_4o_mini(async_patched_openai_client):
         instructions=instructions,
         model=model,
     )
-    run_with_assistant(gpt3_assistant, async_patched_openai_client)
+    await run_with_assistant(gpt3_assistant, async_patched_openai_client)

@@ -3,6 +3,7 @@ import inspect
 import os
 import io
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from functools import wraps
 from types import MethodType
 from typing import Callable, Literal, Union, Dict, List
@@ -209,18 +210,26 @@ def wrap_create(original_create, client, client_is_async):
     else:
         return sync_create(original_create,  client)
 
+
 class AsyncHelper:
     def __init__(self):
-        self._local = threading.local()
-
-    def _get_or_create_event_loop(self):
-        if not hasattr(self._local, 'loop'):
-            self._local.loop = asyncio.new_event_loop()
-        return self._local.loop
+        self.executor = ThreadPoolExecutor()
 
     def run_async(self, coro):
-        loop = self._get_or_create_event_loop()
-        return loop.run_until_complete(coro)
+        try:
+            loop = asyncio.get_running_loop()
+            if loop.is_running():
+                # Run the coroutine in a separate thread if an event loop is already running
+                future = self.executor.submit(asyncio.run, coro)
+                return future.result()
+            else:
+                # Run the coroutine in the existing event loop
+                return loop.run_until_complete(coro)
+        except RuntimeError:
+            # No running event loop, create a new one
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            return loop.run_until_complete(coro)
 
 def sync_create_async_client(original_create, client):
     async_helper = AsyncHelper()
@@ -247,7 +256,7 @@ def sync_create_async_client(original_create, client):
             ):
                 # TODO figure out how to get the model from the tool resources
                 vector_store_id = assistant.tool_resources.file_search.vector_store_ids[0]
-                vs_files = async_helper.run_async(client.beta.vector_stores.files.list(vector_store_id=vector_store_id).data)
+                vs_files = async_helper.run_async(client.beta.vector_stores.files.list(vector_store_id=vector_store_id)).data
                 if len(vs_files) > 0:
                     # use the first file
                     vs_file: VectorStoreFile= vs_files[0]
