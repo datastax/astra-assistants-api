@@ -106,7 +106,7 @@ file2_path = "./tests/fixtures/language_models_are_unsupervised_multitask_learne
 embedding_model2 ="embed-english-light-v3.0"
 
 def test_run_gpt_4o_mini(patched_openai_client):
-    model = "gpt-4o_mini"
+    model = "gpt-4o-mini"
     name = f"{model} Math Tutor"
 
     gpt3_assistant = patched_openai_client.beta.assistants.create(
