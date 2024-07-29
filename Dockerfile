@@ -36,4 +36,4 @@ COPY ./tests ./tests
 ENV PROMETHEUS_MULTIPROC_DIR=/tmp
 
 # Specify the command to run your application
-CMD ["poetry", "run", "gunicorn", "-w", "8", "-k", "uvicorn.workers.UvicornWorker", "-b","0.0.0.0:8000","impl.main:app"]
+CMD ["poetry", "run", "uvicorn", "impl.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--timeout-keep-alive", "600"]
