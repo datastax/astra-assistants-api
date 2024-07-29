@@ -12,8 +12,8 @@ def test_function_calling_gpt_4o(streaming_assistants_openai_client):
     model="gpt-4o"
     function_calling(model, streaming_assistants_openai_client)
 
-def test_function_calling_gpt_3_5(streaming_assistants_openai_client):
-    model="gpt-3.5-turbo"
+def test_function_calling_gpt_4o_mini(streaming_assistants_openai_client):
+    model="gpt-4o-mini"
     function_calling(model, streaming_assistants_openai_client)
 
 def test_function_calling_cohere(streaming_assistants_openai_client):

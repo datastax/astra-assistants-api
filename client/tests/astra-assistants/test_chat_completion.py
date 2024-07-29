@@ -74,8 +74,8 @@ def test_chat_completion_gpt4(patched_openai_client):
     model="gpt-4-1106-preview"
     print_chat_completion(model, patched_openai_client)
 
-def test_chat_completion_gpt3_5(patched_openai_client):
-    model="gpt-3.5-turbo"
+def test_chat_completion_gpt_4o_mini(patched_openai_client):
+    model="gpt-4o-mini"
     print_chat_completion(model, patched_openai_client)
 
 def test_chat_completion_groq_llama3(patched_openai_client):

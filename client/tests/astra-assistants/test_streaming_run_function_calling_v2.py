@@ -11,8 +11,8 @@ def test_function_calling_gpt_4o(patched_openai_client):
     model="gpt-4o"
     function_calling(model, patched_openai_client)
 
-def test_function_calling_gpt_3_5(patched_openai_client):
-    model="gpt-3.5-turbo"
+def test_function_calling_gpt_4o_mini(patched_openai_client):
+    model="gpt-4o-mini"
     function_calling(model, patched_openai_client)
 
 def test_function_calling_cohere(patched_openai_client):

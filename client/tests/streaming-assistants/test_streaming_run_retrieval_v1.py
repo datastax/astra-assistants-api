@@ -80,8 +80,8 @@ def run_with_assistant(assistant, client):
 
 instructions = "You are a personal math tutor. Answer thoroughly. The system will provide relevant context from files, use the context to respond."
 
-def test_run_gpt3_5(streaming_assistants_openai_client):
-    model = "gpt-3.5-turbo"
+def test_run_gpt_4o_mini(streaming_assistants_openai_client):
+    model = "gpt-4o-mini"
     name = f"{model} Math Tutor"
 
     gpt3_assistant = streaming_assistants_openai_client.beta.assistants.create(

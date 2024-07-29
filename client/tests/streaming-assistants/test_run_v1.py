@@ -55,11 +55,11 @@ def run_with_assistant(assistant, client):
 
 
 instructions="You're an animal expert who gives very long winded answers with flowery prose. Keep answers below 3 sentences."
-def test_run_gpt3_5(streaming_assistants_openai_client):
+def test_run_gpt_4o_mini(streaming_assistants_openai_client):
     gpt3_assistant = streaming_assistants_openai_client.beta.assistants.create(
         name="GPT3 Animal Tutor",
         instructions=instructions,
-        model="gpt-3.5-turbo",
+        model="gpt-4o-mini",
     )
 
     assistant = streaming_assistants_openai_client.beta.assistants.retrieve(gpt3_assistant.id)

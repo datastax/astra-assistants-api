@@ -105,8 +105,8 @@ embedding_model1 ="text-embedding-3-large"
 file2_path = "./tests/fixtures/language_models_are_unsupervised_multitask_learners_2.pdf"
 embedding_model2 ="embed-english-light-v3.0"
 
-def test_run_gpt3_5(patched_openai_client):
-    model = "gpt-3.5-turbo"
+def test_run_gpt_4o_mini(patched_openai_client):
+    model = "gpt-4o_mini"
     name = f"{model} Math Tutor"
 
     gpt3_assistant = patched_openai_client.beta.assistants.create(
