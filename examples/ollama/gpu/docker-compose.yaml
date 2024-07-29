@@ -21,7 +21,7 @@ services:
   assistants:
     image: datastax/astra-assistants
     ports:
-      - "8080:8000"
+      - "8000:8000"
     networks:
       - my_network
     depends_on:
