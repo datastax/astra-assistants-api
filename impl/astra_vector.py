@@ -87,35 +87,6 @@ class AstraVectorDataStore:
         await self.client.async_setup()
         return self.client
 
-    async def delete(
-            self,
-            ids: Optional[List[str]] = None,
-            filter: Optional[DocumentMetadataFilter] = None,
-            delete_all: Optional[bool] = None,
-    ) -> bool:
-        """
-        Removes vectors by ids, filter, or everything in the datastore.
-        Multiple parameters can be used at once.
-        Returns whether the operation was successful.
-        """
-        if delete_all:
-            try:
-                await self.client._delete("documents", delete_all)
-            except:
-                return False
-        elif ids:
-            try:
-                await self.client._delete_in("documents", "document_id", ids)
-            except:
-                return False
-        elif filter:
-            raise NotImplementedError
-            # try:
-            #    await self.client._delete_by_filters("documents", filter)
-            # except:
-            #    return False
-        return True
-
     async def setupSession(self, token, dbid):
         self.dbid = dbid
         self.client = await self.create_db_client(token, dbid)
@@ -1657,7 +1628,7 @@ class CassandraClient:
 
     def upsert_chunks_concurrently(self, statements_and_params: [SimpleStatement]):
         results = execute_concurrent(
-            self.session, statements_and_params, concurrency=100)
+            self.session, statements_and_params, concurrency=100, results_generator=True)
 
         for (success, result) in results:
             if not success:
@@ -1719,62 +1690,9 @@ class CassandraClient:
         statement.consistency_level = ConsistencyLevel.QUORUM
         return statement
 
-    async def _delete_by_filters(self, table: str, filter: DocumentMetadataFilter):
-        """
-        Deletes rows in the table that match the filter.
-        """
-
-        filters = "WHERE"
-        if filter.document_id:
-            filters += f" document_id = '{filter.document_id}' AND"
-        if filter.source:
-            filters += f" source = '{filter.source}' AND"
-        if filter.source_id:
-            filters += f" source_id = '{filter.source_id}' AND"
-        if filter.author:
-            filters += f" author = '{filter.author}' AND"
-        if filter.start_date:
-            filters += f" created_at >= '{filter.start_date}' AND"
-        if filter.end_date:
-            filters += f" created_at <= '{filter.end_date}' AND"
-        filters = filters[:-4]
-        self.session.execute(f"DELETE FROM {table} {filters}")
-
-    async def _delete(self, table, delete_all):
-        if delete_all:
-            self.session.execute(f"TRUNCATE TABLE {CASSANDRA_KEYSPACE}.{table}")
-        else:
-            raise NotImplementedError
 
     def truncate_table(self, table) -> None:
         self.session.execute(f"TRUNCATE TABLE {CASSANDRA_KEYSPACE}.{table}")
-
-    async def _delete_in(self, table: str, column: str, doc_ids: List[str]):
-        """
-        Deletes rows in the table that match the ids.
-        """
-        try:
-            query = (
-                f"SELECT id FROM {CASSANDRA_KEYSPACE}.{table} WHERE {column} IN (%s)"
-            )
-            statement = SimpleStatement(
-                query, consistency_level=ConsistencyLevel.QUORUM
-            )
-            parameters = ValueSequence(doc_ids)
-            rows = self.session.execute(statement, parameters)
-
-            ids = ValueSequence([row.id for row in rows])
-
-            if len(ids) == 0:
-                logger.info(f"DocIds not found : {doc_ids}")
-                return
-
-            self.session.execute(
-                f"DELETE FROM {CASSANDRA_KEYSPACE}.{table} WHERE id IN (%s)", ids
-            )
-        except Exception as e:
-            logger.warning(f"Exception deleting from table: {e}")
-            raise
 
     async def get_tables_async(self, keyspace):
         return self.get_tables(keyspace)
