@@ -79,7 +79,7 @@ async def run_with_assistant(assistant, client):
             raise exception
 
         @override
-        def on_run_step_done(self, run_step) -> None:
+        async def on_run_step_done(self, run_step) -> None:
             print("file_search")
             matches = []
             for tool_call in run_step.step_details.tool_calls:
@@ -88,13 +88,13 @@ async def run_with_assistant(assistant, client):
             assert len(matches) > 0, "No matches found"
 
         @override
-        def on_text_created(self, text) -> None:
+        async def on_text_created(self, text) -> None:
             # Increment the counter each time the method is called
             self.on_text_created_count += 1
             print(f"\nassistant > {text}", end="", flush=True)
 
         @override
-        def on_text_delta(self, delta, snapshot):
+        async def on_text_delta(self, delta, snapshot):
             # Increment the counter each time the method is called
             self.on_text_delta_count += 1
             print(delta.value, end="", flush=True)
