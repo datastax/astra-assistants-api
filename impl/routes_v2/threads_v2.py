@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 from datetime import datetime
 import json
 import logging
@@ -1251,6 +1252,7 @@ async def process_rag(
         logger.info(f"processed rag for run_id {run_id} thread_id {thread_id}")
     except Exception as e:
         await update_run_status(thread_id=thread_id, id=run_id, status="failed", astradb=astradb)
+        logger.error(traceback.format_exc())
         logger.error(e)
         raise e
     except asyncio.CancelledError:
