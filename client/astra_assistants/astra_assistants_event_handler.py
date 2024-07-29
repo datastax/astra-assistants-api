@@ -1,5 +1,7 @@
 import json
 import logging
+import traceback
+
 from openai.lib.streaming import AssistantEventHandler
 from openai.types.beta.threads.run_submit_tool_outputs_params import ToolOutput
 from typing_extensions import override
@@ -59,6 +61,7 @@ class AstraEventHandler(AssistantEventHandler):
                 return results
             except Exception as e:
                 self.logger.error(f"Error running tool {tool_name}: {e}")
+                self.logger.error(traceback.format_exc())
                 raise e
         else:
             self.logger.error(f"Tool {tool_name} not found.")
