@@ -496,7 +496,7 @@ def add_astra_header(client):
     client._custom_headers["astra-api-token"] = ASTRA_DB_APPLICATION_TOKEN
 
 
-def wrap_method(original_method, client, is_async):
+def wrap_method(original_method, client, is_async, client_is_async):
     @wraps(original_method)
     def patched_method(self, *args, **kwargs):
 
@@ -509,11 +509,9 @@ def wrap_method(original_method, client, is_async):
 
         add_astra_header(client)
 
-        result = None
-        if inspect.iscoroutinefunction(original_method):
-            result = await original_method(self, *args, **kwargs)
-        else:
-            result = original_method(self, *args, **kwargs)
+        result = original_method(self, *args, **kwargs)
+        if inspect.iscoroutine(result):
+            return await result
         return result
 
     if is_async:
@@ -533,7 +531,7 @@ def wrap_file_create_method(original_method, client):
     return patched_method
 
 
-def patch_methods(obj, client, visited=None):
+def patch_methods(obj, client, client_is_async, visited=None):
     """
     Recursively patch methods of an object to modify `client.default_headers` before calling.
     """
@@ -554,13 +552,12 @@ def patch_methods(obj, client, visited=None):
         # Patch methods
         if isinstance(attr, MethodType):
             original_method = attr.__func__
-            #patched_method = wrap_method(original_method, client, is_async)
-            patched_method = wrap_method(original_method, client, func_is_async(original_method))
+            patched_method = wrap_method(original_method, client, func_is_async(original_method), client_is_async)
             setattr(obj, attr_name, MethodType(patched_method, obj))
             visited.add(obj)
         # Recursively patch nested objects, excluding known non-object types
         elif hasattr(attr, "__dict__") and not isinstance(attr, (str, int, float, list, dict, set, tuple)):
-            patch_methods(attr, client, visited)
+            patch_methods(attr, client, client_is_async, visited)
 
 
 def enhance_copy_method(original_copy):
@@ -587,9 +584,9 @@ def patch(client: Union[OpenAI, AsyncOpenAI]):
     else:
         raise Exception(f"Unknown client type: {type(client)}")
     # for astra headers (all beta endpoints)
-    patch_methods(client.beta, client)
+    patch_methods(client.beta, client, client_is_async)
     # for astra headers (file endpoints (not beta))
-    patch_methods(client.files, client)
+    patch_methods(client.files, client, client_is_async)
 
     # for model api_key derivation
     methods_to_wrap_with_model_arg = [

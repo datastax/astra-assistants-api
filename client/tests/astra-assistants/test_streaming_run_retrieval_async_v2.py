@@ -113,6 +113,30 @@ async def run_with_assistant(assistant, client):
 
         assert event_handler.on_text_created_count > 0, "No text created"
         assert event_handler.on_text_delta_count > 0, "No text delta"
+        run_id = event_handler.current_run.id
+        run = await client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run_id)
+        print(run)
+        user_message = "Thanks, what's 1 + 1. Be terse."
+        logger.info("creating persistent thread and message")
+        thread = await client.beta.threads.create()
+        await client.beta.threads.messages.create(
+            thread_id=thread.id, role="user", content=user_message
+        )
+
+        run = await client.beta.threads.runs.create(
+            thread_id=thread.id,
+            assistant_id=assistant.id,
+        )
+        run_id = run.id
+
+        while True:
+            run = await client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run_id)
+            if run.status == "completed":
+                break
+            time.sleep(0.5)
+
+        assert run.status == "completed", "Run should be complete"
+
     except Exception as e:
         print(e)
         tcb = traceback.format_exc()
