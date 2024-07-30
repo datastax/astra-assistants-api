@@ -186,13 +186,13 @@ test = ["dateparser (==1.*)", "pre-commit", "pytest", "pytest-cov", "pytest-mock
 
 [[package]]
 name = "astra-assistants"
-version = "2.0.17"
+version = "2.0.18"
 description = "Astra Assistants API - drop in replacement for OpenAI Assistants, powered by AstraDB"
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "astra_assistants-2.0.17-py3-none-any.whl", hash = "sha256:42762bfcc08421e3e12f0a790db23f0da04fc6900dacf6a9f90cc35613178f43"},
-    {file = "astra_assistants-2.0.17.tar.gz", hash = "sha256:10fe13c5dd71848dfcf567efd692e47ac268e1eab9f564db027ecb1fa10cd855"},
+    {file = "astra_assistants-2.0.18-py3-none-any.whl", hash = "sha256:6976f26ca5f8f23b3abf80f6d35816939438a5d31b94bd59950b796e1b78b493"},
+    {file = "astra_assistants-2.0.18.tar.gz", hash = "sha256:39304fbd0e4fb6694dba1d14a92924e37603453c54e3c2b8b6376d9132a5d9a3"},
 ]
 
 [package.dependencies]
@@ -3708,4 +3708,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10.12,<3.12"
-content-hash = "53f861e82a38e792144442cd58dc27d31ee0b6151c34cf67bb73ab2c0479b4e5"
+content-hash = "dec28fa870f77864efdc6f61d83a32b8992b6baf697c98c750f8515e781e9d63"
