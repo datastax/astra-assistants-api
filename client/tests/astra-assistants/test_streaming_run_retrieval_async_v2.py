@@ -127,9 +127,9 @@ async def test_run_gpt_4o_mini(async_patched_openai_client):
     model = "gpt-4o-mini"
     name = f"{model} Math Tutor"
 
-    gpt3_assistant = await async_patched_openai_client.beta.assistants.create(
+    gpt_4o_mini_assistant = await async_patched_openai_client.beta.assistants.create(
         name=name,
         instructions=instructions,
         model=model,
     )
-    await run_with_assistant(gpt3_assistant, async_patched_openai_client)
+    await run_with_assistant(gpt_4o_mini_assistant, async_patched_openai_client)
