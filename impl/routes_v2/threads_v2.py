@@ -869,7 +869,7 @@ async def create_run(
         run_tool_calls = []
         # TODO: fix this, we can't hang off message.content because it turns out you can have both a message and a tool call.
         #if message.content is None:
-        if hasattr(message, "tool_calls"):
+        if hasattr(message, "tool_calls") and message.tool_calls is not None:
             for tool_call in message.tool_calls:
                 tool_call_object_function = RunToolCallObjectFunction(name=tool_call.function.name, arguments=tool_call.function.arguments)
                 run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=tool_call_object_function))
