@@ -231,6 +231,10 @@ class AsyncHelper:
             asyncio.set_event_loop(loop)
             return loop.run_until_complete(coro)
 
+async def fetch_first_page(paginator):
+    async for page in paginator:
+        return page
+
 def sync_create_async_client(original_create, client):
     async_helper = AsyncHelper()
     @wraps(original_create)
@@ -256,10 +260,10 @@ def sync_create_async_client(original_create, client):
             ):
                 # TODO figure out how to get the model from the tool resources
                 vector_store_id = assistant.tool_resources.file_search.vector_store_ids[0]
-                vs_files = async_helper.run_async(client.beta.vector_stores.files.list(vector_store_id=vector_store_id)).data
-                if len(vs_files) > 0:
+                file_list_paginator = client.beta.vector_stores.files.list(vector_store_id=vector_store_id)
+                vs_file = async_helper.run_async(fetch_first_page(file_list_paginator))
+                if vs_file is not None:
                     # use the first file
-                    vs_file: VectorStoreFile= vs_files[0]
                     file: FileObject = async_helper.run_async(client.files.retrieve(vs_file.id))
                     if file.embedding_model is not None:
                         embedding_model = file.embedding_model
