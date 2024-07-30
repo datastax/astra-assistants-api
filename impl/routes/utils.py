@@ -289,5 +289,6 @@ async def verify_db_client(
     request.state.dbid = client.dbid  # Store the dbid in the request state
 
     # log requests and dbids
-    logger.info(f"dbid: {astra_db_id}, request: {request}")
+    request_scope_no_headers = {key: value for key, value in request.scope.items() if key != 'headers'}
+    logger.info(f"dbid: {astra_db_id}, request: {request_scope_no_headers}")
     return client

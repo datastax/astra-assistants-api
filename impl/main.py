@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import os
+import sys
 from typing import Callable, Sequence, Union, Any
 
 import httpx
@@ -19,15 +21,45 @@ from impl.rate_limiter import limiter
 from impl.routes import stateless, assistants, files, health, threads
 from impl.routes_v2 import assistants_v2, threads_v2, vector_stores
 
-# Configure logging
+from loguru import logger
+
+cass_logger = logging.getLogger('cassandra')
+cass_logger.setLevel(logging.WARN)
+
+
+class InterceptHandler(logging.Handler):
+    def emit(self, record):
+        # Get corresponding Loguru level if it exists
+        try:
+            level = logger.level(record.levelname).name
+        except ValueError:
+            level = record.levelno
+
+        # Find caller from where originated the logged message
+        frame, depth = logging.currentframe(), 2
+        while frame.f_code.co_filename == logging.__file__:
+            frame = frame.f_back
+            depth += 1
+
+        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+
+
+logging.root.handlers = [InterceptHandler()]
+logging.root.setLevel("DEBUG")
+
+for name in logging.root.manager.loggerDict.keys():
+    logging.getLogger(name).handlers = []
+    logging.getLogger(name).propagate = True
+
+
+DISABLE_JSON_LOGGING = os.getenv('DISABLE_JSON_LOGGING', 'false').lower() == 'true'
+
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s (%(module)s:%(filename)s:%(lineno)d)',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
-logger = logging.getLogger('cassandra')
-logger.setLevel(logging.WARN)
-
-logger = logging.getLogger(__name__)
+if not DISABLE_JSON_LOGGING:
+    logger.configure(handlers=[{"sink": sys.stdout, "serialize": True}])
 
 
 app = FastAPI(
