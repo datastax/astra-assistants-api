@@ -148,12 +148,37 @@ instructions = "You are a personal math tutor. Answer thoroughly. The system wil
 
 @pytest.mark.asyncio
 async def test_run_gpt_4o_mini(async_patched_openai_client):
-    model = "gpt-4o-mini"
+    model="gpt-4o-mini"
+    #model="claude-3-haiku-20240307"
     name = f"{model} Math Tutor"
 
-    gpt_4o_mini_assistant = await async_patched_openai_client.beta.assistants.create(
-        name=name,
-        instructions=instructions,
-        model=model,
-    )
+    try:
+        gpt_4o_mini_assistant = await async_patched_openai_client.beta.assistants.create(
+            name=name,
+            instructions=instructions,
+            model=model,
+        )
+    except Exception as e:
+        print(e)
+        tcb = traceback.format_exc()
+        print(tcb)
+        raise e
     await run_with_assistant(gpt_4o_mini_assistant, async_patched_openai_client)
+
+@pytest.mark.asyncio
+async def test_run_claude_haiku(async_patched_openai_client):
+    model="claude-3-haiku-20240307"
+    name = f"{model} Math Tutor"
+
+    try:
+        claude_assistant = await async_patched_openai_client.beta.assistants.create(
+            name=name,
+            instructions=instructions,
+            model=model,
+        )
+    except Exception as e:
+        print(e)
+        tcb = traceback.format_exc()
+        print(tcb)
+        raise e
+    await run_with_assistant(claude_assistant, async_patched_openai_client)
