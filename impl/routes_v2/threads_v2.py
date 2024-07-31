@@ -1607,18 +1607,15 @@ async def submit_tool_ouputs_to_run(
                 astradb=astradb,
                 created_at=created_at
             )
-            try:
-                response = await get_async_chat_completion_response(
-                    messages=message_content,
-                    model=model,
-                    stream=True,
-                    **litellm_kwargs[0],
-                )
-                return StreamingResponse(message_delta_streamer(message_id, created_at, response, run, astradb),
-                                         media_type="text/event-stream")
-            except asyncio.CancelledError:
-                logger.error("process_rag cancelled")
-                raise RuntimeError("process_rag cancelled")
+            response = await get_async_chat_completion_response(
+                messages=message_content,
+                model=model,
+                stream=True,
+                **litellm_kwargs[0],
+            )
+            return StreamingResponse(message_delta_streamer(message_id, created_at, response, run, astradb),
+                                     media_type="text/event-stream")
+
     except Exception as e:
         logger.info(e)
         await update_run_status(thread_id=thread_id, id=run_id, status="failed", astradb=astradb)
