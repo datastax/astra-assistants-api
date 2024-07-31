@@ -214,6 +214,7 @@ async def test_run_two_same_provider(async_patched_openai_client):
 
     await asyncio.gather(run_1, run_2)
 
+#@pytest.mark.skip("Test fails for async and multiple providers")
 @pytest.mark.asyncio
 async def test_run_two_differnet_providers(async_patched_openai_client):
     model1="gpt-4o-mini"
@@ -251,6 +252,7 @@ async def test_run_two_differnet_providers_two_clients(async_patched_openai_clie
     name1= f"{model1} Math Tutor"
 
     model2="claude-3-haiku-20240307"
+    model2="groq/llama3-8b-8192"
     name2= f"{model2} Math Tutor"
 
     assistant_task_1 = async_patched_openai_client.beta.assistants.create(
