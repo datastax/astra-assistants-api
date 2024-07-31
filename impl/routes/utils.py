@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 from json import JSONDecodeError
@@ -10,12 +11,13 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, APIKeyHea
 from fastapi.security.utils import get_authorization_scheme_param
 import httpx
 from litellm import get_llm_provider, BadRequestError
-from loguru import logger
 from starlette.background import BackgroundTask
 from starlette.responses import StreamingResponse
 from typing_extensions import Annotated
 
 from impl.astra_vector import AstraVectorDataStore, CassandraClient
+
+logger = logging.getLogger(__name__)
 
 
 def verify_server_admin(api_key: str = Depends(APIKeyHeader(name="api-key"))) -> bool:
@@ -289,6 +291,17 @@ async def verify_db_client(
     request.state.dbid = client.dbid  # Store the dbid in the request state
 
     # log requests and dbids
-    request_scope_no_headers = {key: value for key, value in request.scope.items() if key != 'headers'}
-    logger.info(f"dbid: {astra_db_id}, request: {request_scope_no_headers}")
+    request_scope_limited_headers = {}
+
+    for key, value in request.scope.items():
+        if key == 'headers':
+            limited_headers = [
+                (header_key, header_value[:15].decode('utf-8') + '...' if len(header_value) > 10 else header_value.decode('utf-8'))
+                for header_key, header_value in value
+            ]
+            request_scope_limited_headers[key] = limited_headers
+        else:
+            request_scope_limited_headers[key] = value
+
+    logger.info(f"dbid: {request.state.dbid}, request: {request_scope_limited_headers}")
     return client

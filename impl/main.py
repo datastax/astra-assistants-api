@@ -26,7 +26,6 @@ from loguru import logger
 cass_logger = logging.getLogger('cassandra')
 cass_logger.setLevel(logging.WARN)
 
-
 class InterceptHandler(logging.Handler):
     def emit(self, record):
         # Get corresponding Loguru level if it exists
