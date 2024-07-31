@@ -51,13 +51,19 @@ async def list_assistants(
         ),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> ListAssistantsResponse:
-    assistants: [AssistantObject] = read_objects(
-        astradb=astradb,
-        target_class=AssistantObject,
-        table_name="assistants_v2",
-        partition_keys=[],
-        args={}
-    )
+    try:
+        assistants: [AssistantObject] = read_objects(
+            astradb=astradb,
+            target_class=AssistantObject,
+            table_name="assistants_v2",
+            partition_keys=[],
+            args={}
+        )
+    except Exception as e:
+        if e.status_code == 404:
+            return ListAssistantsResponse.construct(data=[], object="assistants", has_more=False)
+        else:
+            raise e
     first_id = assistants[0].id
     last_id = assistants[len(assistants) - 1].id
     assistants_response = ListAssistantsResponse(

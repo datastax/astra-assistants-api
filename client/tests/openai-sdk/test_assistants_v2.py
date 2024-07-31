@@ -33,7 +33,8 @@ def test_assistants_crud(openai_client):
             response_format=response_format,
         )
 
-        assistants = openai_client.beta.assistants.list().data
+        assistant_list = openai_client.beta.assistants.list()
+        assistants = assistant_list.data
         assert len(assistants) > 0
 
         assert asst.tools[0].type == tools[0]['type']

@@ -1384,6 +1384,7 @@ class CassandraClient:
                 statement,
                 tuple(values_list)
             )
+            logger.debug(f"upserted {table_name}: {obj}")
         except Exception as e:
             logger.error(f"failed to upsert {table_name}: {obj}")
             raise e
