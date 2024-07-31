@@ -69,6 +69,7 @@ openai = "^1.20.0"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"
 pytest-asyncio = "^0.23.5.post1"
+pytest-timeout = "^2.3.1"
 
 
 [tool.ruff.lint]
