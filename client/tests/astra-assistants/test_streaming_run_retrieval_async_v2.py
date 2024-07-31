@@ -1,3 +1,4 @@
+import asyncio
 import json
 import traceback
 
@@ -149,7 +150,6 @@ instructions = "You are a personal math tutor. Answer thoroughly. The system wil
 @pytest.mark.asyncio
 async def test_run_gpt_4o_mini(async_patched_openai_client):
     model="gpt-4o-mini"
-    #model="claude-3-haiku-20240307"
     name = f"{model} Math Tutor"
 
     try:
@@ -158,12 +158,12 @@ async def test_run_gpt_4o_mini(async_patched_openai_client):
             instructions=instructions,
             model=model,
         )
+        await run_with_assistant(gpt_4o_mini_assistant, async_patched_openai_client)
     except Exception as e:
         print(e)
         tcb = traceback.format_exc()
         print(tcb)
         raise e
-    await run_with_assistant(gpt_4o_mini_assistant, async_patched_openai_client)
 
 @pytest.mark.asyncio
 async def test_run_claude_haiku(async_patched_openai_client):
@@ -176,9 +176,101 @@ async def test_run_claude_haiku(async_patched_openai_client):
             instructions=instructions,
             model=model,
         )
+        await run_with_assistant(claude_assistant, async_patched_openai_client)
+
     except Exception as e:
         print(e)
         tcb = traceback.format_exc()
         print(tcb)
         raise e
-    await run_with_assistant(claude_assistant, async_patched_openai_client)
+
+@pytest.mark.asyncio
+async def test_run_two_same_provider(async_patched_openai_client):
+    model1="gpt-4o-mini"
+    name1= f"{model1} Math Tutor"
+
+    model2="gpt-4o-mini"
+    name2= f"{model2} Math Tutor"
+
+    assistant_task_1 = async_patched_openai_client.beta.assistants.create(
+        name=name1,
+        instructions=instructions,
+        model=model1,
+    )
+    assistant_task_2 = async_patched_openai_client.beta.assistants.create(
+        name=name2,
+        instructions=instructions,
+        model=model2,
+    )
+
+    # wait for both assistants
+    claude_assistant, gpt_assistant = await asyncio.gather(
+        assistant_task_1,
+        assistant_task_2
+    )
+
+    run_1 = run_with_assistant(claude_assistant, async_patched_openai_client)
+    run_2 = run_with_assistant(gpt_assistant, async_patched_openai_client)
+
+    await asyncio.gather(run_1, run_2)
+
+@pytest.mark.asyncio
+async def test_run_two_differnet_providers(async_patched_openai_client):
+    model1="gpt-4o-mini"
+    name1= f"{model1} Math Tutor"
+
+    model2="claude-3-haiku-20240307"
+    name2= f"{model2} Math Tutor"
+
+    assistant_task_1 = async_patched_openai_client.beta.assistants.create(
+        name=name1,
+        instructions=instructions,
+        model=model1,
+    )
+    assistant_task_2 = async_patched_openai_client.beta.assistants.create(
+        name=name2,
+        instructions=instructions,
+        model=model2,
+    )
+
+    # wait for both assistants
+    claude_assistant, gpt_assistant = await asyncio.gather(
+        assistant_task_1,
+        assistant_task_2
+    )
+
+    run_1 = run_with_assistant(claude_assistant, async_patched_openai_client)
+    run_2 = run_with_assistant(gpt_assistant, async_patched_openai_client)
+
+    await asyncio.gather(run_1, run_2)
+
+
+@pytest.mark.asyncio
+async def test_run_two_differnet_providers_two_clients(async_patched_openai_client, async_patched_openai_client_2):
+    model1="gpt-4o-mini"
+    name1= f"{model1} Math Tutor"
+
+    model2="claude-3-haiku-20240307"
+    name2= f"{model2} Math Tutor"
+
+    assistant_task_1 = async_patched_openai_client.beta.assistants.create(
+        name=name1,
+        instructions=instructions,
+        model=model1,
+    )
+    assistant_task_2 = async_patched_openai_client_2.beta.assistants.create(
+        name=name2,
+        instructions=instructions,
+        model=model2,
+    )
+
+    # wait for both assistants
+    claude_assistant, gpt_assistant = await asyncio.gather(
+        assistant_task_1,
+        assistant_task_2
+    )
+
+    run_1 = run_with_assistant(claude_assistant, async_patched_openai_client)
+    run_2 = run_with_assistant(gpt_assistant, async_patched_openai_client_2)
+
+    await asyncio.gather(run_1, run_2)
