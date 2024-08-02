@@ -11,6 +11,7 @@ from impl.utils import read_object, store_object, read_objects, generate_id
 from openapi_server_v2.models.create_vector_store_file_request import CreateVectorStoreFileRequest
 from openapi_server_v2.models.create_vector_store_request import CreateVectorStoreRequest
 from openapi_server_v2.models.list_vector_store_files_response import ListVectorStoreFilesResponse
+from openapi_server_v2.models.list_vector_stores_response import ListVectorStoresResponse
 from openapi_server_v2.models.vector_store_file_object import VectorStoreFileObject
 from openapi_server_v2.models.vector_store_object_file_counts import VectorStoreObjectFileCounts
 
@@ -179,3 +180,38 @@ async def read_vsf(vector_store_id, astradb):
         args=args
     )
     return vector_store_files
+
+
+
+@router.get(
+    "/vector_stores",
+    responses={
+        200: {"model": ListVectorStoresResponse, "description": "OK"},
+    },
+    tags=["Vector Stores"],
+    summary="Returns a list of vector stores.",
+    response_model_by_alias=True,
+    response_model=None
+)
+async def list_vector_stores(
+        limit: int = Query(20, description="A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 20. "),
+        order: str = Query('desc', description="Sort order by the &#x60;created_at&#x60; timestamp of the objects. &#x60;asc&#x60; for ascending order and &#x60;desc&#x60; for descending order. "),
+        after: str = Query(None, description="A cursor for use in pagination. &#x60;after&#x60; is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with obj_foo, your subsequent call can include after&#x3D;obj_foo in order to fetch the next page of the list. "),
+        before: str = Query(None, description="A cursor for use in pagination. &#x60;before&#x60; is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with obj_foo, your subsequent call can include before&#x3D;obj_foo in order to fetch the previous page of the list. "),
+        astradb: CassandraClient = Depends(verify_db_client),
+) -> ListVectorStoresResponse:
+    vector_stores: [VectorStoreObject] = read_objects(
+        astradb=astradb,
+        target_class=VectorStoreObject,
+        table_name="vector_stores",
+        partition_keys=[],
+        args={}
+    )
+    vs_response = ListVectorStoresResponse(
+        data=vector_stores,
+        object="vector_stores",
+        first_id=vector_stores[0].id,
+        last_id=vector_stores[len(vector_stores)-1].id,
+        has_more=False
+    )
+    return vs_response

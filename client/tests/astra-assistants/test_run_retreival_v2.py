@@ -35,6 +35,10 @@ def run_with_assistant(assistant, client, file_path, embedding_model):
         file_ids=[file.id]
     )
 
+    vs_list = client.beta.vector_stores.list()
+
+    assert len(vs_list.data) > 0, "vector store list is empty"
+
     # TODO support  vector store file creation
     #file = client.beta.vector_stores.files.create_and_poll(
     #    vector_store_id=vector_store.id,
