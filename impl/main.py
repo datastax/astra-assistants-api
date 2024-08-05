@@ -228,7 +228,7 @@ async def shutdown_event():
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
     # Log the error
-    logger.error(f"Unexpected error: {exc} for request url {request.url} request method {request.method} request path params {request.path_params}  request query params {request.query_params} request body {request.body()} base_url {request.base_url}")
+    logger.error(f"Unexpected error: {exc} for request url {request.url} request method {request.method} request path params {request.path_params}  request query params {request.query_params} request body {await request.body()} base_url {request.base_url}")
 
     if isinstance(exc, HTTPException):
         raise exec
