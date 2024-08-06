@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 from typing import Any, Dict, List, Optional, Union, AsyncGenerator, get_type_hints
 
 
@@ -55,6 +56,7 @@ def get_embeddings_response(
         return embeddings
     except Exception as e:
         logger.error(f"Error: {e}")
+        logger.error(traceback.format_exc())
         raise e
 
 
