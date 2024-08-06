@@ -63,6 +63,46 @@ class AssistantManager:
         print("Thread generated:", thread)
         return thread
 
+    def stream_thread(self, content, tool = None, thread_id: str = None, thread = None):
+        if thread_id is not None:
+            thread = self.client.beta.threads.retrieve(thread_id)
+        elif thread is None:
+            thread = self.thread
+
+        assistant = self.assistant
+        event_handler = AstraEventHandler(self.client)
+        tool_choice = None
+        if tool is not None:
+            event_handler.register_tool(tool)
+            tool_choice = tool.tool_choice_object()
+        try:
+            self.client.beta.threads.messages.create(
+                thread_id=thread.id, role="user", content=content
+            )
+            args = {
+                "thread_id": thread.id,
+                "assistant_id": assistant.id,
+                "event_handler": event_handler,
+                "additional_instructions": self.additional_instructions
+            }
+            # Conditionally add 'tool_choice' if it's not None
+            if tool_choice is not None:
+                args["tool_choice"] = tool_choice
+
+            text = ""
+            with self.client.beta.threads.runs.create_and_stream(**args) as stream:
+                for text in stream.text_deltas:
+                    yield text
+
+            tool_call_results = None
+            if event_handler.stream is not None:
+                with event_handler.stream as stream:
+                    for text in stream.text_deltas:
+                        yield text
+        except Exception as e:
+            print(e)
+            raise e
+        
     async def run_thread(self, content, tool = None, thread_id: str = None, thread = None) -> ToolOutput:
         if thread_id is not None:
             thread = self.client.beta.threads.retrieve(thread_id)
@@ -71,34 +111,46 @@ class AssistantManager:
 
         assistant = self.assistant
         event_handler = AstraEventHandler(self.client)
+        tool_choice = None
         if tool is not None:
             event_handler.register_tool(tool)
+            tool_choice = tool.tool_choice_object()
         try:
             self.client.beta.threads.messages.create(
                 thread_id=thread.id, role="user", content=content
             )
-            with self.client.beta.threads.runs.create_and_stream(
-                    thread_id=thread.id,
-                    assistant_id=assistant.id,
-                    event_handler=event_handler,
-                    tool_choice=tool.tool_choice_object(),
-                    additional_instructions=self.additional_instructions
-            ) as stream:
-                for part in stream:
-                    pass
+            args = {
+                "thread_id": thread.id,
+                "assistant_id": assistant.id,
+                "event_handler": event_handler,
+                "additional_instructions": self.additional_instructions
+            }
+            # Conditionally add 'tool_choice' if it's not None
+            if tool_choice is not None:
+                args["tool_choice"] = tool_choice
+
             text = ""
-            with event_handler.stream as stream:
+            with self.client.beta.threads.runs.create_and_stream(**args) as stream:
                 for part in stream.text_deltas:
                     text += part
+                    
+            tool_call_results = None
+            if event_handler.stream is not None:
+                with event_handler.stream as stream:
+                    for part in stream.text_deltas:
+                        text += part
 
-                tool_call_results = event_handler.tool_call_results
+                    tool_call_results = event_handler.tool_call_results
 
-                if not isinstance(tool_call_results, str) and tool_call_results is not None:
-                    tool_call_results['text'] = text
-                    tool_call_results['error'] = event_handler.error
+                    if not isinstance(tool_call_results, str) and tool_call_results is not None:
+                        tool_call_results['text'] = text
+                        tool_call_results['error'] = event_handler.error
 
-                print(tool_call_results)
+                    print(tool_call_results)
+                    tool_call_results
+            if tool_call_results is not None:
                 return tool_call_results
+            return {"text": text}
         except Exception as e:
             print(e)
             raise e
