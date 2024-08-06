@@ -11,8 +11,9 @@ from astra_assistants.tools.tool_interface import ToolInterface
 logger = logging.getLogger(__name__)
 
 class AssistantManager:
-    def __init__(self, instructions: str, tools: List[ToolInterface], model: str = "gpt-4o", name: str = "managed_assistant", thread_id: str = None, thread: str = None):
-
+    def __init__(self, instructions: str, model: str = "gpt-4o", name: str = "managed_assistant", tools: List[ToolInterface] = None, thread_id: str = None, thread: str = None):
+        if tools is None:
+            tools = []
         self.client = patch(OpenAI())
         self.model = model
         self.instructions = instructions
@@ -62,7 +63,7 @@ class AssistantManager:
         print("Thread generated:", thread)
         return thread
 
-    async def run_thread(self, tool, content, thread_id: str = None, thread = None) -> ToolOutput:
+    async def run_thread(self, content, tool = None, thread_id: str = None, thread = None) -> ToolOutput:
         if thread_id is not None:
             thread = self.client.beta.threads.retrieve(thread_id)
         elif thread is None:
@@ -70,7 +71,8 @@ class AssistantManager:
 
         assistant = self.assistant
         event_handler = AstraEventHandler(self.client)
-        event_handler.register_tool(tool)
+        if tool is not None:
+            event_handler.register_tool(tool)
         try:
             self.client.beta.threads.messages.create(
                 thread_id=thread.id, role="user", content=content
