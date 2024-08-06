@@ -25,7 +25,7 @@ def print_embedding(model, client):
 
 
 
-def test_embedding_cohere(patched_openai_client):
+def test_embedding_cohere_bedrock(patched_openai_client):
     model = "cohere/embed-english-v3.0"
     print_embedding(model, patched_openai_client)
 
@@ -36,6 +36,10 @@ def test_embedding_titan(patched_openai_client):
 
 def test_embedding_ada_002(patched_openai_client):
     model = "text-embedding-ada-002"
+    print_embedding(model, patched_openai_client)
+
+def test_embedding_cohere(patched_openai_client):
+    model = "embed-english-v3.0"
     print_embedding(model, patched_openai_client)
 
 
