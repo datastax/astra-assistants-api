@@ -99,6 +99,11 @@ def run_with_assistant(assistant, client, file_path, embedding_model):
     response = client.beta.threads.messages.list(thread_id=thread.id)
     logger.info(response.data[0].content[0].text.value)
 
+    vs_files = client.beta.vector_stores.files.list(vector_store_id=vector_store.id)
+    for vsf in vs_files.data:
+        client.beta.vector_stores.files.delete(file_id=vsf.id, vector_store_id=vector_store.id)
+    client.beta.vector_stores.delete(vector_store.id)
+
 
 
 instructions = "You are a personal math tutor. Answer thoroughly. The system will provide relevant context from files, use the context to respond."

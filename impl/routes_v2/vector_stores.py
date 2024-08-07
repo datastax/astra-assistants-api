@@ -10,6 +10,8 @@ from impl.routes.utils import verify_db_client
 from impl.utils import read_object, store_object, read_objects, generate_id
 from openapi_server_v2.models.create_vector_store_file_request import CreateVectorStoreFileRequest
 from openapi_server_v2.models.create_vector_store_request import CreateVectorStoreRequest
+from openapi_server_v2.models.delete_vector_store_file_response import DeleteVectorStoreFileResponse
+from openapi_server_v2.models.delete_vector_store_response import DeleteVectorStoreResponse
 from openapi_server_v2.models.list_vector_store_files_response import ListVectorStoreFilesResponse
 from openapi_server_v2.models.list_vector_stores_response import ListVectorStoresResponse
 from openapi_server_v2.models.vector_store_file_object import VectorStoreFileObject
@@ -215,3 +217,49 @@ async def list_vector_stores(
         has_more=False
     )
     return vs_response
+
+@router.delete(
+    "/vector_stores/{vector_store_id}",
+    responses={
+        200: {"model": DeleteVectorStoreResponse, "description": "OK"},
+    },
+    tags=["Vector Stores"],
+    summary="Delete a vector store.",
+    response_model_by_alias=True,
+    response_model=None
+)
+async def delete_vector_store(
+        vector_store_id: str,
+        astradb: CassandraClient = Depends(verify_db_client),
+) -> DeleteVectorStoreResponse:
+    astradb.delete_by_pks(table="vector_store_files", keys=["vector_store_id"], values=[vector_store_id])
+    astradb.delete_by_pks(table="vector_stores", keys=["id"], values=[vector_store_id])
+    return DeleteVectorStoreResponse(
+        id=vector_store_id,
+        object="vector_store",
+        deleted=True
+    )
+
+
+@router.delete(
+    "/vector_stores/{vector_store_id}/files/{file_id}",
+    responses={
+        200: {"model": DeleteVectorStoreFileResponse, "description": "OK"},
+    },
+    tags=["Vector Stores"],
+    summary="Delete a vector store file. This will remove the file from the vector store but the file itself will not be deleted. To delete the file, use the [delete file](/docs/api-reference/files/delete) endpoint.",
+    response_model_by_alias=True,
+    response_model=None
+)
+async def delete_vector_store_file(
+        vector_store_id: str,
+        file_id: str,
+        astradb: CassandraClient = Depends(verify_db_client),
+) -> DeleteVectorStoreFileResponse:
+    list_vector_store_files = await read_vsf(vector_store_id, astradb)
+    for vsf in list_vector_store_files:
+        if vsf.id == file_id:
+            created_at = vsf.created_at
+            break
+    astradb.delete_by_pks(table="vector_store_files", keys=["id", "created_at", "vector_store_id"], values=[file_id, created_at, vector_store_id])
+
