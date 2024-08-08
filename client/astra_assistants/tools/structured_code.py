@@ -7,13 +7,13 @@ from astra_assistants.tools.tool_interface import ToolInterface
 
 
 class StructuredEdit(BaseModel):
-    program_id: str = Field(..., description="ID of the program being edited")
+    thoughts: str = Field(..., description="The message to be described to the user explaining how the edit will work, think step by step.")
     lines: Optional[List[str]] = Field(
         ...,
         description="List of strings representing each line of code for the modification (not the entire file). Required for insert and replace edits. ALWAYS PRESERVE INDENTATION, i.e. ['    print('puppies')'] instead of ['print('puppies')'] when replacing inside an indented block."
     )
-    start_index: int = Field(None, description="Index of the line where the edit starts. ALWAYS requried")
-    end_index: Optional[int] = Field(None, description="Index of the line where the edit ends (indexes are inclusive, i.e. start_index 1 end_index 1 will delete/replace 1 line, start_index 1 end_index 2 will delete/replace two lines), always required for replace and delete, not required for insert")
+    start_line_number: int = Field(None, description="Line number where the edit starts (first line is line 1). ALWAYS requried")
+    end_line_number: Optional[int] = Field(None, description="Line number where the edit ends (line numbers are inclusive, i.e. start_line_number 1 end_line_number 1 will delete/replace 1 line, start_line_number 1 end_line_number 2 will delete/replace two lines), end_line_number is always required for replace and delete, not required for insert")
     mode: Optional[Literal['insert', 'delete', 'replace']] = Field(
         None,
         description="Type of edit being made (must be insert, delete, or replace)"
@@ -24,7 +24,7 @@ class StructuredProgram(BaseModel):
     language: str = Field(..., description="Programming language of the code snippet")
     lines_of_code: List[str] = Field(..., description="List of strings representing each line of code. Remember to escape any double quotes in the code with a backslash (e.g. lines_of_code = \"var = \\\"Hello, world\\\"\"")
     description: Optional[str] = Field(None, description="Brief description of the code snippet")
-    filename: Optional[str] = Field(None, description="Name of the file containing the code snippet")
+    filename: str = Field(None, description="Name of the file containing the code snippet")
     tags: Optional[List[str]] = Field(None, description="Tags or keywords related to the code snippet")
 
     class Config:
@@ -68,34 +68,38 @@ class StructuredCodeEditor(ToolInterface):
 
     def __init__(self, program_cache: List[Dict[str, StructuredProgram]]):
         self.program_cache = program_cache
+        self.program_id = None
 
         print("initialized")
+
+    def set_program_id(self, program_id):
+        self.program_id = program_id
 
     def call(self, edit: StructuredEdit):
         try:
             program : StructuredProgram = None
             for pair in self.program_cache:
-                if pair['program_id'] == edit.program_id:
+                if pair['program_id'] == self.program_id:
                     program = pair['output'].copy()
                     break
             if not program:
-                return f"Program id {edit.program_id} not found"
+                return f"Program id {self.program_id} not found"
             print(f"program before edit: \n{program.to_string()}")
             print(f"edit: {edit}")
             if edit.mode == 'insert':
                 i = 0
                 for line in edit.lines:
-                    program.lines_of_code.insert(edit.start_index+ i, line)
+                    program.lines_of_code.insert(edit.start_line_number + i, line)
                     i += 1
             if edit.mode == 'delete':
-                if edit.end_index:
-                    del program.lines_of_code[edit.start_index-1:edit.end_index]
+                if edit.end_line_number:
+                    del program.lines_of_code[edit.start_line_number-1:edit.end_line_number]
                 else:
-                    del program.lines_of_code[edit.start_index]
+                    del program.lines_of_code[edit.start_line_number]
             if edit.mode == 'replace':
-                program.lines_of_code[edit.start_index-1:edit.end_index] = edit.lines
+                program.lines_of_code[edit.start_line_number-1:edit.end_line_number] = edit.lines
             print(f"program after edit: \n{program.to_string()}")
-            return {'program_id': edit.program_id, 'output': program}
+            return {'program_id': self.program_id, 'output': program}
         except Exception as e:
             print(f"Error: {e}")
             raise e

@@ -11,7 +11,7 @@ from astra_assistants.tools.tool_interface import ToolInterface
 logger = logging.getLogger(__name__)
 
 class AssistantManager:
-    def __init__(self, instructions: str, model: str = "gpt-4o", name: str = "managed_assistant", tools: List[ToolInterface] = None, thread_id: str = None, thread: str = None):
+    def __init__(self, instructions: str, model: str = "gpt-4o", name: str = "managed_assistant", tools: List[ToolInterface] = None, thread_id: str = None, thread: str = None, assistant_id: str = None):
         if tools is None:
             tools = []
         self.client = patch(OpenAI())
@@ -21,7 +21,10 @@ class AssistantManager:
         self.name = name
         self.additional_instructions = None
 
-        self.assistant = self.create_assistant()
+        if assistant_id is not None:
+            self.assistant = self.client.beta.assistants.retrieve(assistant_id)
+        else:
+            self.assistant = self.create_assistant()
 
         if thread_id is None and thread is None:
             self.thread = self.create_thread()
@@ -96,6 +99,7 @@ class AssistantManager:
 
             tool_call_results = None
             if event_handler.stream is not None:
+                yield event_handler.tool_call_results
                 with event_handler.stream as stream:
                     for text in stream.text_deltas:
                         yield text
