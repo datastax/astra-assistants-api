@@ -19,7 +19,6 @@ class AssistantManager:
         self.instructions = instructions
         self.tools = tools
         self.name = name
-        self.additional_instructions = None
 
         if assistant_id is not None:
             self.assistant = self.client.beta.assistants.retrieve(assistant_id)
@@ -66,7 +65,7 @@ class AssistantManager:
         print("Thread generated:", thread)
         return thread
 
-    def stream_thread(self, content, tool = None, thread_id: str = None, thread = None):
+    def stream_thread(self, content, tool = None, thread_id: str = None, thread = None, additional_instructions = None):
         if thread_id is not None:
             thread = self.client.beta.threads.retrieve(thread_id)
         elif thread is None:
@@ -86,7 +85,7 @@ class AssistantManager:
                 "thread_id": thread.id,
                 "assistant_id": assistant.id,
                 "event_handler": event_handler,
-                "additional_instructions": self.additional_instructions
+                "additional_instructions": additional_instructions
             }
             # Conditionally add 'tool_choice' if it's not None
             if tool_choice is not None:
@@ -107,7 +106,7 @@ class AssistantManager:
             print(e)
             raise e
         
-    async def run_thread(self, content, tool = None, thread_id: str = None, thread = None) -> ToolOutput:
+    async def run_thread(self, content, tool = None, thread_id: str = None, thread = None, additional_instructions = None) -> ToolOutput:
         if thread_id is not None:
             thread = self.client.beta.threads.retrieve(thread_id)
         elif thread is None:
@@ -127,7 +126,7 @@ class AssistantManager:
                 "thread_id": thread.id,
                 "assistant_id": assistant.id,
                 "event_handler": event_handler,
-                "additional_instructions": self.additional_instructions
+                "additional_instructions": additional_instructions
             }
             # Conditionally add 'tool_choice' if it's not None
             if tool_choice is not None:
