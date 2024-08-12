@@ -98,6 +98,7 @@ def read_object(astradb: CassandraClient, target_class: Type[BaseModel], table_n
 
 def read_objects(astradb: CassandraClient, target_class: Type[BaseModel], table_name: str, partition_keys: List[str],
                 args: Dict[str, Any]):
+    obj = None
     try:
         json_objs = astradb.select_from_table_by_pk(table=table_name, partition_keys=partition_keys, args=args)
         if len(json_objs) == 0:
