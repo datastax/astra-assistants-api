@@ -98,8 +98,10 @@ class StructuredCodeEditor(ToolInterface):
                     del program.lines_of_code[edit.start_line_number]
             if edit.mode == 'replace':
                 program.lines_of_code[edit.start_line_number-1:edit.end_line_number] = edit.lines
+            new_program_id = str(uuid1())
+            self.program_cache.append({'program_id': new_program_id, 'output': program})
             print(f"program after edit: \n{program.to_string()}")
-            return {'program_id': self.program_id, 'output': program}
+            return {'program_id': new_program_id, 'output': program}
         except Exception as e:
             print(f"Error: {e}")
             raise e
