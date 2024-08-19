@@ -15,10 +15,10 @@ import requests
 from cassandra.concurrent import execute_concurrent, execute_concurrent_with_args
 from fastapi import HTTPException
 
-from cassandra import ConsistencyLevel, Unauthorized
+from cassandra import ConsistencyLevel, Unauthorized, ProtocolVersion
 from cassandra.auth import PlainTextAuthProvider
 from cassandra.cluster import Cluster, DriverException, NoHostAvailable
-from cassandra.policies import RetryPolicy
+from cassandra.policies import RetryPolicy, ExponentialReconnectionPolicy
 from cassandra.query import (
     UNSET_VALUE,
     SimpleStatement,
@@ -340,7 +340,11 @@ class CassandraClient:
                 cloud_config = {"secure_connect_bundle": bundlepath}
                 auth_provider = PlainTextAuthProvider(CASSANDRA_USER, token)
                 cluster = Cluster(
-                    cloud=cloud_config, auth_provider=auth_provider, connect_timeout=60
+                    cloud=cloud_config,
+                    auth_provider=auth_provider,
+                    connect_timeout=60,
+                    protocol_version=ProtocolVersion.V4,
+                    reconnection_policy=ExponentialReconnectionPolicy(base_delay=1, max_delay=60)
                 )
                 session = cluster.connect()
                 session.default_consistency_level = ConsistencyLevel.LOCAL_QUORUM
@@ -1377,16 +1381,16 @@ class CassandraClient:
                 {placeholders}
             );"""
 
-        statement = self.session.prepare(query_string)
-        statement.consistency_level = ConsistencyLevel.QUORUM
         try:
+            statement = self.session.prepare(query_string)
+            statement.consistency_level = ConsistencyLevel.QUORUM
             response = self.session.execute(
                 statement,
                 tuple(values_list)
             )
             logger.debug(f"upserted {table_name}: {obj}")
         except Exception as e:
-            logger.error(f"failed to upsert {table_name}: {obj}")
+            logger.error(f"failed to upsert {table_name}: {obj}, {query_string}")
             raise e
 
     def upsert_table_from_base_model(self, table_name : str, obj : BaseModel):
