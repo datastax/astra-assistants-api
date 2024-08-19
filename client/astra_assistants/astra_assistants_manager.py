@@ -19,6 +19,7 @@ class AssistantManager:
         self.instructions = instructions
         self.tools = tools
         self.name = name
+        self.tool_call_arguments = None
 
         if assistant_id is not None:
             self.assistant = self.client.beta.assistants.retrieve(assistant_id)
@@ -65,7 +66,7 @@ class AssistantManager:
         print("Thread generated:", thread)
         return thread
 
-    def stream_thread(self, content, tool = None, thread_id: str = None, thread = None, additional_instructions = None):
+    def stream_thread(self, content, tool_choice = None, thread_id: str = None, thread = None, additional_instructions = None):
         if thread_id is not None:
             thread = self.client.beta.threads.retrieve(thread_id)
         elif thread is None:
@@ -74,9 +75,11 @@ class AssistantManager:
         assistant = self.assistant
         event_handler = AstraEventHandler(self.client)
         tool_choice = None
-        if tool is not None:
-            event_handler.register_tool(tool)
-            tool_choice = tool.tool_choice_object()
+        if self.tools is not None:
+            for tool in self.tools:
+                event_handler.register_tool(tool)
+        if tool_choice is not None:
+            tool_choice = tool_choice.tool_choice_object()
         try:
             self.client.beta.threads.messages.create(
                 thread_id=thread.id, role="user", content=content
@@ -97,6 +100,8 @@ class AssistantManager:
                     yield text
 
             tool_call_results = None
+            tool_call_arguments = None
+            self.tool_call_arguments = event_handler.arguments
             if event_handler.stream is not None:
                 yield event_handler.tool_call_results
                 with event_handler.stream as stream:

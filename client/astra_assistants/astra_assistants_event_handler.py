@@ -16,6 +16,7 @@ class AstraEventHandler(AssistantEventHandler):
         self.tools = {}
         self.tool_output = ToolOutput
         self.tool_call_results = None
+        self.arguments = None
         self.stream = None
         self.error = None
 
@@ -56,8 +57,8 @@ class AstraEventHandler(AssistantEventHandler):
                 arguments = json.loads(tool_call.function.arguments)
                 model: BaseModel = tool.get_model()
                 if issubclass(model, BaseModel):
-                    arguments = model(**arguments)
-                results = tool.call(arguments)
+                    self.arguments = model(**arguments)
+                results = tool.call(self.arguments)
                 return results
             except Exception as e:
                 self.logger.error(f"Error running tool {tool_name}: {e}")
