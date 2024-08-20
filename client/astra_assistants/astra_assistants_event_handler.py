@@ -31,9 +31,14 @@ class AstraEventHandler(AssistantEventHandler):
             self.tool_call_results = self.run_tool(tool_call)
         except Exception as e:
             self.error = e
+            raise e
 
         if not isinstance(self.tool_call_results, str) and self.tool_call_results is not None:
-            tool_call_results_string = self.tool_call_results["output"].to_string()
+            tool_call_results_obj = self.tool_call_results["output"]
+            if hasattr(tool_call_results_obj, 'to_string'):
+                tool_call_results_string = tool_call_results_obj.to_string()
+            else:
+                tool_call_results_string = tool_call_results_obj
         else:
             tool_call_results_string = self.tool_call_results
         self.tool_output = ToolOutput(

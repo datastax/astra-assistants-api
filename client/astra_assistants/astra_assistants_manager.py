@@ -102,7 +102,8 @@ class AssistantManager:
             tool_call_arguments = None
             self.tool_call_arguments = event_handler.arguments
             if event_handler.stream is not None:
-                yield event_handler.tool_call_results
+                if event_handler.tool_call_results is not None:
+                    yield event_handler.tool_call_results
                 with event_handler.stream as stream:
                     for text in stream.text_deltas:
                         yield text
