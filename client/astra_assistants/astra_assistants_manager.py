@@ -74,7 +74,6 @@ class AssistantManager:
 
         assistant = self.assistant
         event_handler = AstraEventHandler(self.client)
-        tool_choice = None
         if self.tools is not None:
             for tool in self.tools:
                 event_handler.register_tool(tool)

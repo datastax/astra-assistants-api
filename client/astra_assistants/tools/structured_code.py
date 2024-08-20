@@ -24,12 +24,30 @@ class IndentLeftEdit(BaseModel):
     thoughts: str = Field(..., description="The message to be described to the user explaining how the indent left edit will work, think step by step.")
     start_line_number: int = Field(None, description="Line number where the indent left edit starts (first line is line 1). ALWAYS requried")
     end_line_number: Optional[int] = Field(None, description="Line number where the indent left edit ends (line numbers are inclusive, i.e. start_line_number 1 end_line_number 1 will indent 1 line, start_line_number 1 end_line_number 2 will indent two lines)")
+    class Config:
+        schema_extra = {
+            "example": {
+                "thoughts": "let's move lines 55 through 57 to the left by one indentation unit",
+                "start_line_number": 55,
+                "end_line_number": 57,
+            }
+        }
+
 
 
 class IndentRightEdit(BaseModel):
     thoughts: str = Field(..., description="The message to be described to the user explaining how the indent right edit will work, think step by step.")
     start_line_number: int = Field(None, description="Line number where the indent right edit starts (first line is line 1). ALWAYS requried")
     end_line_number: Optional[int] = Field(None, description="Line number where the indent right edit ends (line numbers are inclusive, i.e. start_line_number 1 end_line_number 1 will indent 1 line, start_line_number 1 end_line_number 2 will indent two lines)")
+    class Config:
+        schema_extra = {
+            "example": {
+                "thoughts": "let's move lines 55 through 57 to the right by one indentation unit",
+                "start_line_number": 55,
+                "end_line_number": 57,
+            }
+        }
+
 
 
 class StructuredProgram(BaseModel):
@@ -115,11 +133,11 @@ class StructuredCodeEditor(ToolInterface):
                 else:
                     del program.lines[edit.start_line_number]
             if edit.mode == 'replace':
-                edit_indentation = get_indentation(edit.lines[edit.start_line_number-1])
+                edit_indentation = get_indentation(edit.lines[0])
                 if edit_indentation == "":
                     program_indentation = get_indentation(program.lines[edit.start_line_number-1])
                     for line in edit.lines:
-                        program.lines.insert(edit.start_line_number, f"{program_indentation}{line}")
+                        line = f"{edit_indentation}{line}"
                 program.lines[edit.start_line_number-1:edit.end_line_number] = edit.lines
             new_program_id = str(uuid1())
             self.program_cache.append({'program_id': new_program_id, 'output': program})
@@ -184,10 +202,12 @@ def get_indentation_unit(source_code, target_line):
             return min_indentation
         else:
             print("No indentation found around the specified line.")
-            return ""
+            if target_line > 0:
+                return get_indentation_unit(source_code, target_line-1)
     else:
         print(f"No node found at line {target_line + 1}.")
-        return ""
+        if target_line > 0:
+            return get_indentation_unit(source_code, target_line - 1)
 
 
 
