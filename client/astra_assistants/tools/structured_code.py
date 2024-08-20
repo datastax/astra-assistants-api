@@ -205,11 +205,6 @@ def get_indentation_unit(source_code, target_line):
 
         return min_indentation
 
-    # Initialize Tree-sitter parser for the correct language
-    LANGUAGE = tree_sitter.Language('my-languages.so', 'python')  # Replace 'python' with the appropriate language
-    parser = tree_sitter.Parser()
-    parser.set_language(LANGUAGE)
-
     # Parse the source code
     tree = parser.parse(bytes(source_code, "utf8"))
 

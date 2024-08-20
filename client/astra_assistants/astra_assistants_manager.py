@@ -78,7 +78,10 @@ class AssistantManager:
             for tool in self.tools:
                 event_handler.register_tool(tool)
         if tool_choice is not None:
-            tool_choice = tool_choice.tool_choice_object()
+            if hasattr(tool_choice, 'tool_choice_object'):
+                tool_choice = tool_choice.tool_choice_object()
+            else:
+                tool_choice = tool_choice
         try:
             self.client.beta.threads.messages.create(
                 thread_id=thread.id, role="user", content=content
