@@ -762,6 +762,24 @@ async def create_run(
     if create_run_request.additional_instructions is not None:
         instructions = instructions + "\n Additional Instructions:\n" + create_run_request.additional_instructions
 
+    required_action = None
+
+    # TODO consider initializing the run here otherwise we need a retry elsewhere
+    #run = await store_run(
+    #    id=run_id,
+    #    created_at=created_at,
+    #    thread_id=thread_id,
+    #    assistant_id=create_run_request.assistant_id,
+    #    status=status,
+    #    required_action=None,
+    #    model=model,
+    #    tools=tools,
+    #    instructions=instructions,
+    #    create_run_request=create_run_request,
+    #    astradb=astradb,
+    #)
+    #logger.info(f"initial create run {run.id} for thread {run.thread_id} will upsert later")
+
     toolsJson = []
     if len(tools) == 0:
 
@@ -855,12 +873,12 @@ async def create_run(
         if tool.type == "function":
             toolsJson.append(tool.dict())
 
-    required_action = None
-
     if len(toolsJson) > 0:
         litellm_kwargs[0]["tools"] = toolsJson
-        if create_run_request.tool_choice is not None and hasattr(create_run_request.tool_choice, "to_dict"):
-            litellm_kwargs[0]["tool_choice"] = create_run_request.tool_choice.to_dict()
+        if create_run_request.tool_choice is not None and isinstance(create_run_request.tool_choice, dict):
+            litellm_kwargs[0]["tool_choice"] = create_run_request.tool_choice
+        elif create_run_request.tool_choice is not None and isinstance(create_run_request.tool_choice, str):
+            litellm_kwargs[0]["tool_choice"] = create_run_request.tool_choice
         else:
             litellm_kwargs[0]["tool_choice"] = "auto"
         message_content = summarize_message_content(instructions, messages.data, False)
@@ -870,6 +888,7 @@ async def create_run(
             logger.error(f"error: {e}, tenant {astradb.dbid}, model {model}, messages.data {messages.data}, create_run_request {create_run_request}")
             raise HTTPException(status_code=500, detail=f"Error processing message, {e}")
 
+        logger.info(f"tool_call message: {message}")
         tool_call_object_id = generate_id("call")
         run_tool_calls = []
         # TODO: fix this, we can't hang off message.content because it turns out you can have both a message and a tool call.
@@ -1019,6 +1038,8 @@ async def store_run(id, created_at, thread_id, assistant_id, status, required_ac
     tool_choice = create_run_request.tool_choice
     if tool_choice is None:
         tool_choice = AssistantsApiToolChoiceOption(actual_instance="auto")
+    else:
+        tool_choice = AssistantsApiToolChoiceOption(actual_instance=tool_choice)
 
     response_format = create_run_request.response_format
     if response_format is None:
@@ -1041,7 +1062,7 @@ async def store_run(id, created_at, thread_id, assistant_id, status, required_ac
         "instructions": instructions,
         "tools": tools,
         "truncation_strategy": truncation_strategy,
-        "tool_choice": AssistantsApiToolChoiceOption(actual_instance=tool_choice),
+        "tool_choice": tool_choice,
         "response_format": response_format,
     }
     run = await store_object(astradb=astradb, obj=create_run_request, target_class=RunObject, table_name="runs_v2", extra_fields=extra_fields)
