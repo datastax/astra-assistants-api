@@ -63,6 +63,8 @@ class AstraEventHandler(AssistantEventHandler):
                 model: BaseModel = tool.get_model()
                 if issubclass(model, BaseModel):
                     self.arguments = model(**arguments)
+                else:
+                    self.arguments = arguments
                 results = tool.call(self.arguments)
                 return results
             except Exception as e:
