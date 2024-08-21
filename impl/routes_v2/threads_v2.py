@@ -5,7 +5,7 @@ import json
 import logging
 import re
 import time
-from typing import Dict, Any, Union, get_origin, Type, List, Optional
+from typing import Dict, Any, Union, Type, List, Optional
 
 
 from fastapi import APIRouter, Body, Depends, Path, HTTPException, Query
@@ -24,6 +24,7 @@ from impl.routes_v2.assistants_v2 import get_assistant_obj
 from impl.routes_v2.vector_stores import read_vsf
 from impl.services.inference_utils import get_chat_completion, get_async_chat_completion_response
 from impl.utils import map_model, store_object, read_object, read_objects, generate_id
+from impl.model_v2.create_thread_and_run_request import CreateThreadAndRunRequest
 from openapi_server_v2.models.assistants_api_response_format_option import AssistantsApiResponseFormatOption
 from openapi_server_v2.models.assistants_api_tool_choice_option import AssistantsApiToolChoiceOption
 from openapi_server_v2.models.message_delta_object_delta_content_inner import MessageDeltaObjectDeltaContentInner
@@ -37,7 +38,6 @@ from openapi_server_v2.models.run_stream_event import RunStreamEvent
 from openapi_server_v2.models.truncation_object import TruncationObject
 from openapi_server_v2.models.assistant_stream_event import AssistantStreamEvent
 from openapi_server_v2.models.create_message_request import CreateMessageRequest
-from openapi_server_v2.models.create_thread_and_run_request import CreateThreadAndRunRequest
 from openapi_server_v2.models.create_thread_request import CreateThreadRequest
 from openapi_server_v2.models.delete_message_response import DeleteMessageResponse
 from openapi_server_v2.models.delete_thread_response import DeleteThreadResponse
@@ -88,6 +88,7 @@ logger = logging.getLogger(__name__)
     tags=["Assistants"],
     summary="Create a thread.",
     response_model_by_alias=True,
+    response_model=None
 )
 async def create_thread(
         create_thread_request: CreateThreadRequest = Body(None, description=""),
@@ -136,6 +137,7 @@ async def get_thread(
     tags=["Assistants"],
     summary="Modifies a thread.",
     response_model_by_alias=True,
+    response_model=None
 )
 async def modify_thread(
         thread_id: str = Path(...,
@@ -160,6 +162,7 @@ async def modify_thread(
     tags=["Assistants"],
     summary="Delete a thread.",
     response_model_by_alias=True,
+    response_model=None
 )
 async def delete_thread(
         thread_id: str = Path(..., description="The ID of the thread to delete."),
@@ -265,6 +268,7 @@ def messages_json_to_objects(raw_messages):
     tags=["Assistants"],
     summary="Modifies a message.",
     response_model_by_alias=True,
+    response_model=None
 )
 async def modify_message(
         thread_id: str = Path(..., description="The ID of the thread to which this message belongs."),
@@ -302,6 +306,7 @@ async def modify_message(
     tags=["Assistants"],
     summary="Delete a message.",
     response_model_by_alias=True,
+    response_model=None
 )
 async def delete_message(
         thread_id: str = Path(..., description="The ID of the thread to delete."),
@@ -757,6 +762,24 @@ async def create_run(
     if create_run_request.additional_instructions is not None:
         instructions = instructions + "\n Additional Instructions:\n" + create_run_request.additional_instructions
 
+    required_action = None
+
+    # TODO consider initializing the run here otherwise we need a retry elsewhere
+    #run = await store_run(
+    #    id=run_id,
+    #    created_at=created_at,
+    #    thread_id=thread_id,
+    #    assistant_id=create_run_request.assistant_id,
+    #    status=status,
+    #    required_action=None,
+    #    model=model,
+    #    tools=tools,
+    #    instructions=instructions,
+    #    create_run_request=create_run_request,
+    #    astradb=astradb,
+    #)
+    #logger.info(f"initial create run {run.id} for thread {run.thread_id} will upsert later")
+
     toolsJson = []
     if len(tools) == 0:
 
@@ -850,12 +873,12 @@ async def create_run(
         if tool.type == "function":
             toolsJson.append(tool.dict())
 
-    required_action = None
-
     if len(toolsJson) > 0:
         litellm_kwargs[0]["tools"] = toolsJson
-        if create_run_request.tool_choice is not None and hasattr(create_run_request.tool_choice, "to_dict"):
-            litellm_kwargs[0]["tool_choice"] = create_run_request.tool_choice.to_dict()
+        if create_run_request.tool_choice is not None and isinstance(create_run_request.tool_choice, dict):
+            litellm_kwargs[0]["tool_choice"] = create_run_request.tool_choice
+        elif create_run_request.tool_choice is not None and isinstance(create_run_request.tool_choice, str):
+            litellm_kwargs[0]["tool_choice"] = create_run_request.tool_choice
         else:
             litellm_kwargs[0]["tool_choice"] = "auto"
         message_content = summarize_message_content(instructions, messages.data, False)
@@ -865,6 +888,7 @@ async def create_run(
             logger.error(f"error: {e}, tenant {astradb.dbid}, model {model}, messages.data {messages.data}, create_run_request {create_run_request}")
             raise HTTPException(status_code=500, detail=f"Error processing message, {e}")
 
+        logger.info(f"tool_call message: {message}")
         tool_call_object_id = generate_id("call")
         run_tool_calls = []
         # TODO: fix this, we can't hang off message.content because it turns out you can have both a message and a tool call.
@@ -1014,6 +1038,8 @@ async def store_run(id, created_at, thread_id, assistant_id, status, required_ac
     tool_choice = create_run_request.tool_choice
     if tool_choice is None:
         tool_choice = AssistantsApiToolChoiceOption(actual_instance="auto")
+    else:
+        tool_choice = AssistantsApiToolChoiceOption(actual_instance=tool_choice)
 
     response_format = create_run_request.response_format
     if response_format is None:
@@ -1038,7 +1064,6 @@ async def store_run(id, created_at, thread_id, assistant_id, status, required_ac
         "truncation_strategy": truncation_strategy,
         "tool_choice": tool_choice,
         "response_format": response_format,
-
     }
     run = await store_object(astradb=astradb, obj=create_run_request, target_class=RunObject, table_name="runs_v2", extra_fields=extra_fields)
     return run
@@ -1806,10 +1831,9 @@ async def make_text_delta_obj_from_chunk(chunk, i, run, message_id):
     tags=["Assistants"],
     summary="Create a thread and run it in one request.",
     response_model_by_alias=True,
+    response_model=None
 )
 async def create_thread_and_run(
-        # TODO - make copy of CreateThreadAndRunRequest to handle LiteralGenericAlias issue with Tools
-        # also do it for  create run
         create_thread_and_run_request: CreateThreadAndRunRequest = Body(None, description=""),
         astradb: CassandraClient = Depends(verify_db_client),
         embedding_model: str = Depends(infer_embedding_model),
