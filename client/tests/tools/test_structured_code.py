@@ -131,7 +131,8 @@ print("Factorial:", factorial(number))
 
     chunks: ToolOutput = assistant_manager.stream_thread(
         content="Rewrite to use memoization.",
-        tool_choice=code_rewriter
+        #tool_choice=code_rewriter
+        tool_choice="auto"
     )
 
     text = ""
@@ -156,6 +157,8 @@ print("Factorial:", factorial(number))
     )
     program_id = add_program_to_cache(program, programs)
     print(program_id)
+
+
 
 def test_structured_rewrite_and_edit_with_manager(patched_openai_client):
     programs: List[Dict[str, StructuredProgram]] = []

@@ -8,6 +8,7 @@ from typing import Callable, Sequence, Union, Any
 import httpx
 import openai
 from fastapi import FastAPI, Request, HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from prometheus_client import Counter, Summary, Histogram
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -23,6 +24,7 @@ from impl.routes import stateless, assistants, files, health, threads
 from impl.routes_v2 import assistants_v2, threads_v2, vector_stores
 
 from loguru import logger
+
 
 cass_logger = logging.getLogger('cassandra')
 cass_logger.setLevel(logging.WARN)
@@ -112,7 +114,7 @@ class APIVersionMiddleware(BaseHTTPMiddleware):
                 response = await call_next(request)
                 return response
             except Exception as e:
-                logger.error(f"Error: {e} {request.json()}")
+                logger.error(f"Error: {e} {await request.json()}")
                 print(e)
                 raise e
 
@@ -240,6 +242,17 @@ async def generic_exception_handler(request: Request, exc: Exception):
         status_code=500, content={"message": str(exc)}
     )
 
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    logging.error(f"Validation error for request: {request.url}")
+    logging.error(f"Body: {exc.body}")
+    logger.error(f"Validation error: {exc} for request url {request.url} request method {request.method} request path params {request.path_params}  request query params {request.query_params} request body {await request.body()} base_url {request.base_url}")
+    logging.error(f"Errors: {exc.errors()}")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()},
+    )
 
 @app.api_route(
     "/{full_path:path}",
