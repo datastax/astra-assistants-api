@@ -189,7 +189,7 @@ print("Factorial:", factorial(number))
     assistant_manager = AssistantManager(
         instructions="use the structured code tool to generate code to help the user.",
         tools=tools,
-        model="gpt-4o",
+        model="openai/gpt-4o-2024-08-06",
     )
 
     #code_indent_left.set_program_id(program_id)
@@ -220,6 +220,6 @@ print("Factorial:", factorial(number))
         tool_choice=code_rewriter
     )
 
-    program_id = add_chunks_to_cache(chunks, programs)
+    program_id = add_chunks_to_cache(chunks, programs)['program_id']
     assert len(programs) == 3
     print(program_id)
