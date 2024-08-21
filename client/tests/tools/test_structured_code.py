@@ -58,6 +58,7 @@ use the structured code tool to generate code to help the user.
     program_id = programs[0]['program_id']
     program = programs[0]['output']
     patched_openai_client.beta.threads.messages.create(thread.id, content=f"nice, now add trigonometric functions to program_id {program_id}: \n{program.to_string()}" , role="user")
+    code_editor.set_program_id(program_id)
     with patched_openai_client.beta.threads.runs.create_and_stream(
             thread_id=thread.id,
             assistant_id=assistant.id,
@@ -90,6 +91,7 @@ async def test_structured_code_with_manager(patched_openai_client):
         tool=code_generator
     )
     content = f"nice, now add trigonometric functions to program_id {result['program_id']}: \n{result['output'].to_string()}"
+    code_editor.set_program_id(result['program_id'])
     result = await assistant_manager.run_thread(
         content=content,
         tool=code_editor
