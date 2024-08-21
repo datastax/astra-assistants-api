@@ -34,6 +34,8 @@ class ToolInterface(ABC):
                 param_type = param.annotation
                 if issubclass(param_type, BaseModel):
                     parameters = param_type.schema()
+                    if hasattr(param_type.Config, "schema_extra"):
+                        parameters.update(param_type.Config.schema_extra)
                 else:
                     parameters = {
                         "type": "object",

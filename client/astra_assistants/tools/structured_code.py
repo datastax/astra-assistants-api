@@ -34,11 +34,22 @@ class IndentLeftEdit(BaseModel):
     end_line_number: Optional[int] = Field(None, description="Line number where the indent left edit ends (line numbers are inclusive, i.e. start_line_number 1 end_line_number 1 will indent 1 line, start_line_number 1 end_line_number 2 will indent two lines)")
     class Config:
         schema_extra = {
-            "example": {
-                "thoughts": "let's move lines 55 through 57 to the left by one indentation unit",
-                "start_line_number": 55,
-                "end_line_number": 57,
-            }
+            "examples": [
+                {
+                    "thoughts": "let's move lines 55 through 57 to the left by one indentation unit",
+                    "start_line_number": 55,
+                    "end_line_number": 57,
+                },
+                {
+                    "thoughts": "let's move line 12 to the left by one indentation unit",
+                    "start_line_number": 12,
+                },
+                {
+                    "thoughts": "let's move lines 100 through 101 to the left by one indentation unit",
+                    "start_line_number": 100,
+                    "end_line_number": 101,
+                },
+            ]
         }
 
 
@@ -49,11 +60,22 @@ class IndentRightEdit(BaseModel):
     end_line_number: Optional[int] = Field(None, description="Line number where the indent right edit ends (line numbers are inclusive, i.e. start_line_number 1 end_line_number 1 will indent 1 line, start_line_number 1 end_line_number 2 will indent two lines)")
     class Config:
         schema_extra = {
-            "example": {
-                "thoughts": "let's move lines 55 through 57 to the right by one indentation unit",
-                "start_line_number": 55,
-                "end_line_number": 57,
-            }
+            "examples": [
+                {
+                    "thoughts": "let's move lines 55 through 57 to the right by one indentation unit",
+                    "start_line_number": 55,
+                    "end_line_number": 57,
+                },
+                {
+                    "thoughts": "let's move line 12 to the right by one indentation unit",
+                    "start_line_number": 12,
+                },
+                {
+                    "thoughts": "let's move lines 100 through 101 to the right by one indentation unit",
+                    "start_line_number": 100,
+                    "end_line_number": 101,
+                },
+            ]
         }
 
 
@@ -303,7 +325,7 @@ class StructuredCodeIndentLeft(ToolInterface):
             indentation_unit = get_indentation_unit(program.to_string(with_line_numbers=False), edit.start_line_number-1)
             i = edit.start_line_number-1
             if edit.end_line_number is not None:
-                while i < edit.end_line_number:
+                while i < edit.end_line_number and i < len(program.lines):
                     program.lines[i] = program.lines[i].replace(indentation_unit, "", 1)
                     i += 1
             else:
