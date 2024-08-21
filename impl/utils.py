@@ -4,6 +4,7 @@ import hashlib
 import json
 import logging
 import secrets
+import traceback
 from typing import Type, Dict, Any, List, get_origin, Annotated, get_args, Union
 
 from fastapi import HTTPException
@@ -88,6 +89,7 @@ def read_object(astradb: CassandraClient, target_class: Type[BaseModel], table_n
         objs = read_objects(astradb, target_class, table_name, partition_keys, args)
     except Exception as e:
         logger.error(f"read_object failed {e} for table {table_name}")
+        logger.error(f"trace: {traceback.format_exc()}")
         raise HTTPException(status_code=404, detail=f"{target_class.__name__} not found.")
     if len(objs) == 0:
         # Maybe pass down name

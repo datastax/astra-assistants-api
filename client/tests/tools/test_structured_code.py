@@ -58,6 +58,7 @@ use the structured code tool to generate code to help the user.
     program_id = programs[0]['program_id']
     program = programs[0]['output']
     patched_openai_client.beta.threads.messages.create(thread.id, content=f"nice, now add trigonometric functions to program_id {program_id}: \n{program.to_string()}" , role="user")
+    code_editor.set_program_id(program_id)
     with patched_openai_client.beta.threads.runs.create_and_stream(
             thread_id=thread.id,
             assistant_id=assistant.id,
@@ -90,6 +91,7 @@ async def test_structured_code_with_manager(patched_openai_client):
         tool=code_generator
     )
     content = f"nice, now add trigonometric functions to program_id {result['program_id']}: \n{result['output'].to_string()}"
+    code_editor.set_program_id(result['program_id'])
     result = await assistant_manager.run_thread(
         content=content,
         tool=code_editor
@@ -131,7 +133,8 @@ print("Factorial:", factorial(number))
 
     chunks: ToolOutput = assistant_manager.stream_thread(
         content="Rewrite to use memoization.",
-        tool_choice=code_rewriter
+        #tool_choice=code_rewriter
+        tool_choice="auto"
     )
 
     text = ""
@@ -156,6 +159,8 @@ print("Factorial:", factorial(number))
     )
     program_id = add_program_to_cache(program, programs)
     print(program_id)
+
+
 
 def test_structured_rewrite_and_edit_with_manager(patched_openai_client):
     programs: List[Dict[str, StructuredProgram]] = []
@@ -186,7 +191,7 @@ print("Factorial:", factorial(number))
     assistant_manager = AssistantManager(
         instructions="use the structured code tool to generate code to help the user.",
         tools=tools,
-        model="gpt-4o",
+        model="openai/gpt-4o-2024-08-06",
     )
 
     #code_indent_left.set_program_id(program_id)
@@ -217,6 +222,6 @@ print("Factorial:", factorial(number))
         tool_choice=code_rewriter
     )
 
-    program_id = add_chunks_to_cache(chunks, programs)
+    program_id = add_chunks_to_cache(chunks, programs)['program_id']
     assert len(programs) == 3
     print(program_id)
