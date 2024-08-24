@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "astra-assistants"
-version = "2.0.26"
+version = "2.1.0.3"
 description = "Astra Assistants API - drop in replacement for OpenAI Assistants, powered by AstraDB"
 authors = ["phact <estevezsebastian@gmail.com>"]
 readme = "README.md"
@@ -16,6 +16,9 @@ python-dotenv = "^1.0.1"
 
 tree-sitter-python = "^0.21.0"
 tree-sitter = "^0.22.3"
+lsprotocol = "^2023.0.1"
+python-lsp-jsonrpc = "^1.1.2"
+ruff = "^0.6.2"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"
 export = "^0.2.1"
