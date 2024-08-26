@@ -1,7 +1,8 @@
 import re
 from uuid import uuid1
 
-from astra_assistants.tools.structured_code.structured_code import StructuredProgram, get_indentation
+from astra_assistants.tools.structured_code.program_cache import StructuredProgram, StructuredProgramEntry
+from astra_assistants.tools.structured_code.write import get_indentation
 
 
 def extract_code_blocks(program_str: str):
@@ -79,10 +80,8 @@ def is_valid_python_code(code: str) -> bool:
 
 def add_program_to_cache(program, program_cache):
     program_id = str(uuid1())
-    program_cache.append({
-        "program_id": program_id,
-        "output": program
-    })
+    entry = StructuredProgramEntry(program_id=program_id, program=program)
+    program_cache.append(entry)
     return program_id
 
 

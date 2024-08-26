@@ -3,11 +3,10 @@ import pytest
 from lsprotocol import types
 from openai.types.beta.threads.run_submit_tool_outputs_params import ToolOutput
 
-import astra_assistants.tools.structured_code.indent
 from astra_assistants.astra_assistants_event_handler import AstraEventHandler
 import logging
 from astra_assistants.astra_assistants_manager import AssistantManager
-from astra_assistants.tools.structured_code.structured_code import StructuredProgram, StructuredCodeFileGenerator
+from astra_assistants.tools.structured_code.program_cache import StructuredProgram, ProgramCache
 from astra_assistants.tools.structured_code.util import program_str_to_program, add_program_to_cache, \
     add_chunks_to_cache
 from astra_assistants.tools.structured_code.indent import StructuredCodeIndentLeft
@@ -15,12 +14,13 @@ from astra_assistants.tools.structured_code.replace import StructuredCodeReplace
 from astra_assistants.tools.structured_code.delete import StructuredCodeDelete
 from astra_assistants.tools.structured_code.insert import StructuredCodeInsert
 from astra_assistants.tools.structured_code.rewrite import StructuredCodeRewrite
+from astra_assistants.tools.structured_code.write import StructuredCodeFileGenerator
 
 logger = logging.getLogger(__name__)
 
 
 def test_structured_code_raw(patched_openai_client):
-    programs: List[Dict[str, StructuredProgram]] = []
+    programs = ProgramCache()
     code_generator = StructuredCodeFileGenerator(programs)
     code_replace = StructuredCodeReplace(programs)
 
@@ -84,7 +84,8 @@ use the structured code tool to generate code to help the user.
 
 @pytest.mark.asyncio
 async def test_structured_code_with_manager(patched_openai_client):
-    programs: List[Dict[str, StructuredProgram]] = []
+    programs = ProgramCache()
+
     code_generator = StructuredCodeFileGenerator(programs)
     code_replace = StructuredCodeReplace(programs)
     code_insert = StructuredCodeInsert(programs)
@@ -120,7 +121,8 @@ async def test_structured_code_with_manager(patched_openai_client):
     assert first_chunk
 
 def test_structured_rewrite_with_manager(patched_openai_client):
-    programs: List[Dict[str, StructuredProgram]] = []
+    programs = ProgramCache()
+
     program_content = """
 def factorial(n):
     result = 1
@@ -183,7 +185,8 @@ print("Factorial:", factorial(number))
 
 
 def test_structured_rewrite_and_edit_with_manager(patched_openai_client):
-    programs: List[Dict[str, StructuredProgram]] = []
+    programs = ProgramCache()
+
     program_content = """
     def factorial(n):
     result = 1
@@ -247,7 +250,8 @@ print("Factorial:", factorial(number))
     print(program_id)
 
 def test_structured_all_with_manager(patched_openai_client):
-    programs: List[Dict[str, StructuredProgram]] = []
+    programs = ProgramCache()
+
     program_content = """
     def factorial(n):
     result = 1

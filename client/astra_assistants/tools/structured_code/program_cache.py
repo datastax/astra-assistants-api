@@ -10,10 +10,40 @@ from astra_assistants.tools.structured_code.lsp.lsp_session import CODE_ACTION
 from astra_assistants.tools.structured_code.lsp.session_manager import LspSessionManager
 from astra_assistants.tools.structured_code.lsp.util import convert_keys_to_camel_case
 from astra_assistants.tools.structured_code.lsp.workspace_edits import apply_workspace_edit
-from astra_assistants.tools.structured_code.structured_code import StructuredProgram
 
 converter = converters.get_converter()
 session_manager = LspSessionManager()
+
+class StructuredProgram(BaseModel):
+    language: str = Field(..., description="Programming language of the code snippet")
+    lines: List[str] = Field(...,
+                             description="List of strings representing each line of code. Remember to escape any "
+                                         "double quotes in the code with a backslash (e.g. lines= \"var = \\\"Hello, "
+                                         "world\\\"\"")
+    description: Optional[str] = Field(None, description="Brief description of the code snippet")
+    filename: str = Field(..., description="Name of the file containing the code snippet")
+    tags: Optional[List[str]] = Field(None, description="Tags or keywords related to the code snippet")
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "language": "Python",
+                "lines": [
+                    "print('Hello, world!')",
+                    "print('This is another line of code')"
+                ],
+                "description": "A simple Hello World program with multiple lines",
+                "filename": "hello_world.py",
+                "tags": ["example", "hello world", "beginner"]
+            }
+        }
+
+    def to_string(self, with_line_numbers: bool = True) -> str:
+        if with_line_numbers:
+            lines = [f"{i + 1}: {line}" for i, line in enumerate(self.lines)]
+            return "\n".join(lines)
+        else:
+            return "\n".join(self.lines)
 
 
 class StructuredProgramEntry(BaseModel):

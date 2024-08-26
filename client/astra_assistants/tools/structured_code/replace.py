@@ -2,14 +2,18 @@ from typing import List, Dict
 
 from pydantic import BaseModel, Field
 
-from astra_assistants.tools.structured_code.structured_code import StructuredProgram
+from astra_assistants.tools.structured_code.program_cache import ProgramCache, StructuredProgram
 from astra_assistants.tools.tool_interface import ToolInterface
 
 
 class StructuredEditReplace(BaseModel):
-    thoughts: str = Field(..., description="The message to be described to the user explaining how the replace will work, think step by step.")
-    start_line_number: int = Field(..., description="Line number where the replace starts (first line is line 1). ALWAYS requried")
-    end_line_number: int = Field(..., description="Line number where the replace ends (line numbers are inclusive, i.e. start_line_number 1 end_line_number 1 will replace 1 line, start_line_number 1 end_line_number 2 will replace two lines), end_line_number is always required for replace")
+    thoughts: str = Field(...,
+                          description="The message to be described to the user explaining how the replace will work, think step by step.")
+    start_line_number: int = Field(...,
+                                   description="Line number where the replace starts (first line is line 1). ALWAYS requried")
+    end_line_number: int = Field(...,
+                                 description="Line number where the replace ends (line numbers are inclusive, i.e. start_line_number 1 end_line_number 1 will replace 1 line, start_line_number 1 end_line_number 2 will replace two lines), end_line_number is always required for replace")
+
     class Config:
         schema_extra = {
             "examples": [
@@ -29,7 +33,7 @@ class StructuredEditReplace(BaseModel):
 
 class StructuredCodeReplace(ToolInterface):
 
-    def __init__(self, program_cache: List[Dict[str, StructuredProgram]]):
+    def __init__(self, program_cache: ProgramCache):
         self.program_cache = program_cache
         self.program_id = None
 
@@ -38,13 +42,12 @@ class StructuredCodeReplace(ToolInterface):
     def set_program_id(self, program_id):
         self.program_id = program_id
 
-
     def call(self, edit: StructuredEditReplace):
         try:
-            program : StructuredProgram = None
-            for pair in self.program_cache:
-                if pair['program_id'] == self.program_id:
-                    program = pair['output'].copy()
+            program: StructuredProgram = None
+            for entry in self.program_cache:
+                if entry.program_id == self.program_id:
+                    program = entry.program.copy()
                     break
             if not program:
                 raise Exception(f"Program id {self.program_id} not found, did you forget to call set_program_id()?")
@@ -63,7 +66,8 @@ class StructuredCodeReplace(ToolInterface):
                             f"{program.to_string()}")
             print(f"providing instructions: \n{instructions}")
 
-            return {'program_id': self.program_id, 'output': instructions, 'tool': self.__class__.__name__, 'edit': edit}
+            return {'program_id': self.program_id, 'output': instructions, 'tool': self.__class__.__name__,
+                    'edit': edit}
         except Exception as e:
             print(f"Error: {e}")
             raise e

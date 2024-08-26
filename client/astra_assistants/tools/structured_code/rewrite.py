@@ -2,7 +2,7 @@ from typing import List, Dict
 
 from pydantic import BaseModel, Field
 
-from astra_assistants.tools.structured_code.structured_code import StructuredProgram
+from astra_assistants.tools.structured_code.program_cache import ProgramCache, StructuredProgram
 from astra_assistants.tools.tool_interface import ToolInterface
 
 
@@ -18,7 +18,7 @@ class StructuredRewrite(BaseModel):
 
 class StructuredCodeRewrite(ToolInterface):
 
-    def __init__(self, program_cache: List[Dict[str, StructuredProgram]]):
+    def __init__(self, program_cache: ProgramCache):
         self.program_cache = program_cache
         self.program_id = None
 
@@ -30,10 +30,10 @@ class StructuredCodeRewrite(ToolInterface):
 
     def call(self, edit: StructuredRewrite):
         try:
-            program : StructuredProgram = None
+            program: StructuredProgram = None
             for pair in self.program_cache:
-                if pair['program_id'] == self.program_id:
-                    program = pair['output'].copy()
+                if pair.program_id == self.program_id:
+                    program = pair.program.copy()
                     break
             if not program:
                 raise Exception(f"Program id {self.program_id} not found, did you forget to call set_program_id()?")

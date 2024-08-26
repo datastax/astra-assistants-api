@@ -5,7 +5,7 @@ import tree_sitter_python as tspython
 from pydantic import BaseModel, Field
 from tree_sitter import Language, Parser
 
-from astra_assistants.tools.structured_code.structured_code import StructuredProgram
+from astra_assistants.tools.structured_code.program_cache import ProgramCache, StructuredProgramEntry, StructuredProgram
 from astra_assistants.tools.tool_interface import ToolInterface
 
 ts_language = Language(tspython.language())
@@ -135,7 +135,7 @@ class IndentRightEdit(BaseModel):
 
 class StructuredCodeIndentRight(ToolInterface):
 
-    def __init__(self, program_cache: List[Dict[str, StructuredProgram]]):
+    def __init__(self, program_cache: ProgramCache):
         self.program_cache = program_cache
         self.program_id = None
 
@@ -148,9 +148,9 @@ class StructuredCodeIndentRight(ToolInterface):
     def call(self, edit: IndentRightEdit):
         try:
             program : StructuredProgram = None
-            for pair in self.program_cache:
-                if pair['program_id'] == self.program_id:
-                    program = pair['output'].copy()
+            for entry in self.program_cache:
+                if entry.program_id == self.program_id:
+                    program = entry.program.copy()
                     break
             if not program:
                 raise Exception(f"Program id {self.program_id} not found, did you forget to call set_program_id()?")
@@ -168,7 +168,8 @@ class StructuredCodeIndentRight(ToolInterface):
                 program.lines[i] = f"{indentation_unit}{program.lines[i]}"
 
             new_program_id = str(uuid1())
-            self.program_cache.append({'program_id': new_program_id, 'output': program})
+            entry = StructuredProgramEntry(program_id=new_program_id, program=program)
+            self.program_cache.append(entry)
             print(f"program after edit: \n{program.to_string()}")
             return {'program_id': new_program_id, 'output': program}
         except Exception as e:
@@ -178,7 +179,7 @@ class StructuredCodeIndentRight(ToolInterface):
 
 class StructuredCodeIndentLeft(ToolInterface):
 
-    def __init__(self, program_cache: List[Dict[str, StructuredProgram]]):
+    def __init__(self, program_cache: ProgramCache):
         self.program_cache = program_cache
         self.program_id = None
 
@@ -190,10 +191,10 @@ class StructuredCodeIndentLeft(ToolInterface):
 
     def call(self, edit: IndentLeftEdit):
         try:
-            program : StructuredProgram = None
-            for pair in self.program_cache:
-                if pair['program_id'] == self.program_id:
-                    program = pair['output'].copy()
+            program: StructuredProgram = None
+            for entry in self.program_cache:
+                if entry.program_id == self.program_id:
+                    program = entry.program.copy()
                     break
             if not program:
                 raise Exception(f"Program id {self.program_id} not found, did you forget to call set_program_id()?")
@@ -210,7 +211,8 @@ class StructuredCodeIndentLeft(ToolInterface):
                 program.lines[i] = program.lines[i].replace(indentation_unit, "", 1)
 
             new_program_id = str(uuid1())
-            self.program_cache.append({'program_id': new_program_id, 'output': program})
+            entry = StructuredProgramEntry(program_id=new_program_id, program=program)
+            self.program_cache.append(entry)
             print(f"program after edit: \n{program.to_string()}")
             return {'program_id': new_program_id, 'output': program}
         except Exception as e:
