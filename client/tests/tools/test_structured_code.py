@@ -1,4 +1,3 @@
-from typing import Dict, List
 import pytest
 from lsprotocol import types
 from openai.types.beta.threads.run_submit_tool_outputs_params import ToolOutput
@@ -65,8 +64,8 @@ use the structured code tool to generate code to help the user.
 
     event_handler = AstraEventHandler(patched_openai_client)
     event_handler.register_tool(code_replace)
-    program_id = programs[0]['program_id']
-    program = programs[0]['output']
+    program_id = programs[0].program_id
+    program = programs[0].program
     patched_openai_client.beta.threads.messages.create(thread.id, content=f"nice, now add trigonometric functions to program_id {program_id}: \n{program.to_string()}" , role="user")
     code_replace.set_program_id(program_id)
     with patched_openai_client.beta.threads.runs.create_and_stream(
@@ -315,7 +314,7 @@ print("Factorial:", factorial(number))
     )
 
     program_id = add_chunks_to_cache(chunks, programs)['program_id']
-    assert program_id == programs[len(programs)-1]['program_id']
+    assert program_id == programs[len(programs)-1].program_id
     assert len(programs) == 3
     print(program_id)
 

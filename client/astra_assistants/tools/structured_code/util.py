@@ -121,8 +121,8 @@ def add_chunks_to_cache(chunks, cache, function=None):
         program_id = first_chunk["program_id"]
         last_program = None
         for cached_program in cache:
-            if cached_program["program_id"] == program_id:
-                last_program = cached_program['output']
+            if cached_program.program_id == program_id:
+                last_program = cached_program.program
                 break
         assert last_program is not None
     else:

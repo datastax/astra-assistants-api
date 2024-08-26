@@ -1,4 +1,5 @@
 import tempfile
+import traceback
 from typing import List, Optional
 
 from lsprotocol import types, converters
@@ -91,6 +92,7 @@ def process(item: StructuredProgramEntry) -> None:
             item.code_action_message = message
             print(message)
         except Exception as e:
+            trace = traceback.format_exc()
             print(e)
 
 
@@ -99,10 +101,16 @@ def apply_code_actions(uri, program_str, document_version=1, applied=None):
         applied = []
     diags = get_diagnostics(uri, program_str, document_version)
 
+
+    message = ""
+    if len(diags) == 0:
+        return message, diags, program_str
+
     start = None
     end = None
     for diag in diags:
         end, start = compare_and_set_ends(diag, end, start)
+
     diag_range = types.Range(start=start, end=end)
 
     code_action_params = types.CodeActionParams(
@@ -117,7 +125,6 @@ def apply_code_actions(uri, program_str, document_version=1, applied=None):
     code_actions_dict = session_manager.send_request(CODE_ACTION, code_action_params_dict)
 
     linebreak = "\n"
-    message = ""
     if len(applied) > 0:
         message = f"applied code actions: \n{linebreak.join(applied)}"
     if len(code_actions_dict) == 0:

@@ -32,7 +32,7 @@ class StructuredCodeInsert(ToolInterface):
 
     def call(self, edit: StructuredEditInsert):
         try:
-            program : StructuredProgram = None
+            program = None
             for entry in self.program_cache:
                 if entry.program_id == self.program_id:
                     program = entry.program.copy()

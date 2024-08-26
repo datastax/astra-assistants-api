@@ -30,7 +30,7 @@ class StructuredCodeRewrite(ToolInterface):
 
     def call(self, edit: StructuredRewrite):
         try:
-            program: StructuredProgram = None
+            program = None
             for pair in self.program_cache:
                 if pair.program_id == self.program_id:
                     program = pair.program.copy()
