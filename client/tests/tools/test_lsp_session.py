@@ -1,7 +1,5 @@
 from astra_assistants.tools.structured_code.lsp.session_manager import LspSessionManager
-from astra_assistants.tools.structured_code.program_cache import ProgramCache, StructuredProgramEntry
-from astra_assistants.tools.structured_code.structured_code import StructuredProgram
-
+from astra_assistants.tools.structured_code.program_cache import ProgramCache, StructuredProgramEntry, StructuredProgram
 
 CONTENTS = """import sys
 
