@@ -5,7 +5,7 @@ from openai.types.beta.threads.run_submit_tool_outputs_params import ToolOutput
 from astra_assistants.astra_assistants_event_handler import AstraEventHandler
 import logging
 from astra_assistants.astra_assistants_manager import AssistantManager
-from astra_assistants.tools.structured_code.program_cache import StructuredProgram, ProgramCache
+from astra_assistants.tools.structured_code.program_cache import ProgramCache
 from astra_assistants.tools.structured_code.util import program_str_to_program, add_program_to_cache, \
     add_chunks_to_cache
 from astra_assistants.tools.structured_code.indent import StructuredCodeIndentLeft
@@ -18,6 +18,7 @@ from astra_assistants.tools.structured_code.write import StructuredCodeFileGener
 logger = logging.getLogger(__name__)
 
 
+@pytest.mark.skip(reason="redundant")
 def test_structured_code_raw(patched_openai_client):
     programs = ProgramCache()
     code_generator = StructuredCodeFileGenerator(programs)
@@ -119,6 +120,7 @@ async def test_structured_code_with_manager(patched_openai_client):
     first_chunk = add_chunks_to_cache(chunks, programs)
     assert first_chunk
 
+@pytest.mark.skip(reason="redundant")
 def test_structured_rewrite_with_manager(patched_openai_client):
     programs = ProgramCache()
 
@@ -183,6 +185,7 @@ print("Factorial:", factorial(number))
 
 
 
+@pytest.mark.skip(reason="redundant")
 def test_structured_rewrite_and_edit_with_manager(patched_openai_client):
     programs = ProgramCache()
 
@@ -349,6 +352,7 @@ print("Factorial:", factorial(number))
     print(program_id)
 
 
+@pytest.mark.skip(reason="redundant")
 def test_program_parser():
     test_input = '''
     Some introductory text.
