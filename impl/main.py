@@ -114,7 +114,7 @@ class APIVersionMiddleware(BaseHTTPMiddleware):
                 response = await call_next(request)
                 return response
             except Exception as e:
-                logger.error(f"Error: {e}")
+                logger.error(f"Error: {e}, dbid: {request.state.dbid}")
                 print(e)
                 raise e
 
@@ -233,7 +233,7 @@ async def shutdown_event():
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
     # Log the error
-    logger.error(f"Unexpected error: {exc} for request url {request.url} request method {request.method} request path params {request.path_params}  request query params {request.query_params} base_url {request.base_url}")
+    logger.error(f"Unexpected error: {exc} for request url {request.url} request method {request.method} request path params {request.path_params}  request query params {request.query_params} base_url {request.base_url}, dbid: {request.state.dbid}")
 
     if isinstance(exc, HTTPException):
         raise exec
@@ -245,9 +245,9 @@ async def generic_exception_handler(request: Request, exc: Exception):
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    logging.error(f"Validation error for request: {request.url}")
+    logging.error(f"Validation error for request: {request.url}, dbid: {request.state.dbid}")
     logging.error(f"Body: {exc.body}")
-    logger.error(f"Validation error: {exc} for request url {request.url} request method {request.method} request path params {request.path_params}  request query params {request.query_params} base_url {request.base_url}")
+    logging.error(f"Validation error: {exc} for request url {request.url} request method {request.method} request path params {request.path_params}  request query params {request.query_params} base_url {request.base_url}")
     logging.error(f"Errors: {exc.errors()}")
     return JSONResponse(
         status_code=422,

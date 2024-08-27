@@ -361,11 +361,11 @@ class CassandraClient:
                 raise
 
             except DriverException as e:
-                logger.error(e)
+                logger.error(f"dbid: {self.dbid}, error: {e}")
                 raise HTTPException(400, f"Failed to connect to cluster - the database may be hibernated")
 
             except Exception as e:
-                logger.warning(f"Failed to connect to AstraDB: {e}")
+                logger.warning(f"Failed to connect to AstraDB: {e}, dbid: {self.dbid}")
                 # sleep and retry
                 time.sleep(5)
                 if retry:
@@ -1390,6 +1390,8 @@ class CassandraClient:
             )
             logger.debug(f"upserted {table_name}: {obj}")
         except Exception as e:
+            if isinstance(e, NoHostAvailable):
+                self.session = self.connect()
             logger.error(f"failed to upsert {table_name}: {obj}, {query_string}")
             raise e
 
@@ -1611,10 +1613,10 @@ class CassandraClient:
                 ),
             )
         except Exception as e:
-            logger.warning(f"Exception inserting into table: {e}")
+            logger.warning(f"Exception inserting into table: {e}, dbid: {self.dbid}")
             raise
 
-    def queue_up_chunks(self, statements_and_params: [PreparedStatement], json: dict[str, Any], embedding_model,
+    def queue_up_chunks(self, statements_and_params: List[PreparedStatement], json: dict[str, Any], embedding_model,
                         **litellm_kwargs):
         statement = self.make_chunks_statement(embedding_model, json, litellm_kwargs)
         statements_and_params.append(
@@ -1631,13 +1633,13 @@ class CassandraClient:
         )
         return statements_and_params
 
-    def upsert_chunks_concurrently(self, statements_and_params: [SimpleStatement]):
+    def upsert_chunks_concurrently(self, statements_and_params: List[SimpleStatement]):
         results = execute_concurrent(
             self.session, statements_and_params, concurrency=100, results_generator=True)
 
         for (success, result) in results:
             if not success:
-                logger.warning(f"Exception inserting into table: {result}")
+                logger.warning(f"Exception inserting into table: {result}, dbid: {self.dbid}")
                 raise
 
     def do_upsert_chunks(self, json: dict[str, Any], embedding_model, **litellm_kwargs):
@@ -1655,7 +1657,7 @@ class CassandraClient:
                 ),
             )
         except Exception as e:
-            logger.warning(f"Exception inserting into table: {e}")
+            logger.warning(f"Exception inserting into table: {e}, dbid: {self.dbid}")
             raise
 
     def make_chunks_statement(self, embedding_model, json, litellm_kwargs):
@@ -1838,7 +1840,7 @@ class CassandraClient:
         json_rows = []
         for (success, result) in rows:
             if not success:
-                logger.error(f"problem with async query: {result}")  # result will be an Exception
+                logger.error(f"problem with async query: {result}, dbid: {self.dbid}")  # result will be an Exception
             else:
                 for row in result:
                     json_rows.append(dict(row))
@@ -1884,8 +1886,8 @@ class CassandraClient:
             return json_rows
         except Exception as e:
             if tries < 3:
-                logger.warning(f"Exception during query (retrying): {e}")
+                logger.warning(f"Exception during query (retrying): {e}, dbid: {self.dbid}")
                 time.sleep(1)
                 return self.execute_and_get_json(boundStatement, vector_index_column, tries + 1)
             else:
-                raise HTTPException(status_code=500, detail=f"Exception during recall")
+                raise HTTPException(status_code=500, detail=f"Exception during recall, dbid: {self.dbid}")

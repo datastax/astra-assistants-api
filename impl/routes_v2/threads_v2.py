@@ -511,7 +511,7 @@ async def run_event_stream(run, message_id, astradb):
             if e.status_code == 404:
                 run_step = None
             else:
-                logger.error(e)
+                logger.error(f"Error reading run step, dbid: {astradb.dbid}, error: {e}")
                 raise e
 
         #run_step = astradb.get_run_step(run_id=run.id, id=run_step_id)
@@ -579,7 +579,7 @@ async def run_event_stream(run, message_id, astradb):
     except Exception as e:
         # This usually means the client is broken
         # TODO: cancel the run.
-        logger.error(e)
+        logger.error(f"Error in run event stream, dbid: {astradb.dbid}, error: {e}")
 
 
 async def stream_message_events(astradb, thread_id, limit, order, after, before, run):
@@ -671,7 +671,7 @@ async def stream_message_events(astradb, thread_id, limit, order, after, before,
                     last_message.content = message.content
                 break
     except Exception as e:
-        logger.error(e)
+        logger.error(f"Error in stream message events, dbid: {astradb.dbid}, error: {e}")
         # TODO - cancel run, mark message incomplete
         # yield f"data: []"
 
@@ -885,7 +885,7 @@ async def create_run(
         try:
             message = await get_chat_completion(messages=message_content, model=model, **litellm_kwargs[0])
         except Exception as e:
-            logger.error(f"error: {e}, tenant {astradb.dbid}, model {model}, messages.data {messages.data}, create_run_request {create_run_request}")
+            logger.error(f"error: {e}, dbid: {astradb.dbid}, model {model}, messages.data {messages.data}, create_run_request {create_run_request}")
             raise HTTPException(status_code=500, detail=f"Error processing message, {e}")
 
         logger.info(f"tool_call message: {message}")
@@ -1232,13 +1232,13 @@ async def process_rag(
             **litellm_kwargs[0],
         )
     except asyncio.CancelledError as e:
-        logger.error(e)
+        logger.error(f"process_rag cancelled, dbid: {astradb.dbid}, error: {e}")
         # TODO maybe do a cancelled run step with more details?
         await update_run_status(thread_id=thread_id, id=run_id, status="failed", astradb=astradb)
         logger.error("process_rag cancelled")
         raise RuntimeError("process_rag cancelled")
     except Exception as e:
-        logger.error(e)
+        logger.error(f"process_rag failed, dbid: {astradb.dbid}, error: {e}")
         # TODO maybe do a cancelled run step with more details?
         await update_run_status(thread_id=thread_id, id=run_id, status="failed", astradb=astradb)
         logger.error("process_rag cancelled")
@@ -1278,7 +1278,7 @@ async def process_rag(
     except Exception as e:
         await update_run_status(thread_id=thread_id, id=run_id, status="failed", astradb=astradb)
         logger.error(traceback.format_exc())
-        logger.error(e)
+        logger.error(f"Error in process_rag, dbid: {astradb.dbid}, error: {e}")
         raise e
     except asyncio.CancelledError:
         logger.error("process_rag cancelled")
@@ -1642,7 +1642,7 @@ async def submit_tool_ouputs_to_run(
                                      media_type="text/event-stream")
 
     except Exception as e:
-        logger.info(e)
+        logger.info(f"Error in submit_tool_ouputs_to_run, dbid: {astradb.dbid}, error: {e}")
         await update_run_status(thread_id=thread_id, id=run_id, status="failed", astradb=astradb)
         raise
 
@@ -1797,7 +1797,7 @@ async def message_delta_streamer(message_id, created_at, response, run, astradb)
         logger.info(f"completed run_id {run.id} thread_id {run.thread_id} with tool submission")
 
     except Exception as e:
-        logger.info(e)
+        logger.info(f"Error in message_delta_streamer, dbid: {astradb.dbid}, error: {e}")
         await update_run_status(thread_id=run.thread_id, id=run.id, status="failed", astradb=astradb)
         raise
 

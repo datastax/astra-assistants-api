@@ -79,7 +79,7 @@ async def store_object(astradb: CassandraClient, obj: BaseModel, target_class: T
         astradb.upsert_table_from_dict(table_name=table_name, obj=obj_dict)
         return combined_obj
     except Exception as e:
-        logger.error(f"store_object failed {e} for table {table_name} and object {obj}")
+        logger.error(f"store_object failed {e} for table {table_name} and object {obj}, dbid: {astradb.dbid}")
         raise HTTPException(status_code=500, detail=f"Error reading {table_name}: {e}")
 
 
@@ -88,11 +88,12 @@ def read_object(astradb: CassandraClient, target_class: Type[BaseModel], table_n
     try:
         objs = read_objects(astradb, target_class, table_name, partition_keys, args)
     except Exception as e:
-        logger.error(f"read_object failed {e} for table {table_name}")
+        logger.error(f"read_object failed {e} for table {table_name}, dbid: {astradb.dbid}")
         logger.error(f"trace: {traceback.format_exc()}")
         raise HTTPException(status_code=404, detail=f"{target_class.__name__} not found.")
     if len(objs) == 0:
         # Maybe pass down name
+        logger.warn(f"did not find partition_keys {partition_keys} and args {args} for {target_class.__name__} in table {table_name} for dbid: {astradb.dbid}")
         raise HTTPException(status_code=404, detail=f"{target_class.__name__} not found.")
     return objs[0]
 

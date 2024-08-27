@@ -1,6 +1,8 @@
 import asyncio
 import logging
 
+from impl.astra_vector import CassandraClient
+
 logger = logging.getLogger(__name__)
 background_task_set = set()
 
@@ -15,7 +17,7 @@ async def add_background_task(function, run_id, thread_id, astradb):
     task.add_done_callback(lambda t: on_task_completion(t, astradb=astradb, run_id=run_id, thread_id=thread_id))
 
 
-def on_task_completion(task, astradb, run_id, thread_id):
+def on_task_completion(task, astradb: CassandraClient, run_id, thread_id):
     background_task_set.remove(task)
     logger.debug(f"Task stopped for run_id: {run_id} and thread_id: {thread_id}")
 
@@ -26,13 +28,14 @@ def on_task_completion(task, astradb, run_id, thread_id):
     try:
         exception = task.exception()
         if exception is not None:
-            logger.warning(f"Task raised an exception, setting status to failed for run_id: {run_id} and thread_id: {thread_id}")
-            logger.error(exception)
+            logger.error(f"Task raised an exception, setting status to failed for run_id: "
+                         f"{run_id} and thread_id: {thread_id} and dbid: {astradb.dbid}"
+                         f"\nException:\n{exception}")
             astradb.update_run_status(id=run_id, thread_id=thread_id, status="failed");
             raise exception
         else:
             logger.debug(f"Task completed successfully for run_id: {run_id} and thread_id: {thread_id}")
     except asyncio.CancelledError:
         logger.warning(f"why wasn't this caught in task.cancelled()")
-        logger.debug(f"Task cancelled, setting status to failed for run_id: {run_id} and thread_id: {thread_id}")
+        logger.debug(f"Task cancelled, setting status to failed for run_id: {run_id} and thread_id: {thread_id} and dbid: {astradb.dbid}")
         astradb.update_run_status(id=run_id, thread_id=thread_id, status="failed");
