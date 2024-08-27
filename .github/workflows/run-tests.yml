@@ -1384,7 +1384,7 @@ jobs:
           kill $SERVER_PID
   run-data-api-tools-tests:
     runs-on: ubuntu-latest
-    name: run tools tests
+    name: run data api tools tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -1439,7 +1439,7 @@ jobs:
           kill $SERVER_PID
   run-data-code-interpreter-tools-tests:
     runs-on: ubuntu-latest
-    name: run tools tests
+    name: run code interpreter tools tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -1494,7 +1494,7 @@ jobs:
           kill $SERVER_PID
   run-lsp-tools-tests:
     runs-on: ubuntu-latest
-    name: run tools tests
+    name: run lsp tools tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -1549,7 +1549,7 @@ jobs:
           kill $SERVER_PID
   run-structured-code-tools-tests:
     runs-on: ubuntu-latest
-    name: run tools tests
+    name: run structured code tools tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
