@@ -353,11 +353,13 @@ class CassandraClient:
                 raise HTTPException(401, f"{TOKEN_AUTH_FAILURE_MESSAGE}: {e}")
 
             except NoHostAvailable as e:
-                for db_url, error in e.errors.items():
-                    if isinstance(error, Unauthorized):
-                        raise HTTPException(
-                            401, f"{TOKEN_AUTH_FAILURE_MESSAGE}: {e}"
-                        )
+                logger.error(f"connecton error, dbid: {self.dbid}, error: {e}")
+                if hasattr(e, "errors") and hasattr(e.errors, "items"):
+                    for db_url, error in e.errors.items():
+                        if isinstance(error, Unauthorized):
+                            raise HTTPException(
+                                401, f"{TOKEN_AUTH_FAILURE_MESSAGE}: {e}"
+                            )
                 raise
 
             except DriverException as e:
