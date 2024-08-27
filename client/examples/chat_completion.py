@@ -45,7 +45,7 @@ print_chat_completion(model)
 model="cohere/command"
 print_chat_completion(model)
 
-model="perplexity/mixtral-8x7b-instruct"
+model="perplexity/llama-3.1-70b-instruct"
 print_chat_completion(model)
 
 model="anthropic.claude-v2"

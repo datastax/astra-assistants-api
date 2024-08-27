@@ -88,7 +88,7 @@ def test_chat_completion_cohere(patched_openai_client):
 
 @pytest.mark.skip(reason="Tool choice not supporeted / working consistently")
 def test_chat_completion_perp_mixtral(patched_openai_client):
-    model="perplexity/mixtral-8x7b-instruct"
+    model="perplexity/llama-3.1-70b-instruct"
     print_chat_completion(model, patched_openai_client)
 
 def test_chat_completion_claude(patched_openai_client):

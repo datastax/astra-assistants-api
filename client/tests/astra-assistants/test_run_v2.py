@@ -73,7 +73,7 @@ def test_run_perp(patched_openai_client):
     perplexity_assistant = patched_openai_client.beta.assistants.create(
         name="Perplexity/Mixtral Animal Tutor",
         instructions=instructions,
-        model="perplexity/mixtral-8x7b-instruct",
+        model="perplexity/llama-3.1-70b-instruct",
     )
     run_with_assistant(perplexity_assistant, patched_openai_client)
 

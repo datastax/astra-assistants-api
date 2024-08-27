@@ -76,7 +76,7 @@ test_run_with_assistant(cohere_assistant, client)
 perplexity_assistant = client.beta.assistants.create(
     name="Perplexity/Mixtral Animal Tutor",
     instructions=instructions,
-    model="perplexity/mixtral-8x7b-instruct",
+    model="perplexity/llama-3.1-70b-instruct",
 )
 test_run_with_assistant(perplexity_assistant, client)
 

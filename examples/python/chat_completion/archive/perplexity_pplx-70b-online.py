@@ -22,7 +22,7 @@ client = OpenAI(
     }
 )
 
-model="perplexity/pplx-70b-online"
+model="perplexity/llama-3.1-70b-instruct"
 
 prompt = "Draw an ASCII art kitten eating icecream"
 response = client.chat.completions.create(

@@ -22,12 +22,12 @@ def test_function_calling_cohere(patched_openai_client):
 #TODO: bisect litellm versions to find when this started failing
 @pytest.mark.skip(reason="for some reason this no longer works consistently with modern litellm, skip")
 def test_function_calling_pplx_mix(patched_openai_client):
-    model="perplexity/mixtral-8x7b-instruct"
+    model="perplexity/llama-3.1-70b-instruct"
     function_calling(model, patched_openai_client)
 
 @pytest.mark.skip(reason="pplx_online just looks up the weather and doesn't do the function call")
 def test_function_calling_pplx_online(patched_openai_client):
-    model="perplexity/pplx-70b-online"
+    model="perplexity/llama-3.1-70b-instruct"
     function_calling(model, patched_openai_client)
 
 def test_function_calling_claude(patched_openai_client):

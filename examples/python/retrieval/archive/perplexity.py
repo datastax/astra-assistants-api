@@ -23,7 +23,7 @@ client = OpenAI(
 
 
 response = client.chat.completions.create(
-    model="perplexity/mistral-7b-instruct",
+    model="perplexity/llama-3.1-70b-instruct",
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "Can you give me some travel tips for Japan?"}
@@ -48,7 +48,7 @@ print(my_thread)
 assistant = client.beta.assistants.create(
     name="Math Tutor",
     instructions="You are a personal math tutor. Answer questions briefly, in a sentence or less.",
-    model="perplexity/mistral-7b-instruct",
+    model="perplexity/llama-3.1-70b-instruct",
 )
 
 print(assistant)

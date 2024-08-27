@@ -3,7 +3,7 @@
 set -x
 
 # List of models
-models=("gpt4-o" "anthropic/claude-3-5-sonnet" "groq/llama3-8b-8192" "cohere/command-r-plus" "ollama_chat/deepseek_coder_v2" "gemini/gemini-1.5-pro-latest" "pplx-70b-online")
+models=("gpt4-o" "anthropic/claude-3-5-sonnet" "groq/llama3-8b-8192" "cohere/command-r-plus" "ollama_chat/deepseek_coder_v2" "gemini/gemini-1.5-pro-latest" "perplexity/llama-3.1-sonar-huge-128k-online")
 
 # Counter for frame numbers
 counter=1

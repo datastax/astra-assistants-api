@@ -131,7 +131,7 @@ def test_run_cohere(patched_openai_client):
     run_with_assistant(cohere_assistant, patched_openai_client)
 
 def test_run_perp(patched_openai_client):
-    model = "perplexity/mixtral-8x7b-instruct"
+    model="perplexity/llama-3.1-70b-instruct"
     name = f"{model} Math Tutor"
 
     perplexity_assistant = patched_openai_client.beta.assistants.create(

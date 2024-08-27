@@ -100,7 +100,7 @@ cohere_assistant = client.beta.assistants.create(
 )
 run_with_assistant(cohere_assistant, client)
 
-model = "perplexity/mixtral-8x7b-instruct"
+model="perplexity/llama-3.1-70b-instruct"
 name = f"{model} Math Tutor"
 
 perplexity_assistant = client.beta.assistants.create(
