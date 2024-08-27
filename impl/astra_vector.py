@@ -342,7 +342,7 @@ class CassandraClient:
                 cluster = Cluster(
                     cloud=cloud_config,
                     auth_provider=auth_provider,
-                    connect_timeout=60,
+                    connect_timeout=120,
                     protocol_version=ProtocolVersion.V4,
                     reconnection_policy=ExponentialReconnectionPolicy(base_delay=1, max_delay=60)
                 )
