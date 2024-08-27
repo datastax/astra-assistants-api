@@ -114,7 +114,10 @@ class APIVersionMiddleware(BaseHTTPMiddleware):
                 response = await call_next(request)
                 return response
             except Exception as e:
-                logger.error(f"Error: {e}, dbid: {request.state.dbid}")
+                if hasattr(request.state, "dbid"):
+                    logger.error(f"Error: {e}, dbid: {request.state.dbid}")
+                else:
+                    logger.error(f"Error: {e}")
                 print(e)
                 raise e
 
