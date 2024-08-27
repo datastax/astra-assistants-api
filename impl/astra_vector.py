@@ -17,7 +17,7 @@ from fastapi import HTTPException
 
 from cassandra import ConsistencyLevel, Unauthorized, ProtocolVersion
 from cassandra.auth import PlainTextAuthProvider
-from cassandra.cluster import Cluster, DriverException, NoHostAvailable
+from cassandra.cluster import Cluster, DriverException, NoHostAvailable, Session
 from cassandra.policies import RetryPolicy, ExponentialReconnectionPolicy
 from cassandra.query import (
     UNSET_VALUE,
@@ -140,7 +140,7 @@ class CassandraClient:
     def __init__(self, token, dbid=None) -> None:
         self.token = token
         self.dbid = dbid
-        self.session = None  # Initialize session to None
+        self.session: Optional[Session] = None  # Initialize session to None
 
     async def async_setup(self):
         if self.dbid is None:
@@ -149,7 +149,7 @@ class CassandraClient:
         # Attempt to connect synchronously (assuming connect is a sync method)
         session = self.connect()
         if session:
-            self.session = session
+            self.session: Session = session
             # Perform async table creation
             await self.create_table()
         else:
@@ -322,7 +322,7 @@ class CassandraClient:
 
         return response.json()["downloadURL"]
 
-    def connect(self, retry=False):
+    def connect(self, retry=False) -> Session:
         dbid = self.dbid
         token = self.token
         if dbid is not None:
@@ -1500,7 +1500,8 @@ class CassandraClient:
 
     def __del__(self):
         # close the connection when the client is destroyed
-        self.session.shutdown()
+        if self.session is not None:
+            self.session.shutdown()
 
     # TODO: make these async
     def selectAllFromTable(self, table):
