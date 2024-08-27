@@ -22,7 +22,6 @@ from cassandra.policies import RetryPolicy, ExponentialReconnectionPolicy
 from cassandra.query import (
     UNSET_VALUE,
     SimpleStatement,
-    ValueSequence,
     dict_factory,
     named_tuple_factory, PreparedStatement,
 )
@@ -146,7 +145,6 @@ class CassandraClient:
         if self.dbid is None:
             await self.get_or_create_db()
 
-        # Attempt to connect synchronously (assuming connect is a sync method)
         session = self.connect()
         if session:
             self.session: Session = session
@@ -337,7 +335,7 @@ class CassandraClient:
                         with open(bundlepath, "wb") as f:
                             f.write(r.content)
                 # Connect to the cluster
-                cloud_config = {"secure_connect_bundle": bundlepath}
+                cloud_config = {"secure_connect_bundle": bundlepath, "connect_timeout": 120}
                 auth_provider = PlainTextAuthProvider(CASSANDRA_USER, token)
                 cluster = Cluster(
                     cloud=cloud_config,
