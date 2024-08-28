@@ -10,7 +10,6 @@ on:
 
 jobs:
   release-server:
-    if: contains(github.event.commits[*].modified, 'VERSION')
     runs-on: ubuntu-latest
 
     steps:
@@ -41,7 +40,6 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
 
   release-client:
-    if: contains(github.event.commits[*].modified, 'client/pyproject.toml')
     runs-on: ubuntu-latest
 
     steps:
