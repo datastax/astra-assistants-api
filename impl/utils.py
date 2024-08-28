@@ -160,8 +160,11 @@ def read_objects(astradb: CassandraClient, target_class: Type[BaseModel], table_
             raise e
         msg = f"read_objects failed {e} for table {table_name}"
         if obj is not None:
-            msg += f"for object {obj}"
+            msg += f" last object: {obj}"
+        if json_objs is not None:
+            msg += f" json_objs: {json_objs}"
         logger.error(msg)
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Error reading {table_name}: {e}")
 
 
