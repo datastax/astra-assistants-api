@@ -354,8 +354,8 @@ class CassandraClient:
                     connect_timeout=120,
                     protocol_version=ProtocolVersion.V4,
                     reconnection_policy=ExponentialReconnectionPolicy(base_delay=1, max_delay=60),
-                    retry_policy=VectorRetryPolicy(),
                 )
+                cluster.default_retry_policy = VectorRetryPolicy()
                 session = cluster.connect()
                 session.default_consistency_level = ConsistencyLevel.LOCAL_QUORUM
                 return session
