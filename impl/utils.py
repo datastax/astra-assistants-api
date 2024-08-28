@@ -168,7 +168,9 @@ def read_objects(astradb: CassandraClient, target_class: Type[BaseModel], table_
 def generate_id(prefix: str, num_bytes=24):
     random_bytes = secrets.token_bytes(num_bytes)
     random_string = base64.urlsafe_b64encode(random_bytes).rstrip(b'=').decode('utf-8')
-    return f"{prefix}_{random_string}"
+    generated_id = f"{prefix}_{random_string}"
+    logger.info(f"generated id: {generated_id}")
+    return generated_id
 
 
 def generate_id_from_upload_file(upload_file, prefix="file", length=24):
