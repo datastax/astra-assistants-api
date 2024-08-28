@@ -119,6 +119,9 @@ jobs:
           # Start the server in the background
           poetry run python run.py &
           SERVER_PID=$!
+          
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
 
           # Wait for the server to be ready
           sleep 10
@@ -127,9 +130,6 @@ jobs:
           pushd client
           poetry run pytest --timeout 600 -s --disable-warnings tests/openai-sdk/test_files.py
           popd
-
-          # Kill the server
-          kill $SERVER_PID
 
   run-openai-sdk-test_assistants_v1:
     runs-on: ubuntu-latest
@@ -179,6 +179,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -187,8 +190,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/openai-sdk/test_assistants_v1.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
   run-openai-sdk-test_assistants_v2:
     runs-on: ubuntu-latest
@@ -234,6 +235,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -242,9 +246,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/openai-sdk/test_assistants_v2.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
-
   run-astra-assistants-tests-chat:
     runs-on: ubuntu-latest
     name: run astra-assistants chat tests
@@ -289,6 +290,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -297,8 +301,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/astra-assistants/test_chat_completion.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
   run-astra-assistants-tests-embedding:
     runs-on: ubuntu-latest
@@ -344,6 +346,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -352,8 +357,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/astra-assistants/test_embedding.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
   run-astra-assistants-tests-file-embedding:
     runs-on: ubuntu-latest
@@ -399,6 +402,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -407,8 +413,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/astra-assistants/test_file_embedding.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
   run-streaming-assistants-tests-function-calling_v1:
     runs-on: ubuntu-latest
@@ -458,6 +462,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -466,8 +473,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/streaming-assistants/test_function_calling_v1.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
   run-streaming-assistants-tests-run_v1:
     runs-on: ubuntu-latest
@@ -517,6 +522,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -525,8 +533,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/streaming-assistants/test_run_v1.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
   run-streaming-assistants-tests-run-retrieval_v1:
     runs-on: ubuntu-latest
@@ -576,6 +582,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -584,8 +593,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/streaming-assistants/test_run_retreival_v1.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
   run-streaming-assistants-tests-streaming-run-retrieval_v1:
     runs-on: ubuntu-latest
@@ -635,6 +642,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -643,8 +653,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/streaming-assistants/test_streaming_run_retrieval_v1.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
   run-streaming-assistants-tests-streaming-run_v1:
     runs-on: ubuntu-latest
@@ -694,6 +702,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -702,8 +713,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/streaming-assistants/test_streaming_run_v1.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
   run-streaming-assistants-tests-streaming-run-function-calling_v1:
     runs-on: ubuntu-latest
@@ -753,6 +762,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -761,8 +773,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/streaming-assistants/test_streaming_run_function_calling_v1.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
   run-streaming-assistants-tests-threads-v1:
     runs-on: ubuntu-latest
@@ -813,6 +823,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -821,8 +834,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/streaming-assistants/test_threads_v1.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
   run-streaming-assistants-tests-auto-tool-call-v1:
     runs-on: ubuntu-latest
@@ -873,6 +884,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -881,8 +895,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/streaming-assistants/test_auto_tool_call_v1.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
   run-astra-assistants-tests-run_v2:
     runs-on: ubuntu-latest
@@ -928,6 +940,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -936,8 +951,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/astra-assistants/test_threads_v2.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
   run-astra-assistants-tests-run_retrieval_v2:
     runs-on: ubuntu-latest
@@ -983,6 +996,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -991,8 +1007,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/astra-assistants/test_run_retreival_v2.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
   run-astra-assistants-tests-function_calling_v2:
     runs-on: ubuntu-latest
@@ -1038,6 +1052,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -1046,8 +1063,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/astra-assistants/test_function_calling_v2.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
 
   run-astra-assistants-tests-streaming-run-function_calling_async_v2:
@@ -1094,6 +1109,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -1102,8 +1120,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/astra-assistants/test_streaming_run_function_calling_async_v2.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
 
 
@@ -1151,6 +1167,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -1159,8 +1178,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/astra-assistants/test_streaming_run_v2.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
   run-astra-assistants-tests-streaming_run_retrieval_v2:
     runs-on: ubuntu-latest
@@ -1206,6 +1223,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -1214,8 +1234,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/astra-assistants/test_streaming_run_retrieval_v2.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
 
   run-astra-assistants-tests-streaming_run_retrieval_async_v2:
@@ -1262,6 +1280,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -1270,8 +1291,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/astra-assistants/test_streaming_run_retrieval_async_v2.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
   run-astra-assistants-tests-streaming_run_function_calling_v2:
     runs-on: ubuntu-latest
@@ -1317,6 +1336,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -1325,8 +1347,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/astra-assistants/test_streaming_run_function_calling_v2.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
 
   run-astra-assistants-tests-auto_tool_call_v2:
     runs-on: ubuntu-latest
@@ -1372,6 +1392,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -1380,8 +1403,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/astra-assistants/test_auto_tool_call_v2.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
   run-data-api-tools-tests:
     runs-on: ubuntu-latest
     name: run data api tools tests
@@ -1427,6 +1448,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -1435,8 +1459,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/tools/test_astra_data_api.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
   run-data-code-interpreter-tools-tests:
     runs-on: ubuntu-latest
     name: run code interpreter tools tests
@@ -1482,6 +1504,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -1490,8 +1515,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/tools/test_code_interpreter.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
   run-lsp-tools-tests:
     runs-on: ubuntu-latest
     name: run lsp tools tests
@@ -1537,6 +1560,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -1545,8 +1571,6 @@ jobs:
           poetry run pytest --timeout 600 -s --disable-warnings tests/tools/test_lsp_session.py
           popd
           
-          # Kill the server
-          kill $SERVER_PID
   run-structured-code-tools-tests:
     runs-on: ubuntu-latest
     name: run structured code tools tests
@@ -1592,6 +1616,9 @@ jobs:
           poetry run python run.py &
           SERVER_PID=$!
           
+          # Ensure the server is killed on exit
+          trap 'kill $SERVER_PID' EXIT 
+          
           # Wait for the server to be ready
           sleep 10
           
@@ -1599,7 +1626,3 @@ jobs:
           pushd client
           poetry run pytest --timeout 600 -s --disable-warnings tests/tools/test_structured_code.py
           popd
-          
-          # Kill the server
-          kill $SERVER_PID
-
