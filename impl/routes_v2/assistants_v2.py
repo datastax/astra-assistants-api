@@ -60,7 +60,7 @@ async def list_assistants(
             args={}
         )
     except Exception as e:
-        if e.status_code == 404:
+        if hasattr(e, "status_code") and e.status_code == 404:
             return ListAssistantsResponse.construct(data=[], object="assistants", has_more=False)
         else:
             raise e
