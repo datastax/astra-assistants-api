@@ -8,10 +8,12 @@
 [![Discord chat](https://img.shields.io/static/v1?label=Chat%20on&message=Discord&color=blue&logo=Discord&style=flat-square)](https://discord.gg/MEFVXUvsuy)
 [![Stars](https://img.shields.io/github/stars/datastax/astra-assistants-api?style=social)](https://github.com/datastax/astra-assistants-api/stargazers)
 
+### An Open Source drop-in compatible service for the latest OpenAI Assistants API v2
 
 ![create_assistant](images/create_assistant.gif)
 
-A drop-in compatible service for the latest OpenAI Assistants API v2 (with streaming) with support for persistent threads, files, vector_stores, assistants, retreival, function calling and more using [AstraDB](https://astra.datastax.com) (DataStax's db as a service offering powered by [Apache Cassandra](https://cassandra.apache.org/_/index.html) and [jvector](https://github.com/jbellis/jvector)).
+
+Astra Assistants supports streaming, persistent threads, files, vector_stores, assistants, retrieval, function calling and more using [AstraDB](https://astra.datastax.com) (DataStax's db as a service offering powered by [Apache Cassandra](https://cassandra.apache.org/_/index.html) and [jvector](https://github.com/jbellis/jvector)).
 
 Supports dozens of third party LLM providers (or even local models) for both completion and embeddings (powered by [LiteLLM](https://github.com/BerriAI/litellm)). 
 
