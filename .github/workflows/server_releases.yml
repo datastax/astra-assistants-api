@@ -32,8 +32,8 @@ jobs:
       uses: actions/create-release@v1
       with:
         tag_name: "server-${{ env.SERVER_VERSION }}"
-        release_name: "v${{ env.SERVER_VERSION }} server"
-        body: "Automated release for astra-assistants server v${{ env.SERVER_VERSION }}"
+        release_name: "${{ env.SERVER_VERSION }} server"
+        body: "Automated release for astra-assistants server ${{ env.SERVER_VERSION }}"
         draft: false
         prerelease: false
       env:
