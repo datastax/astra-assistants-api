@@ -1799,7 +1799,7 @@ async def message_delta_streamer(message_id, created_at, response, run, astradb)
     except Exception as e:
         logger.info(f"Error in message_delta_streamer, dbid: {astradb.dbid}, error: {e}")
         await update_run_status(thread_id=run.thread_id, id=run.id, status="failed", astradb=astradb)
-        raise
+        raise e
 
 
 async def make_text_delta_obj_from_chunk(chunk, i, run, message_id):
