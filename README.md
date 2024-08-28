@@ -3,7 +3,7 @@
 [![Github Last Commit](https://img.shields.io/github/last-commit/datastax/astra-assistants-api)](https://github.com/datastax/astra-assistants-api/commits/main)
 [![Run tests](https://github.com/datastax/astra-assistants-api/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/datastax/astra-assistants-api/actions/workflows/run-tests.yml)
 [![Docker build and publish](https://github.com/datastax/astra-assistants-api/actions/workflows/docker.yml/badge.svg)](https://github.com/datastax/astra-assistants-api/actions/workflows/docker.yml)
-[![PyPI version](https://badge.fury.io/py/astra-assistants.svg)](https://badge.fury.io/py/astra-assistants)
+[![PyPI - Downloads](https://img.shields.io/pypi/dw/astra-assistants?label=pypi%20downloads)](https://badge.fury.io/py/astra-assistants)
 [![Dockerhub](https://img.shields.io/static/v1?label=Pull%20from&message=DockerHub&color=blue&logo=Docker&style=flat-square)](https://hub.docker.com/r/datastax/astra-assistants)
 [![Discord chat](https://img.shields.io/static/v1?label=Chat%20on&message=Discord&color=blue&logo=Discord&style=flat-square)](https://discord.gg/MEFVXUvsuy)
 [![Stars](https://img.shields.io/github/stars/datastax/astra-assistants-api?style=social)](https://github.com/datastax/astra-assistants-api/stargazers)
