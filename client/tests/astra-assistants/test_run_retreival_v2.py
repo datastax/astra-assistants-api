@@ -160,7 +160,7 @@ def test_run_claude(patched_openai_client):
     run_with_assistant(claude_assistant, patched_openai_client, file1_path, embedding_model1)
 
 def test_run_gemini(patched_openai_client):
-    model = "gemini/gemini-1.5-pro-latest"
+    model = gemini/gemini-1.5-flash
     name = f"{model} Math Tutor"
 
     gemini_assistant = patched_openai_client.beta.assistants.create(

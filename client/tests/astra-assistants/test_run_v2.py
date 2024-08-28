@@ -89,6 +89,6 @@ def test_run_gemini(patched_openai_client):
     gemini_assistant = patched_openai_client.beta.assistants.create(
         name="Gemini Animal Tutor",
         instructions=instructions,
-        model="gemini/gemini-1.5-pro-latest",
+        model=gemini/gemini-1.5-flash,
     )
     run_with_assistant(gemini_assistant, patched_openai_client)
