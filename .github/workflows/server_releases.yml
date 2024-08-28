@@ -36,4 +36,5 @@ jobs:
         body: "Automated release for astra-assistants server ${{ env.SERVER_VERSION }}"
         draft: false
         prerelease: false
-        token: ${{ secrets.GITHUB_TOKEN }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
