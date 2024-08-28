@@ -32,8 +32,8 @@ jobs:
       uses: actions/create-release@v1
       with:
         tag_name: "client-${{ env.CLIENT_VERSION }}"
-        release_name: "astra-assistants (client) release ${{ env.CLIENT_VERSION }}"
-        body: "Automated release for client version ${{ env.CLIENT_VERSION }}"
+        release_name: "v${{ env.CLIENT_VERSION }} (client)"
+        body: "Automated release for client version v${{ env.CLIENT_VERSION }}"
         draft: false
         prerelease: false
       env:
