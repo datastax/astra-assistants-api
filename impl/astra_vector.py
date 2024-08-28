@@ -175,7 +175,7 @@ class CassandraClient:
             "Content-Type": "application/json",
         }
 
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=60)
         handled_response = self.handle_response_errors(response)
         if handled_response is not None:
             logger.error(f"Failed to create AstraDBs {handled_response.detail}")
@@ -402,7 +402,7 @@ class CassandraClient:
 
         # Make the POST request asynchronously
         async with httpx.AsyncClient() as client:
-            response = await client.post(url, headers=headers, json=payload)
+            response = await client.post(url, headers=headers, json=payload, timeout=60)
         handled_response = self.handle_response_errors(response)
         if handled_response is not None:
             if handled_response.retryable:
