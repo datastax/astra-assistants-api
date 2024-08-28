@@ -1,17 +1,14 @@
 import json
 
 import pytest
-import logging
 import time
 
 from openai.lib.streaming import AssistantEventHandler
 from typing_extensions import override
 
-logger = logging.getLogger(__name__)
-
 def run_with_assistant(assistant, client):
-    logger.info(f"using assistant: {assistant}")
-    logger.info("Uploading file:")
+    print(f"using assistant: {assistant}")
+    print("Uploading file:")
     # Upload the file
     file = client.files.create(
         file=open(
@@ -48,21 +45,21 @@ def run_with_assistant(assistant, client):
     #print(file_batch.file_counts)
 
 
-    logger.info("adding vector_store id to assistant")
+    print("adding vector_store id to assistant")
     # Update Assistant
     assistant = client.beta.assistants.update(
         assistant.id,
         tools=[{"type": "file_search"}],
         tool_resources={"file_search": {"vector_store_ids": [vector_store.id]}},
     )
-    logger.info(f"updated assistant: {assistant}")
+    print(f"updated assistant: {assistant}")
     user_message = "What are some cool math concepts behind this ML paper pdf? Explain in two sentences."
-    logger.info("creating persistent thread and message")
+    print("creating persistent thread and message")
     thread = client.beta.threads.create()
     client.beta.threads.messages.create(
         thread_id=thread.id, role="user", content=user_message
     )
-    logger.info(f"> {user_message}")
+    print(f"> {user_message}")
 
     class EventHandler(AssistantEventHandler):
         def __init__(self):
@@ -93,7 +90,7 @@ def run_with_assistant(assistant, client):
 
     event_handler = EventHandler()
 
-    logger.info(f"creating run")
+    print(f"creating run")
     with client.beta.threads.runs.create_and_stream(
             thread_id=thread.id,
             assistant_id=assistant.id,
