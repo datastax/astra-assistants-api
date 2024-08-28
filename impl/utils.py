@@ -7,6 +7,7 @@ import secrets
 import traceback
 from typing import Type, Dict, Any, List, get_origin, Annotated, get_args, Union
 
+import pydantic
 from fastapi import HTTPException
 from pydantic import BaseModel
 
@@ -151,9 +152,14 @@ def read_objects(astradb: CassandraClient, target_class: Type[BaseModel], table_
                             json_obj[field_name] = int(json_obj[field_name].timestamp()*1000)
                 elif annotation is int and isinstance(json_obj[field_name], datetime.datetime):
                     json_obj[field_name] = int(json_obj[field_name].timestamp()*1000)
-
-            obj = target_class(**json_obj)
-            obj_list.append(obj)
+            try:
+                obj = target_class(**json_obj)
+                obj_list.append(obj)
+            except Exception as e:
+                if isinstance(e, pydantic.ValidationError):
+                    logger.warn(f"ignoring bad object from {table_name} - {e} json_obj: {json_obj}")
+                else:
+                    raise HTTPException(status_code=500, detail=f"Error reading {table_name}: {e}")
         return obj_list
     except Exception as e:
         if hasattr(e, 'status_code') and e.status_code== 404:
