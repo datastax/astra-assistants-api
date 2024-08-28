@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "astra-assistants"
-version = "2.1.0.11"
+version = "2.1.0.12"
 description = "Astra Assistants API - drop in replacement for OpenAI Assistants, powered by AstraDB"
 authors = ["phact <estevezsebastian@gmail.com>"]
 readme = "README.md"
