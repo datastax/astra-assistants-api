@@ -38,7 +38,7 @@ def test_function_calling_claude(patched_openai_client):
 
 @pytest.mark.skip(reason="gemini does not consistently work with function calling, skip")
 def test_function_calling_gemini(patched_openai_client):
-    model=gemini/gemini-1.5-flash
+    model="gemini/gemini-1.5-flash"
     function_calling(model, patched_openai_client)
 
 @pytest.mark.skip(reason="llama does not consistently work with function calling, skip")

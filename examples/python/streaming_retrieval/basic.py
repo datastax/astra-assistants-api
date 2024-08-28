@@ -127,7 +127,7 @@ claude_assistant = client.beta.assistants.create(
 )
 run_with_assistant(claude_assistant, client)
 
-model = gemini/gemini-1.5-flash
+model = "gemini/gemini-1.5-flash"
 name = f"{model} Math Tutor"
 
 gemini_assistant = client.beta.assistants.create(

@@ -90,6 +90,6 @@ test_run_with_assistant(claude_assistant, client)
 gemini_assistant = client.beta.assistants.create(
     name="Gemini Animal Tutor",
     instructions=instructions,
-    model=gemini/gemini-1.5-flash,
+    model="gemini/gemini-1.5-flash",
 )
 test_run_with_assistant(gemini_assistant, client)

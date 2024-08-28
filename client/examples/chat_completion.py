@@ -51,5 +51,5 @@ print_chat_completion(model)
 model="anthropic.claude-v2"
 print_chat_completion(model)
 
-model=gemini/gemini-1.5-flash
+model="gemini/gemini-1.5-flash"
 print_chat_completion(model)
