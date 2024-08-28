@@ -3,6 +3,10 @@ on:
   push:
     tags:
       - 'astra-assistants-api-server-*'
+  workflow_run:
+    workflows: ["Server Release on Version Change"]
+    types:
+      - completed
   workflow_dispatch:
 
 jobs:
