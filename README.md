@@ -199,3 +199,6 @@ See our coverage report [here](./coverage.md)
  - [X] function calling
  - [X] Streaming support
  - [X] Assistants V2 with vector_store support
+
+
+This project is not associated with OpenAI or any of the third party models we support. It is an open source project that aims to provide a drop-in compatible service for the OpenAI Assistants API.
