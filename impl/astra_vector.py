@@ -103,7 +103,7 @@ class VectorRetryPolicy(RetryPolicy):
             retry_num,
     ):
         if retry_num < 3:
-            logger.info(f"retrying timeout {retry_num}")
+            logger.info(f"retrying read timeout {retry_num}")
             logger.info(f"query: {query}")
             return RetryPolicy.RETRY, consistency  # return a tuple
         else:
@@ -120,7 +120,12 @@ class VectorRetryPolicy(RetryPolicy):
     def on_unavailable(
             self, query, consistency, required_replicas, alive_replicas, retry_num
     ):
-        return RetryPolicy.RETHROW, consistency  # return a tuple
+        if retry_num < 3:
+            logger.info(f"retrying unavailable exception {retry_num}")
+            logger.info(f"query: {query}")
+            return RetryPolicy.RETRY, consistency  # return a tuple
+        else:
+            return RetryPolicy.RETHROW, consistency
 
     def on_write_timeout(
             self,
@@ -131,7 +136,13 @@ class VectorRetryPolicy(RetryPolicy):
             received_responses,
             retry_num,
     ):
-        return RetryPolicy.RETHROW, consistency  # return a tuple
+        if retry_num < 3:
+            logger.info(f"retrying write timeout {retry_num}")
+            logger.info(f"query: {query}")
+            return RetryPolicy.RETRY, consistency  # return a tuple
+        else:
+            return RetryPolicy.RETHROW, consistency
+
 
 
 class CassandraClient:
@@ -342,7 +353,8 @@ class CassandraClient:
                     auth_provider=auth_provider,
                     connect_timeout=120,
                     protocol_version=ProtocolVersion.V4,
-                    reconnection_policy=ExponentialReconnectionPolicy(base_delay=1, max_delay=60)
+                    reconnection_policy=ExponentialReconnectionPolicy(base_delay=1, max_delay=60),
+                    retry_policy=VectorRetryPolicy(),
                 )
                 session = cluster.connect()
                 session.default_consistency_level = ConsistencyLevel.LOCAL_QUORUM
