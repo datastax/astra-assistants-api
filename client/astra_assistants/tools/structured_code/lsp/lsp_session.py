@@ -4,7 +4,7 @@ import sys
 import threading
 from concurrent.futures import Future, ThreadPoolExecutor
 from threading import Event
-from typing import Callable, TypeVar
+from typing import Callable, TypeVar, Optional
 
 from pylsp_jsonrpc.dispatchers import MethodDispatcher
 from pylsp_jsonrpc.endpoint import Endpoint
@@ -38,7 +38,7 @@ class LspSession(MethodDispatcher):
 
         self._endpoint: Endpoint
         self._thread_pool: ThreadPoolExecutor = ThreadPoolExecutor()
-        self._sub: subprocess.Popen | None = None
+        self._sub: Optional[subprocess.Popen] = None
         self._reader: JsonRpcStreamReader | None = None
         self._writer: JsonRpcStreamWriter | None = None
         self._notification_callbacks: dict[str, Callable] = {}
@@ -50,6 +50,8 @@ class LspSession(MethodDispatcher):
 
         shell=True needed for pytest-cov to work in subprocess.
         """
+        if self._sub is not None:
+            raise RuntimeError("LSP session already started")
         self._sub = subprocess.Popen(
             #[sys.executable, "-m", self.module],
             #[sys.executable, "-m", "ruff", "server", "-v"],
@@ -88,7 +90,7 @@ class LspSession(MethodDispatcher):
         self._thread_pool.shutdown()
         unwrap(self._writer).close()  # type: ignore[attr-defined]
         unwrap(self._reader).close()  # type: ignore[attr-defined]
-        self._sub.kill()
+        self._sub.terminate()
 
     def initialize(
             self,

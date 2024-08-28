@@ -8,8 +8,6 @@ print(x)
 
 
 def test_publish_diagnostics():
-    sender = LspSessionManager()
-
     program = StructuredProgramEntry(
         program_id="1",
         program=StructuredProgram(
@@ -23,3 +21,4 @@ def test_publish_diagnostics():
     programs.append(program)
 
     programs[0].program.to_string(with_line_numbers=False)
+    programs.close()

@@ -18,7 +18,6 @@ from astra_assistants.tools.structured_code.write import StructuredCodeFileGener
 logger = logging.getLogger(__name__)
 
 
-@pytest.mark.skip(reason="redundant")
 def test_structured_code_raw(patched_openai_client):
     programs = ProgramCache()
     code_generator = StructuredCodeFileGenerator(programs)
@@ -78,8 +77,9 @@ use the structured code tool to generate code to help the user.
         for text in stream.text_deltas:
             print(text, end="", flush=True)
         print()
-        programs = event_handler.tool_output
-        print(f"tool_output: {event_handler.tool_output}")
+        tool_output = event_handler.tool_output
+        print(f"tool_output: {tool_output}")
+    programs.close()
 
 
 @pytest.mark.asyncio
@@ -119,8 +119,8 @@ async def test_structured_code_with_manager(patched_openai_client):
     )
     first_chunk = add_chunks_to_cache(chunks, programs)
     assert first_chunk
+    programs.close()
 
-@pytest.mark.skip(reason="redundant")
 def test_structured_rewrite_with_manager(patched_openai_client):
     programs = ProgramCache()
 
@@ -182,10 +182,9 @@ print("Factorial:", factorial(number))
     )
     program_id = add_program_to_cache(program, programs)
     print(program_id)
+    programs.close()
 
 
-
-@pytest.mark.skip(reason="redundant")
 def test_structured_rewrite_and_edit_with_manager(patched_openai_client):
     programs = ProgramCache()
 
@@ -250,6 +249,8 @@ print("Factorial:", factorial(number))
     program_id = add_chunks_to_cache(chunks, programs)['program_id']
     assert len(programs) == 3
     print(program_id)
+    programs.close()
+
 
 def test_structured_all_with_manager(patched_openai_client):
     programs = ProgramCache()
@@ -350,9 +351,9 @@ print("Factorial:", factorial(number))
     program_id = add_chunks_to_cache(chunks, programs)['program_id']
     assert len(programs) == 6
     print(program_id)
+    programs.close()
 
 
-@pytest.mark.skip(reason="redundant")
 def test_program_parser():
     test_input = '''
     Some introductory text.
