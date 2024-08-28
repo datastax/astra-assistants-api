@@ -2,7 +2,7 @@ import csv
 import mimetypes
 import os
 from io import BufferedReader
-from typing import Optional
+from typing import Optional, List
 
 import docx2txt
 import pptx
@@ -13,7 +13,7 @@ from PyPDF2 import PdfReader
 from impl.astra_vector import HandledResponse
 from impl.models import Document
 
-exclude_exts: list[str] = [
+exclude_exts: List[str] = [
     ".map",
     ".tfstate",
     ".jar",
