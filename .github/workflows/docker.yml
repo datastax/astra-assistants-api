@@ -1,5 +1,8 @@
 name: Docker build and publish
 on:
+  push:
+    tags:
+      - 'astra-assistants-api-server-*'
   workflow_dispatch:
 
 jobs:
