@@ -1,44 +1,13 @@
-name: Release on Version Change
+name: Client Release on Version Change
 
 on:
   push:
     paths:
-      - 'VERSION'
       - 'client/pyproject.toml'
     branches:
       - main
 
 jobs:
-  release-server:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Get server version number
-      id: get_server_version
-      run: |
-        SERVER_VERSION=$(cat VERSION)
-        echo "SERVER_VERSION=$SERVER_VERSION" > $GITHUB_ENV
-
-    - name: Create Git tag for server
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git tag "astra-assistants-api-server-${{ env.SERVER_VERSION }}"
-        git push origin "astra-assistants-api-server-${{ env.SERVER_VERSION }}"
-
-    - name: Create GitHub Release for server
-      uses: actions/create-release@v1
-      with:
-        tag_name: "server-${{ env.SERVER_VERSION }}"
-        release_name: "Astra Assistants (server) Release: ${{ env.SERVER_VERSION }}"
-        body: "Automated release for astra-assistants server ${{ env.SERVER_VERSION }}"
-        draft: false
-        prerelease: false
-        token: ${{ secrets.GITHUB_TOKEN }}
-
   release-client:
     runs-on: ubuntu-latest
 
