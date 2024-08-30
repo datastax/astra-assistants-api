@@ -3,6 +3,7 @@ import inspect
 import os
 import io
 import threading
+import traceback
 from concurrent.futures import ThreadPoolExecutor
 from functools import wraps
 from types import MethodType
@@ -502,7 +503,12 @@ def wrap_method(original_method, client, is_async, client_is_async):
 
         add_astra_header(client)
 
-        result = original_method(self, *args, **kwargs)
+        try:
+            result = original_method(self, *args, **kwargs)
+        except Exception as e:
+            print(f"error: {e}\nargs: {e.args}\nkwargs: {kwargs}\nbase_url: {client.base_url}\n")
+            print(f"trace: {traceback.format_exc()}")
+            raise e
         return result
 
     async def async_patched_method(self, *args, **kwargs):
