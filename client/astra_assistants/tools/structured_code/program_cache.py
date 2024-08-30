@@ -96,7 +96,9 @@ class ProgramCache(list):
                 print(message)
             except Exception as e:
                 trace = traceback.format_exc()
+                print(trace)
                 print(e)
+                raise e
 
     def apply_code_actions(self, uri, program_str, document_version=1, applied=None):
         if applied is None:

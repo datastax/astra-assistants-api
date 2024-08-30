@@ -14,7 +14,7 @@ def apply_edits_to_file(uri, text_edits):
     file_path = uri_to_file_path(uri)
 
     with open(file_path, 'r') as file:
-        lines = file.readlines()
+        lines = file.read().splitlines()
 
     for edit in text_edits:
         start_line = edit.range.start.line
@@ -33,7 +33,8 @@ def apply_edits_to_file(uri, text_edits):
                 lines[line] = ''
 
     with open(file_path, 'w') as file:
-        file.writelines(lines)
+        for line in lines:
+            file.write(line + '\n')
     return "\n".join(lines)
 
 

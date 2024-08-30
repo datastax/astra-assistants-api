@@ -97,7 +97,7 @@ def process_program_with_tool(program, text, tool, edit):
         program.lines[edit.start_line_number - 1:edit.end_line_number] = text.splitlines()
         return program
     elif tool == "StructuredCodeInsert":
-        i = 0
+        i = -1
         edit_indentation = get_indentation(text.split()[0])
         if edit_indentation == "":
             program_indentation = get_indentation(program.lines[edit.start_line_number - 1])
