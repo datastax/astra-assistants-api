@@ -112,6 +112,45 @@ async def create_thread(
     )
     return astradb.upsert_table_from_base_model("threads", thread)
 
+@router.post(
+    "/threads/runs",
+    responses={
+        200: {"model": RunObject, "description": "OK"},
+    },
+    tags=["Assistants"],
+    summary="Create a thread and run it in one request.",
+    response_model_by_alias=True,
+    response_model=None
+)
+async def create_thread_and_run(
+        create_thread_and_run_request: CreateThreadAndRunRequest = Body(None, description=""),
+        astradb: CassandraClient = Depends(verify_db_client),
+        embedding_model: str = Depends(infer_embedding_model),
+        embedding_api_key: str = Depends(infer_embedding_api_key),
+        litellm_kwargs: tuple[Dict[str, Any]] = Depends(get_litellm_kwargs),
+) -> RunObject:
+    create_thread_request = create_thread_and_run_request.thread
+    if create_thread_request is None:
+        raise HTTPException(status_code=400, detail="thread is required.")
+
+    thread = await create_thread(create_thread_request, astradb)
+
+    create_run_request = CreateRunRequest(
+        assistant_id=create_thread_and_run_request.assistant_id,
+        model=create_thread_and_run_request.model,
+        instructions=create_thread_and_run_request.instructions,
+        tools=create_thread_and_run_request.tools,
+        metadata=create_thread_and_run_request.metadata
+    )
+    return await create_run(
+        thread_id=thread.id,
+        create_run_request=create_run_request,
+        astradb=astradb,
+        embedding_model=embedding_model,
+        embedding_api_key=embedding_api_key,
+        litellm_kwargs=litellm_kwargs,
+    )
+
 @router.get(
     "/threads/{thread_id}",
     responses={
@@ -1823,41 +1862,4 @@ async def make_text_delta_obj_from_chunk(chunk, i, run, message_id):
     return message_delta
 
 
-@router.post(
-    "/threads/runs",
-    responses={
-        200: {"model": RunObject, "description": "OK"},
-    },
-    tags=["Assistants"],
-    summary="Create a thread and run it in one request.",
-    response_model_by_alias=True,
-    response_model=None
-)
-async def create_thread_and_run(
-        create_thread_and_run_request: CreateThreadAndRunRequest = Body(None, description=""),
-        astradb: CassandraClient = Depends(verify_db_client),
-        embedding_model: str = Depends(infer_embedding_model),
-        embedding_api_key: str = Depends(infer_embedding_api_key),
-        litellm_kwargs: tuple[Dict[str, Any]] = Depends(get_litellm_kwargs),
-) -> RunObject:
-    create_thread_request = create_thread_and_run_request.thread
-    if create_thread_request is None:
-        raise HTTPException(status_code=400, detail="thread is required.")
 
-    thread = await create_thread(create_thread_request, astradb)
-
-    create_run_request = CreateRunRequest(
-        assistant_id=create_thread_and_run_request.assistant_id,
-        model=create_thread_and_run_request.model,
-        instructions=create_thread_and_run_request.instructions,
-        tools=create_thread_and_run_request.tools,
-        metadata=create_thread_and_run_request.metadata
-    )
-    return await create_run(
-        thread_id=thread.id,
-        create_run_request=create_run_request,
-        astradb=astradb,
-        embedding_model=embedding_model,
-        embedding_api_key=embedding_api_key,
-        litellm_kwargs=litellm_kwargs,
-    )

@@ -39,19 +39,38 @@ def run_with_assistant(assistant, client):
 
 
 
+def create_and_run_with_assistant(assistant, client):
+    user_message = "What's your favorite animal."
+
+    thread = client.beta.threads.create()
+
+    client.beta.threads.messages.create(
+        thread_id=thread.id, role="user", content=user_message
+    )
+    run = client.beta.threads.create_and_run(
+        thread=thread,
+        assistant_id=assistant.id,
+    )
+
+    logger.info(run)
+
+
+
+
 
 instructions="You're an animal expert who gives very long winded answers with flowery prose. Keep answers below 3 sentences."
 def test_run_gpt_4o_mini(patched_openai_client):
     gpt3_assistant = patched_openai_client.beta.assistants.create(
         name="GPT3 Animal Tutor",
         instructions=instructions,
-        model="gpt-4o_mini",
+        model="gpt-4o-mini",
     )
 
     assistant = patched_openai_client.beta.assistants.retrieve(gpt3_assistant.id)
     logger.info(assistant)
 
     run_with_assistant(gpt3_assistant, patched_openai_client)
+    create_and_run_with_assistant(gpt3_assistant, patched_openai_client)
 
 def test_run_cohere(patched_openai_client):
     cohere_assistant = patched_openai_client.beta.assistants.create(
