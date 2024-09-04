@@ -19,7 +19,9 @@ class LspSessionManager:
         self.diagnostics = params
         self.done.set()
 
+    # Note this is not thread safe
     def send_notification(self, notification_name, payload):
+        self.done = Event()
         self.ls_session.send_notification(notification_name, payload)
 
         # Wait to receive all notifications.

@@ -177,6 +177,7 @@ class ProgramCache(list):
             )
             did_change_payload_dict = convert_keys_to_camel_case(converter.unstructure(did_change_payload_obj))
             notification = self.session_manager.send_notification("textDocument/didChange", did_change_payload_dict)
+        assert notification['uri'] == uri, "notification on the wrong file"
         diagnostics = notification["diagnostics"]
         diags = []
         for diagnostic in diagnostics:
