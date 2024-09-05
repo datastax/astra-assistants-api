@@ -1,12 +1,15 @@
 import logging
+import os
 from typing import List, Dict
 
+from litellm import get_llm_provider
 from openai import OpenAI
 from openai.types.beta.threads.run_submit_tool_outputs_params import ToolOutput
 
 from astra_assistants import patch
 from astra_assistants.astra_assistants_event_handler import AstraEventHandler
 from astra_assistants.tools.tool_interface import ToolInterface
+from astra_assistants.utils import env_var_is_missing, get_env_vars_for_provider
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +17,15 @@ class AssistantManager:
     def __init__(self, instructions: str, model: str = "gpt-4o", name: str = "managed_assistant", tools: List[ToolInterface] = None, thread_id: str = None, thread: str = None, assistant_id: str = None):
         if tools is None:
             tools = []
-        self.client = patch(OpenAI())
+        # Only patch if astra token is provided
+        if os.getenv("ASTRA_DB_APPLICATION_TOKEN") is not None:
+            self.client = patch(OpenAI())
+        else:
+            provider = get_llm_provider(model)[1]
+            env_vars = get_env_vars_for_provider(provider)
+            if env_var_is_missing(provider, env_vars):
+                raise Exception(f"Missing environment variables {env_vars}")
+            self.client = OpenAI()
         self.model = model
         self.instructions = instructions
         self.tools = tools
