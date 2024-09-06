@@ -3,10 +3,9 @@ import os
 from typing import List, Dict
 
 from litellm import get_llm_provider
-from openai import OpenAI
 from openai.types.beta.threads.run_submit_tool_outputs_params import ToolOutput
 
-from astra_assistants import patch
+from astra_assistants import patch, OpenAI
 from astra_assistants.astra_assistants_event_handler import AstraEventHandler
 from astra_assistants.tools.tool_interface import ToolInterface
 from astra_assistants.utils import env_var_is_missing, get_env_vars_for_provider
