@@ -1,22 +1,17 @@
-import logging
-import os
+import sys
 
-from openai import OpenAI
+import openai
 
+from .async_openai_with_default_key import AsyncOpenAIWithDefaultKey
+from .openai_with_default_key import OpenAIWithDefaultKey
 from .patch import patch
 
-logger = logging.getLogger(__name__)
-
-
-class OpenAIWithDefaultKey(OpenAI):
-    def __init__(self, *args, **kwargs):
-        key = os.environ.get("OPENAI_API_KEY", "dummy")
-        if key == "dummy":
-            logger.debug("OPENAI_API_KEY is unset. Setting it to 'dummy' so openai doesn't kill the "
-                         "process when using other LLMs.\nIf you are using OpenAI models (including for embeddings)"
-                         ", remember to set OPENAI_API_KEY to your actual key.")
-        print(f"CustomLibraryClass initialized with args={args} and kwargs={kwargs}")
-        super(OpenAIWithDefaultKey, self).__init__(*args, **kwargs)
-
-
 OpenAI = OpenAIWithDefaultKey
+openai.OpenAI = OpenAI
+sys.modules['openai'].OpenAI = OpenAI
+
+AsyncOpenAI = AsyncOpenAIWithDefaultKey
+openai.AsyncOpenAI = AsyncOpenAI
+sys.modules['openai'].AsyncOpenAI = AsyncOpenAI
+
+__all__ = ["OpenAI", "AsyncOpenAI", "patch"]

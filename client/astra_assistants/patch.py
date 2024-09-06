@@ -24,6 +24,8 @@ from openai.types.beta.threads import message_create_params, Message
 from dotenv import load_dotenv
 from openai.types.beta.vector_stores import VectorStoreFile
 
+from astra_assistants import OpenAIWithDefaultKey, AsyncOpenAIWithDefaultKey
+
 load_dotenv("./.env")
 
 AWS_REGION_NAME = "aws-region-name"
@@ -583,7 +585,11 @@ def patch(client: Union[OpenAI, AsyncOpenAI]):
     print(f"Patching OpenAI client, it will now communicate to Astra Assistants API: {client.base_url}\nLearn more about Astra at: {DOCS_URL}")
 
     client_is_async = None
-    if type(client) == OpenAI:
+    if type(client) == OpenAIWithDefaultKey:
+        client_is_async = False
+    elif type(client) == AsyncOpenAIWithDefaultKey:
+        client_is_async = True
+    elif type(client) == OpenAI:
         client_is_async = False
     elif type(client) == AsyncOpenAI:
         client_is_async = True
