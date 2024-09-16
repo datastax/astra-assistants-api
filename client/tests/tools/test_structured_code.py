@@ -64,8 +64,8 @@ use the structured code tool to generate code to help the user.
 
     event_handler = AstraEventHandler(patched_openai_client)
     event_handler.register_tool(code_replace)
-    program_id = programs[0].program_id
-    program = programs[0].program
+    program_id = programs.get_latest().program_id
+    program = programs.get_latest().program
     patched_openai_client.beta.threads.messages.create(thread.id, content=f"nice, now add trigonometric functions to program_id {program_id}: \n{program.to_string()}" , role="user")
     code_replace.set_program_id(program_id)
     with patched_openai_client.beta.threads.runs.create_and_stream(
@@ -230,7 +230,7 @@ print("Factorial:", factorial(number))
     except Exception as e:
         print(e)
 
-    assert len(programs) == 1
+    assert len(programs.order) == 1
     code_indent_left.set_program_id(program_id)
     chunks: ToolOutput = assistant_manager.stream_thread(
         content="Fix the indentation.",
@@ -238,7 +238,7 @@ print("Factorial:", factorial(number))
     )
 
     tool_call_result = next(chunks)
-    assert len(programs) == 2
+    assert len(programs.order) == 2
     code_rewriter.set_program_id(tool_call_result['program_id'])
 
     chunks: ToolOutput = assistant_manager.stream_thread(
@@ -247,7 +247,7 @@ print("Factorial:", factorial(number))
     )
 
     program_id = add_chunks_to_cache(chunks, programs)['program_id']
-    assert len(programs) == 3
+    assert len(programs.order) == 3
     print(program_id)
     programs.close()
 
@@ -301,7 +301,7 @@ print("Factorial:", factorial(number))
     except Exception as e:
         print(e)
 
-    assert len(programs) == 1
+    assert len(programs.order) == 1
     code_indent_left.set_program_id(program_id)
     chunks: ToolOutput = assistant_manager.stream_thread(
         content="Fix the indentation.",
@@ -309,7 +309,7 @@ print("Factorial:", factorial(number))
     )
 
     tool_call_result = next(chunks)
-    assert len(programs) == 2
+    assert len(programs.order) == 2
     code_rewriter.set_program_id(tool_call_result['program_id'])
 
     chunks: ToolOutput = assistant_manager.stream_thread(
@@ -317,9 +317,10 @@ print("Factorial:", factorial(number))
         tool_choice=code_rewriter
     )
 
-    program_id = add_chunks_to_cache(chunks, programs)['program_id']
-    assert program_id == programs[len(programs)-1].program_id
-    assert len(programs) == 3
+    result = add_chunks_to_cache(chunks, programs)
+    program_id = result['program_id']
+    assert program_id == programs.get_latest().program_id
+    assert len(programs.order) == 3
     print(program_id)
 
     code_insert.set_program_id(program_id)
@@ -329,7 +330,7 @@ print("Factorial:", factorial(number))
     )
 
     program_id = add_chunks_to_cache(chunks, programs)['program_id']
-    assert len(programs) == 4
+    assert len(programs.order) == 4
     print(program_id)
 
     code_delete.set_program_id(program_id)
@@ -339,7 +340,7 @@ print("Factorial:", factorial(number))
     )
 
     tool_call_result = next(chunks)
-    assert len(programs) == 5
+    assert len(programs.order) == 5
     code_rewriter.set_program_id(tool_call_result['program_id'])
 
     code_replace.set_program_id(program_id)
@@ -349,7 +350,7 @@ print("Factorial:", factorial(number))
     )
 
     program_id = add_chunks_to_cache(chunks, programs)['program_id']
-    assert len(programs) == 6
+    assert len(programs.order) == 6
     print(program_id)
     programs.close()
 

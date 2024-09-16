@@ -51,3 +51,13 @@ def env_var_is_missing(provider: str, env_vars: dict) -> bool:
             return True
     return False
 
+
+def copy_program_from_cache(program_id, program_cache):
+    if program_id is None:
+        raise Exception("You must call set_program_id() before calling call()")
+    try:
+        program = program_cache.get(program_id).program.copy()
+        return program
+    except Exception as e:
+        print(f"program_id {program_id} not found in cache: Error: {e}")
+        raise e

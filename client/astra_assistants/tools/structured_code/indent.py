@@ -7,6 +7,7 @@ from tree_sitter import Language, Parser
 
 from astra_assistants.tools.structured_code.program_cache import ProgramCache, StructuredProgramEntry, StructuredProgram
 from astra_assistants.tools.tool_interface import ToolInterface
+from astra_assistants.utils import copy_program_from_cache
 
 ts_language = Language(tspython.language())
 parser = Parser(ts_language)
@@ -74,7 +75,7 @@ def get_indentation_unit(source_code, target_line):
         else:
             print("No indentation found around the specified line.")
             if target_line > 0:
-                return get_indentation_unit(source_code, target_line-1)
+                return get_indentation_unit(source_code, target_line - 1)
     else:
         print(f"No node found at line {target_line + 1}.")
         if target_line > 0:
@@ -84,9 +85,13 @@ def get_indentation_unit(source_code, target_line):
 
 
 class IndentLeftEdit(BaseModel):
-    thoughts: str = Field(..., description="The message to be described to the user explaining how the indent left edit will work, think step by step.")
-    start_line_number: int = Field(..., description="Line number where the indent left edit starts (first line is line 1). ALWAYS requried")
-    end_line_number: Optional[int] = Field(None, description="Line number where the indent left edit ends (line numbers are inclusive, i.e. start_line_number 1 end_line_number 1 will indent 1 line, start_line_number 1 end_line_number 2 will indent two lines)")
+    thoughts: str = Field(...,
+                          description="The message to be described to the user explaining how the indent left edit will work, think step by step.")
+    start_line_number: int = Field(...,
+                                   description="Line number where the indent left edit starts (first line is line 1). ALWAYS requried")
+    end_line_number: Optional[int] = Field(None,
+                                           description="Line number where the indent left edit ends (line numbers are inclusive, i.e. start_line_number 1 end_line_number 1 will indent 1 line, start_line_number 1 end_line_number 2 will indent two lines)")
+
     class Config:
         schema_extra = {
             "examples": [
@@ -109,9 +114,13 @@ class IndentLeftEdit(BaseModel):
 
 
 class IndentRightEdit(BaseModel):
-    thoughts: str = Field(..., description="The message to be described to the user explaining how the indent right edit will work, think step by step.")
-    start_line_number: int = Field(..., description="Line number where the indent right edit starts (first line is line 1). ALWAYS requried")
-    end_line_number: Optional[int] = Field(None, description="Line number where the indent right edit ends (line numbers are inclusive, i.e. start_line_number 1 end_line_number 1 will indent 1 line, start_line_number 1 end_line_number 2 will indent two lines)")
+    thoughts: str = Field(...,
+                          description="The message to be described to the user explaining how the indent right edit will work, think step by step.")
+    start_line_number: int = Field(...,
+                                   description="Line number where the indent right edit starts (first line is line 1). ALWAYS requried")
+    end_line_number: Optional[int] = Field(None,
+                                           description="Line number where the indent right edit ends (line numbers are inclusive, i.e. start_line_number 1 end_line_number 1 will indent 1 line, start_line_number 1 end_line_number 2 will indent two lines)")
+
     class Config:
         schema_extra = {
             "examples": [
@@ -144,22 +153,17 @@ class StructuredCodeIndentRight(ToolInterface):
     def set_program_id(self, program_id):
         self.program_id = program_id
 
-
     def call(self, edit: IndentRightEdit):
         try:
-            program = None
-            for entry in self.program_cache:
-                if entry.program_id == self.program_id:
-                    program = entry.program.copy()
-                    break
-            if not program:
-                raise Exception(f"Program id {self.program_id} not found, did you forget to call set_program_id()?")
+            program = copy_program_from_cache(self.program_id, self.program_cache)
+
             print(f"program before edit: \n{program.to_string()}")
             print(f"edit: {edit}")
 
-            indentation_unit = get_indentation_unit(program.to_string(with_line_numbers=False), edit.start_line_number-1)
+            indentation_unit = get_indentation_unit(program.to_string(with_line_numbers=False),
+                                                    edit.start_line_number - 1)
 
-            i = edit.start_line_number-1
+            i = edit.start_line_number - 1
             if edit.end_line_number is not None:
                 while i < edit.end_line_number:
                     program.lines[i] = f"{indentation_unit}{program.lines[i]}"
@@ -169,7 +173,7 @@ class StructuredCodeIndentRight(ToolInterface):
 
             new_program_id = str(uuid1())
             entry = StructuredProgramEntry(program_id=new_program_id, program=program)
-            self.program_cache.append(entry)
+            self.program_cache.add(entry)
             print(f"program after edit: \n{program.to_string()}")
             return {'program_id': new_program_id, 'output': program}
         except Exception as e:
@@ -188,21 +192,16 @@ class StructuredCodeIndentLeft(ToolInterface):
     def set_program_id(self, program_id):
         self.program_id = program_id
 
-
     def call(self, edit: IndentLeftEdit):
         try:
-            program = None
-            for entry in self.program_cache:
-                if entry.program_id == self.program_id:
-                    program = entry.program.copy()
-                    break
-            if not program:
-                raise Exception(f"Program id {self.program_id} not found, did you forget to call set_program_id()?")
+            program = copy_program_from_cache(self.program_id, self.program_cache)
+
             print(f"program before edit: \n{program.to_string()}")
             print(f"edit: {edit}")
 
-            indentation_unit = get_indentation_unit(program.to_string(with_line_numbers=False), edit.start_line_number-1)
-            i = edit.start_line_number-1
+            indentation_unit = get_indentation_unit(program.to_string(with_line_numbers=False),
+                                                    edit.start_line_number - 1)
+            i = edit.start_line_number - 1
             if edit.end_line_number is not None:
                 while i < edit.end_line_number and i < len(program.lines):
                     program.lines[i] = program.lines[i].replace(indentation_unit, "", 1)
@@ -212,7 +211,7 @@ class StructuredCodeIndentLeft(ToolInterface):
 
             new_program_id = str(uuid1())
             entry = StructuredProgramEntry(program_id=new_program_id, program=program)
-            self.program_cache.append(entry)
+            self.program_cache.add(entry)
             print(f"program after edit: \n{program.to_string()}")
             return {'program_id': new_program_id, 'output': program}
         except Exception as e:

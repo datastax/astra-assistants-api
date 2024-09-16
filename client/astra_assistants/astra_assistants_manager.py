@@ -67,13 +67,13 @@ class AssistantManager:
             model=self.model,
             tools=tool_functions
         )
-        print("Assistant created:", self.assistant)
+        logger.debug("Assistant created:", self.assistant)
         return self.assistant
 
     def create_thread(self):
         # Create and return a new thread
         thread = self.client.beta.threads.create()
-        print("Thread generated:", thread)
+        logger.debug("Thread generated:", thread)
         return thread
 
     def stream_thread(self, content, tool_choice = None, thread_id: str = None, thread = None, additional_instructions = None):

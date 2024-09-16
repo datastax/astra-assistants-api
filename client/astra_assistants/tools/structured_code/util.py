@@ -1,4 +1,5 @@
 import re
+import traceback
 from uuid import uuid1
 
 from astra_assistants.tools.structured_code.program_cache import StructuredProgram, StructuredProgramEntry
@@ -81,7 +82,7 @@ def is_valid_python_code(code: str) -> bool:
 def add_program_to_cache(program, program_cache):
     program_id = str(uuid1())
     entry = StructuredProgramEntry(program_id=program_id, program=program)
-    program_cache.append(entry)
+    program_cache.add(entry)
     return program_id
 
 
@@ -107,6 +108,10 @@ def process_program_with_tool(program, text, tool, edit):
             program.lines.insert(edit.start_line_number + i, line)
             i += 1
         return program
+    elif tool == "StructuredCodeFileGenerator":
+        program = program_str_to_program(text, program.language, program.filename, program.tags, program.description)
+        program.filename = program.filename.split('.')[0] + '/app.py'
+        return program
     else:
         print(f"no changes for tool {tool}")
         program = program_str_to_program(text, program.language, program.filename, program.tags, program.description)
@@ -114,43 +119,45 @@ def process_program_with_tool(program, text, tool, edit):
 
 
 def add_chunks_to_cache(chunks, cache, function=None):
-    first_chunk = next(chunks)
-    assert not isinstance(first_chunk, str)
-    last_program = None
-    if "program_id" in first_chunk:
-        program_id = first_chunk["program_id"]
-        last_program = None
-        for cached_program in cache:
-            if cached_program.program_id == program_id:
-                last_program = cached_program.program
-                break
-        assert last_program is not None
-    else:
-        last_program = first_chunk['program_desc']
-    # If the tool expects code output in chunks output will be a string
-    if isinstance(first_chunk["output"], str):
-        text = ""
-        for chunk in chunks:
-            text += chunk
-        program = None
-        # tools like file generator don't have edits
-        if 'tool' in first_chunk and 'edit' in first_chunk:
-            tool = first_chunk['tool']
-            edit = first_chunk['edit']
-            text = sanitize_program_str(text, last_program.language)
-            program = process_program_with_tool(last_program, text, tool, edit)
-            print(f"edit: \n{edit}\ntext: \n{text}")
+    try:
+        first_chunk = next(chunks)
+        assert not isinstance(first_chunk, str)
+        if "program_id" in first_chunk:
+            program_id = first_chunk["program_id"]
+            last_program = cache.get(program_id).program
         else:
-            program = program_str_to_program(text, last_program.language, last_program.filename, last_program.tags,
-                                             last_program.description)
-        print(f"program after edit: \n{program.to_string()}")
-        program_id = add_program_to_cache(program, cache)
-        if function is not None:
-            function(chunks, text)
-        return {'program_id': program_id, 'output': program}
-    else:
-        if function is not None:
-            function(chunks, first_chunk)
-            return first_chunk
+            last_program = first_chunk['program_desc']
+        # If the tool expects code output in chunks output will be a string
+        if isinstance(first_chunk["output"], str):
+            text = ""
+            for chunk in chunks:
+                text += chunk
+            program = None
+            # tools like file generator don't have edits
+            if 'tool' in first_chunk:
+                edit = None
+                if 'edit' in first_chunk:
+                    edit = first_chunk['edit']
+                tool = first_chunk['tool']
+                text = sanitize_program_str(text, last_program.language)
+                program = process_program_with_tool(last_program, text, tool, edit)
+                print(f"edit: \n{edit}\ntext: \n{text}")
+            else:
+                program = program_str_to_program(text, last_program.language, last_program.filename, last_program.tags,
+                                                 last_program.description)
+            print(f"program after edit: \n{program.to_string()}")
+            program_id = add_program_to_cache(program, cache)
+            if function is not None:
+                function(chunks, text)
+            return {'program_id': program_id, 'output': program}
         else:
-            raise Exception(f"No function provided to handle chunks, function required for first_chunk {first_chunk}")
+            if function is not None:
+                function(chunks, first_chunk)
+                return first_chunk
+            else:
+                raise Exception(f"No function provided to handle chunks, function required for first_chunk {first_chunk}")
+    except Exception as e:
+        print(f"Error: {e}")
+        trace = traceback.format_exc()
+        print(trace)
+        return None

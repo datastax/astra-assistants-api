@@ -1,11 +1,11 @@
 import logging
 import os
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 logger = logging.getLogger(__name__)
 
 
-class AsyncOpenAIWithDefaultKey(OpenAI):
+class AsyncOpenAIWithDefaultKey(AsyncOpenAI):
     def __init__(self, *args, **kwargs):
         key = os.environ.get("OPENAI_API_KEY", "dummy")
         if key == "dummy":

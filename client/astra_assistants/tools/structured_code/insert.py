@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 from astra_assistants.tools.structured_code.program_cache import ProgramCache, StructuredProgram
 from astra_assistants.tools.tool_interface import ToolInterface
+from astra_assistants.utils import copy_program_from_cache
 
 
 class StructuredEditInsert(BaseModel):
@@ -32,13 +33,7 @@ class StructuredCodeInsert(ToolInterface):
 
     def call(self, edit: StructuredEditInsert):
         try:
-            program = None
-            for entry in self.program_cache:
-                if entry.program_id == self.program_id:
-                    program = entry.program.copy()
-                    break
-            if not program:
-                raise Exception(f"Program id {self.program_id} not found, did you forget to call set_program_id()?")
+            program = copy_program_from_cache(self.program_id, self.program_cache)
 
             instructions = (f"Write some code based on the instructions provided.\n"
                             f"## Instructions:\n"

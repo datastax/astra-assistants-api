@@ -20,5 +20,5 @@ def test_publish_diagnostics():
     programs = ProgramCache()
     programs.append(program)
 
-    programs[0].program.to_string(with_line_numbers=False)
+    programs.get_latest().program.to_string(with_line_numbers=False)
     programs.close()

@@ -4,10 +4,13 @@ from pydantic import BaseModel, Field
 
 from astra_assistants.tools.structured_code.program_cache import ProgramCache, StructuredProgram
 from astra_assistants.tools.tool_interface import ToolInterface
+from astra_assistants.utils import copy_program_from_cache
 
 
 class StructuredRewrite(BaseModel):
-    thoughts: str = Field(..., description="The message to be described to the user explaining how the edit will work, think step by step.")
+    thoughts: str = Field(...,
+                          description="The message to be described to the user explaining how the edit will work, think step by step.")
+
     class Config:
         schema_extra = {
             "example": {
@@ -27,16 +30,9 @@ class StructuredCodeRewrite(ToolInterface):
     def set_program_id(self, program_id):
         self.program_id = program_id
 
-
     def call(self, edit: StructuredRewrite):
         try:
-            program = None
-            for pair in self.program_cache:
-                if pair.program_id == self.program_id:
-                    program = pair.program.copy()
-                    break
-            if not program:
-                raise Exception(f"Program id {self.program_id} not found, did you forget to call set_program_id()?")
+            program = copy_program_from_cache(self.program_id, self.program_cache)
 
             instructions = (f"Rewrite the code snippet based on the instructions provided.\n"
                             f"## Instructions:\n"
@@ -51,7 +47,8 @@ class StructuredCodeRewrite(ToolInterface):
                             f"{program.to_string()}")
             print(f"providing instructions: \n{instructions}")
 
-            return {'program_id': self.program_id, 'output': instructions, 'tool': self.__class__.__name__, 'edit': edit}
+            return {'program_id': self.program_id, 'output': instructions, 'tool': self.__class__.__name__,
+                    'edit': edit}
         except Exception as e:
             print(f"Error: {e}")
             raise e

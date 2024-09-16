@@ -54,3 +54,9 @@ def patched_openai_client(wait_for_server) -> OpenAI:
     oai = patch(OpenAI())
     #oai = OpenAI()
     return oai
+
+@pytest.fixture(scope="function")
+def openai_client(wait_for_server) -> OpenAI:
+    oai = OpenAI()
+    #oai = OpenAI()
+    return oai

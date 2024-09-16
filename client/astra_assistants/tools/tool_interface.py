@@ -1,3 +1,4 @@
+import json
 from abc import ABC, abstractmethod
 import inspect
 from pydantic import BaseModel, Field
@@ -63,9 +64,10 @@ class ToolInterface(ABC):
             "type": "function",
             "function": {
                 "name": self.__class__.__name__,
-                "description": f"{self.__class__.__name__} function.",
+                #"description": f"{self.__class__.__name__} function.",
+                "description": self.call.__doc__ or f"{self.__class__.__name__} function.",
                 "parameters": parameters
             }
         }
-        # print(json.dumps(function))
+        print(json.dumps(function))
         return function

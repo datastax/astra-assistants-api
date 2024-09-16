@@ -72,6 +72,7 @@ def print_chat_completion(model, client):
 
 def test_chat_completion_gpt4(patched_openai_client):
     model="gpt-4-1106-preview"
+    #model="openai/o1-preview"
     print_chat_completion(model, patched_openai_client)
 
 def test_chat_completion_gpt_4o_mini(patched_openai_client):

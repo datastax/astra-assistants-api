@@ -58,23 +58,45 @@ class StructuredProgramEntry(BaseModel):
         arbitrary_types_allowed = True
 
 
-class ProgramCache(list):
+class ProgramCache:
     def __init__(self, *args):
-        super().__init__(*args)
+        self.cache = {}  # Dictionary to hold the programs by ID
+        self.order = []  # List to maintain the insertion order of program IDs
         self.session_manager = LspSessionManager()
 
-    def append(self, item: StructuredProgramEntry) -> None:
+    def add(self, item: StructuredProgramEntry) -> None:
+        program_id = item.program_id  # Assuming the program has an 'id' attribute
         self.process(item)
-        super().append(item)
+
+        # Add or update the cache
+        self.cache[program_id] = item
+
+        # Track insertion order; remove if already present (for updates), then append at the end
+        if program_id in self.order:
+            self.order.remove(program_id)
+        self.order.append(program_id)
 
     def extend(self, iterable: List[StructuredProgramEntry]) -> None:
         for item in iterable:
+            program_id = item.program_id
             self.process(item)
-        super().extend(iterable)
 
-    def insert(self, index: int, item: StructuredProgramEntry) -> None:
-        self.process(item)
-        super().insert(index, item)
+            # Add or update the cache
+            self.cache[program_id] = item
+
+            # Maintain insertion order
+            if program_id in self.order:
+                self.order.remove(program_id)
+            self.order.append(program_id)
+
+    def get(self, program_id) -> StructuredProgramEntry:
+        return self.cache.get(program_id, None)
+
+    def get_latest(self) -> StructuredProgramEntry:
+        if not self.order:
+            return None  # No entries
+        latest_program_id = self.order[-1]  # Get the last program added
+        return self.cache[latest_program_id]
 
     def close(self) -> None:
         self.session_manager.close()
@@ -165,7 +187,6 @@ class ProgramCache(list):
         if document_version == 1:
             notification = self.session_manager.send_notification("textDocument/didOpen", payload)
         else:
-
             text_change_event = types.TextDocumentContentChangeEvent_Type2(
                 text=program_str,
             )
@@ -177,7 +198,7 @@ class ProgramCache(list):
             )
             did_change_payload_dict = convert_keys_to_camel_case(converter.unstructure(did_change_payload_obj))
             notification = self.session_manager.send_notification("textDocument/didChange", did_change_payload_dict)
-        assert notification['uri'] == uri, "notification on the wrong file"
+        assert notification['uri'] == uri, f"Error with notification {notification} uri {uri}"
         diagnostics = notification["diagnostics"]
         diags = []
         for diagnostic in diagnostics:
