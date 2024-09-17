@@ -481,6 +481,8 @@ def get_headers_for_model(model):
             headers[AWS_REGION_NAME] = os.getenv("AWS_REGION_NAME")
         if provider != "openai":
             key = utils.get_api_key(provider, dynamic_key)
+        if provider == "openrouter":
+            key = os.getenv("OPENROUTER_API_KEY")
         if provider == "gemini":
             key = os.getenv("GEMINI_API_KEY")
         if provider == "ollama":
