@@ -51,6 +51,9 @@ async def list_assistants(
         ),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> ListAssistantsResponse:
+    # TODO: support pagination
+    if after is not None or before is not None:
+        raise HTTPException(status_code=400, detail="After and Before are not supported. Please file an issue at github.com/datastax/astra-assistants-api/issues")
     try:
         assistants: [AssistantObject] = read_objects(
             astradb=astradb,

@@ -34,6 +34,9 @@ def test_assistants_crud(openai_client):
         )
 
         assistant_list = openai_client.beta.assistants.list()
+        # TODO support pagination
+        #id_list = [assistant.id for assistant in assistant_list]
+        #print(id_list)
         assistants = assistant_list.data
         assert len(assistants) > 0
 
