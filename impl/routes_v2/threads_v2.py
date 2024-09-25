@@ -936,7 +936,6 @@ async def create_run(
             for tool_call in message.tool_calls:
                 tool_call_object_function = RunToolCallObjectFunction(name=tool_call.function.name, arguments=tool_call.function.arguments)
                 run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=tool_call_object_function))
-
         else:
             #TODO: most models formally support tools now, maybe remove this logic
             try:
@@ -1027,7 +1026,8 @@ async def create_run(
     logger.info(f"created run {run.id} for thread {run.thread_id}")
 
     if message_id is None:
-        logger.error(f"message_id is None this should not happen, thread_id {thread_id}, create_run_request {create_run_request}, dbid {astradb.dbid}")
+        logger.warn(f"message_id is None validate that this is okay, thread_id {thread_id}, create_run_request {create_run_request}, dbid {astradb.dbid} run_tool_calls {run_tool_calls}")
+        message_id = generate_id("msg")
 
     if create_run_request.stream:
         return StreamingResponse(run_event_stream(run=run, message_id=message_id, astradb=astradb),
