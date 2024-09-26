@@ -13,18 +13,21 @@ from astra_assistants.utils import env_var_is_missing, get_env_vars_for_provider
 logger = logging.getLogger(__name__)
 
 class AssistantManager:
-    def __init__(self, instructions: str, model: str = "gpt-4o", name: str = "managed_assistant", tools: List[ToolInterface] = None, thread_id: str = None, thread: str = None, assistant_id: str = None):
+    def __init__(self, instructions: str, model: str = "gpt-4o", name: str = "managed_assistant", tools: List[ToolInterface] = None, thread_id: str = None, thread: str = None, assistant_id: str = None, client = None):
         if tools is None:
             tools = []
         # Only patch if astra token is provided
-        if os.getenv("ASTRA_DB_APPLICATION_TOKEN") is not None:
-            self.client = patch(OpenAI())
+        if client is not None:
+            self.client = client
         else:
-            provider = get_llm_provider(model)[1]
-            env_vars = get_env_vars_for_provider(provider)
-            if env_var_is_missing(provider, env_vars):
-                raise Exception(f"Missing environment variables {env_vars}")
-            self.client = OpenAI()
+            if os.getenv("ASTRA_DB_APPLICATION_TOKEN") is not None:
+                self.client = patch(OpenAI())
+            else:
+                provider = get_llm_provider(model)[1]
+                env_vars = get_env_vars_for_provider(provider)
+                if env_var_is_missing(provider, env_vars):
+                    raise Exception(f"Missing environment variables {env_vars}")
+                self.client = OpenAI()
         self.model = model
         self.instructions = instructions
         self.tools = tools
