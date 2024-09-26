@@ -106,6 +106,9 @@ def read_objects(astradb: CassandraClient, target_class: Type[BaseModel], table_
     try:
         json_objs = astradb.select_from_table_by_pk(table=table_name, partition_keys=partition_keys, args=args)
         if len(json_objs) == 0:
+            logger.error(f"did not find {args} in table {table_name} for dbid: {astradb.dbid}")
+            trace = traceback.format_exc()
+            logger.error(f"trace: {trace}")
             raise HTTPException(status_code=404, detail=f"{args} not found in table {table_name}.")
 
         obj_list = []
