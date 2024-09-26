@@ -626,6 +626,7 @@ async def stream_message_events(astradb, thread_id, limit, order, after, before,
         logger.debug(background_task_set)
         logger.info(f"fetching messages for thread {thread_id}")
         messages = await get_and_process_assistant_messages(astradb, thread_id, limit, order, after, before)
+        logger.debug(f"messages fetched: {messages}")
 
         current_message = None
         last_message_length = 0
@@ -765,6 +766,7 @@ async def create_run(
     # New Runs cannot be created on the Thread.
     created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
     run_id = generate_id("run")
+    logger.debug(f"create run request: {create_run_request} for thread {thread_id} with generated run_id {run_id}")
     status = "queued"
 
     message_id = None
@@ -840,9 +842,11 @@ async def create_run(
             embedding_api_key,
             created_at
         )
+        status = "in_progress"
+
+        logger.debug(f"no tools found for thread {thread_id}, run {run_id} ({status}), starting background task with message_id {message_id}")
         await add_background_task(function=bkd_task, run_id=run_id, thread_id=thread_id, astradb=astradb)
 
-        status = "in_progress"
 
     for tool_obj in tools:
         tool = tool_obj.actual_instance
@@ -906,13 +910,15 @@ async def create_run(
                 created_at,
                 run_step.id
             )
+            status = "in_progress"
+            logger.debug(f"starting background task for {tool.type} with message_id {message_id} and run_step_id {run_step_id} ({status}) for thread {thread_id}, run {run_id}")
             await add_background_task(function=bkd_task, run_id=run_id, thread_id=thread_id, astradb=astradb)
 
-            status = "in_progress"
         if tool.type == "function":
             toolsJson.append(tool.dict())
 
     if len(toolsJson) > 0:
+        logger.debug(f"found function tools: {toolsJson} for thread {thread_id}, run {run_id}")
         litellm_kwargs[0]["tools"] = toolsJson
         if create_run_request.tool_choice is not None and isinstance(create_run_request.tool_choice, dict):
             litellm_kwargs[0]["tool_choice"] = create_run_request.tool_choice
@@ -927,17 +933,15 @@ async def create_run(
             logger.error(f"error: {e}, dbid: {astradb.dbid}, model {model}, messages.data {messages.data}, create_run_request {create_run_request}")
             raise HTTPException(status_code=500, detail=f"Error processing message, {e}")
 
-        logger.info(f"tool_call message: {message}")
+        logger.info(f"tool_call message: {message} for thread {thread_id}, run {run_id}")
         tool_call_object_id = generate_id("call")
         run_tool_calls = []
-        # TODO: fix this, we can't hang off message.content because it turns out you can have both a message and a tool call.
-        #if message.content is None:
-        if hasattr(message, "tool_calls") and message.tool_calls is not None:
+        #if hasattr(message, "tool_calls") and message.tool_calls is not None:
+        if hasattr(message, "tool_calls") and message.tool_calls is not None and len(message.tool_calls) > 0:
             for tool_call in message.tool_calls:
                 tool_call_object_function = RunToolCallObjectFunction(name=tool_call.function.name, arguments=tool_call.function.arguments)
                 run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=tool_call_object_function))
         else:
-            #TODO: most models formally support tools now, maybe remove this logic
             try:
                 arguments = extractFunctionArguments(message.content)
                 candidates = [tool['function']['name'] for tool in toolsJson]
@@ -946,7 +950,6 @@ async def create_run(
                 tool_call_object_function = RunToolCallObjectFunction(name=name, arguments=str(arguments))
                 run_tool_calls.append(RunToolCallObject(id=tool_call_object_id, type='function', function=tool_call_object_function))
             except Exception as e:
-                logger.info("did not find function call in message content")
                 status = "completed"
                 message_id = generate_id("msg")
                 created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
@@ -976,6 +979,7 @@ async def create_run(
                     attachments=None,
                 )
                 await store_object(astradb=astradb, obj=message_obj, target_class=MessageObject, table_name="messages_v2", extra_fields={})
+                logger.info(f"did not find function call in message content for thread: {thread_id} run: {run_id} ({status}), persisted message")
 
         if len(run_tool_calls) > 0:
             tool_outputs = RunObjectRequiredActionSubmitToolOutputs(tool_calls=run_tool_calls)
@@ -1008,6 +1012,7 @@ async def create_run(
                 attachments=None,
             )
             await store_object(astradb=astradb, obj=message_obj, target_class=MessageObject, table_name="messages_v2", extra_fields={})
+            logger.info(f"found function call in message content for thread: {thread_id} run: {run_id} ({status}), persisted message")
 
 
     run = await store_run(
@@ -1023,7 +1028,7 @@ async def create_run(
         create_run_request=create_run_request,
         astradb=astradb,
     )
-    logger.info(f"created run {run.id} for thread {run.thread_id}")
+    logger.info(f"created run {run.id} for thread {run.thread_id} with status {status}")
 
     if message_id is None:
         logger.warn(f"message_id is None validate that this is okay, thread_id {thread_id}, create_run_request {create_run_request}, dbid {astradb.dbid} run_tool_calls {run_tool_calls}")
