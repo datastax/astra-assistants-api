@@ -584,7 +584,8 @@ def patch(client: Union[OpenAI, AsyncOpenAI]):
         base_url = os.getenv("base_url") or os.getenv("BASE_URL", "https://open-assistant-ai.astra.datastax.com/v1")
         client.base_url=base_url
 
-    print(f"Patching OpenAI client, it will now communicate to Astra Assistants API: {client.base_url}\nLearn more about Astra at: {DOCS_URL}")
+    if os.getenv("ASTRA_ASSISTANTS_QUIET") is None:
+        print(f"Patching OpenAI client, it will now communicate to Astra Assistants API: {client.base_url}\nLearn more about Astra at: {DOCS_URL}")
 
     client_is_async = None
     if type(client) == OpenAIWithDefaultKey:
