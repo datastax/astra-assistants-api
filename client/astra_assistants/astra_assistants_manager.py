@@ -1,9 +1,8 @@
 import logging
 import os
-from typing import List, Dict
+from typing import List
 
 from litellm import get_llm_provider
-from openai.types.beta.threads.run_submit_tool_outputs_params import ToolOutput
 
 from astra_assistants import patch, OpenAI
 from astra_assistants.astra_assistants_event_handler import AstraEventHandler
@@ -127,7 +126,7 @@ class AssistantManager:
             print(e)
             raise e
         
-    async def run_thread(self, content, tool = None, thread_id: str = None, thread = None, additional_instructions = None) -> ToolOutput:
+    async def run_thread(self, content, tool = None, thread_id: str = None, thread = None, additional_instructions = None):
         if thread_id is not None:
             thread = self.client.beta.threads.retrieve(thread_id)
         elif thread is None:
