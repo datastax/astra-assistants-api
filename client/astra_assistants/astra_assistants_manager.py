@@ -4,7 +4,7 @@ from typing import List
 
 from litellm import get_llm_provider
 
-from astra_assistants import patch, OpenAI
+from astra_assistants import patch, OpenAIWithDefaultKey
 from astra_assistants.astra_assistants_event_handler import AstraEventHandler
 from astra_assistants.tools.tool_interface import ToolInterface
 from astra_assistants.utils import env_var_is_missing, get_env_vars_for_provider
@@ -20,13 +20,13 @@ class AssistantManager:
             self.client = client
         else:
             if os.getenv("ASTRA_DB_APPLICATION_TOKEN") is not None:
-                self.client = patch(OpenAI())
+                self.client = patch(OpenAIWithDefaultKey())
             else:
                 provider = get_llm_provider(model)[1]
                 env_vars = get_env_vars_for_provider(provider)
                 if env_var_is_missing(provider, env_vars):
                     raise Exception(f"Missing environment variables {env_vars}")
-                self.client = OpenAI()
+                self.client = OpenAIWithDefaultKey()
         self.model = model
         self.instructions = instructions
         self.tools = tools
