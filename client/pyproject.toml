@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "astra-assistants"
-version = "2.2.1"
+version = "2.2.2"
 description = "Astra Assistants API - drop in replacement for OpenAI Assistants, powered by AstraDB"
 authors = ["phact <estevezsebastian@gmail.com>"]
 readme = "README.md"
@@ -13,21 +13,25 @@ litellm = "^1.36.0"
 boto3 = "^1.34.31"
 aiohttp = "^3.9.4"
 python-dotenv = "^1.0.1"
-
 tree-sitter-python = "^0.23.0"
 lsprotocol = "^2023.0.1"
 python-lsp-jsonrpc = "^1.1.2"
 ruff = "^0.6.2"
 tree-sitter = "^0.23.0"
+
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"
 export = "^0.2.1"
 pytest-asyncio = "^0.23.7"
-
 pytest-timeout = "^2.3.1"
+
 [tool.poetry.group.optional.dependencies]
 astrapy = "^1.2.1"
-e2b-code-interpreter = "^v0.0.10"
+e2b-code-interpreter = "^0.0.10"
+e2b = "^0.17.1"
+
+[tool.poetry.extras]
+optional = ["e2b-code-interpreter", "e2b", "astrapy"]
 
 [build-system]
 requires = ["poetry-core"]
