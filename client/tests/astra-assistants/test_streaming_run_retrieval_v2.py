@@ -73,7 +73,7 @@ def run_with_assistant(assistant, client):
             matches = []
             for tool_call in run_step.step_details.tool_calls:
                 matches = tool_call.file_search
-                print(json.dumps(tool_call.file_search))
+                print(tool_call.file_search)
             assert len(matches) > 0, "No matches found"
 
         @override
