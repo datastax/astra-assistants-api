@@ -1,7 +1,4 @@
-from e2b import Sandbox
-
-from e2b_code_interpreter import CodeInterpreter
-
+from e2b_code_interpreter import Sandbox
 from astra_assistants.tools.tool_interface import ToolInterface
 
 
@@ -18,7 +15,7 @@ class E2BCodeInterpreter(ToolInterface):
         else:
             # Sandbox not found
             pass
-        self.code_interpreter = CodeInterpreter()
+        self.code_interpreter = Sandbox()
 
         print("initialized")
 
