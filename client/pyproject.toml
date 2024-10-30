@@ -19,8 +19,8 @@ python-lsp-jsonrpc = "^1.1.2"
 ruff = "^0.6.2"
 tree-sitter = "^0.23.0"
 astrapy = { version = "^1.2.1", optional = true }
-e2b-code-interpreter = { version = "^0.0.10", optional = true }
-e2b = { version = "^0.17.1", optional = true }
+e2b-code-interpreter = { version = "^1.0.1", optional = true }
+e2b = { version = "^1.0.1", optional = true }
 
 
 [tool.poetry.group.dev.dependencies]

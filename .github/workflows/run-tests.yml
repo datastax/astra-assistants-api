@@ -1438,7 +1438,7 @@ jobs:
       - name: get client dependencies
         working-directory: ./client
         run: |
-          poetry install --with optional
+          poetry install --extras tools
       - name: get server dependencies
         run: |
           poetry install
@@ -1494,7 +1494,7 @@ jobs:
       - name: get client dependencies
         working-directory: ./client
         run: |
-          poetry install --with optional
+          poetry install --extras tools
       - name: get server dependencies
         run: |
           poetry install
@@ -1550,7 +1550,7 @@ jobs:
       - name: get client dependencies
         working-directory: ./client
         run: |
-          poetry install --with optional
+          poetry install --extras tools
       - name: get server dependencies
         run: |
           poetry install
@@ -1606,7 +1606,7 @@ jobs:
       - name: get client dependencies
         working-directory: ./client
         run: |
-          poetry install --with optional
+          poetry install --extras tools
       - name: get server dependencies
         run: |
           poetry install

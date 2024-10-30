@@ -1,6 +1,4 @@
-from e2b import Sandbox
-
-from e2b_code_interpreter import CodeInterpreter
+from e2b_code_interpreter import Sandbox
 
 from astra_assistants.tools.tool_interface import ToolInterface
 
@@ -13,18 +11,16 @@ class E2BCodeInterpreter(ToolInterface):
         running_sandboxes = Sandbox.list()
         # Find the sandbox by metadata
         for running_sandbox in running_sandboxes:
-            sandbox = Sandbox.reconnect(running_sandbox.sandbox_id)
-            sandbox.close()
+            sandbox = Sandbox.connect(running_sandbox.sandbox_id)
+            sandbox.kill()
         else:
             # Sandbox not found
             pass
-        self.code_interpreter = CodeInterpreter()
+        self.code_interpreter = Sandbox()
 
         print("initialized")
 
     def call(self, arguments):
         code = arguments['arguments']
-        exec = self.code_interpreter.notebook.exec_cell(
-            code,
-        )
-        return exec.text
+        execution = self.code_interpreter.run_code(code)
+        return execution.text
