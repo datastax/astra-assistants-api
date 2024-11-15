@@ -1,0 +1,18 @@
+{
+  "name": "astra-assistants",
+  "version": "1.0.1",
+  "main": "src/index.mjs",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
+  "author": "estevezsebastian@gmail.com",
+  "keywords": ["openai", "astradb", "assistants-api", "litellm"],
+  "description": "Astra Assistants API - drop in replacement for OpenAI Assistants, powered by AstraDB",
+  "dependencies": {
+    "openai": "^4.72.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "type": "module"
+}
