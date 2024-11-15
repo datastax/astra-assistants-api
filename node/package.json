@@ -1,6 +1,6 @@
 {
   "name": "astra-assistants",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "src/index.mjs",
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
