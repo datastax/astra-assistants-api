@@ -184,7 +184,7 @@ your assistants client should route to the ollama container setting OLLAMA_API_B
 
 
 ## Feedback / Help
-For help or feedback file an [issue](https://github.com/datastax/astra-assistants-api/issues) or reach out to us on [Discord](https://discord.gg/j6vgnRke)
+For help or feedback file an [issue](https://github.com/datastax/astra-assistants-api/issues) or reach out to us on [Discord](https://discord.com/invite/MEFVXUvsuy)
 
 ## Contributing
 
