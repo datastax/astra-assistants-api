@@ -113,7 +113,7 @@ function patch(existingClient) {
   
     // Parse the body to pass to assignHeadersForModel
     let parsedBody = {};
-    if (init.body) {
+    if (init.body && typeof init.body === 'string') {
       try {
         parsedBody = JSON.parse(init.body);
       } catch (error) {
