@@ -2,7 +2,7 @@ from typing import Optional, List
 
 from pydantic import Field
 
-from model_v2.message_object_attatchments_inner import MessageObjectAttachmentsInner
+from impl.model_v2.message_object_attachments_inner import MessageObjectAttachmentsInner
 from openapi_server_v2.models.create_message_request import CreateMessageRequest as CreateMessageRequestGenerated
 
 
