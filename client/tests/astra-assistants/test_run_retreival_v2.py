@@ -3,6 +3,8 @@ import time
 import pytest
 import logging
 
+from openai.types.beta.threads.message_create_params import Attachment
+
 logger = logging.getLogger(__name__)
 
 def run_with_assistant(assistant, client, file_path, embedding_model):
@@ -86,8 +88,9 @@ def run_with_assistant(assistant, client, file_path, embedding_model):
         thread_id=thread.id,
         role="user",
         content=user_message,
-        file_ids=[file2.id],
-        tools=[{"type": "file_search"}]
+        attachments=[
+            Attachment(file_id=file2.id, tools=[{"type": "file_search"}]),
+        ]
     )
     logger.info(f"> {user_message}")
 
