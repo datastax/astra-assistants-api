@@ -4,6 +4,7 @@ import pytest
 import time
 
 from openai.lib.streaming import AssistantEventHandler
+from openai.types.beta.threads.message_create_params import Attachment
 from typing_extensions import override
 
 def run_with_assistant(assistant, client):
@@ -53,11 +54,26 @@ def run_with_assistant(assistant, client):
         tool_resources={"file_search": {"vector_store_ids": [vector_store.id]}},
     )
     print(f"updated assistant: {assistant}")
-    user_message = "What are some cool math concepts behind this ML paper pdf? Explain in two sentences."
     print("creating persistent thread and message")
     thread = client.beta.threads.create()
+    
+    # Create a message with an attachment that has file_search enabled
+    file2 = client.files.create(
+        file=open(
+            "./tests/fixtures/hudson.txt",
+            "rb",
+        ),
+        purpose="assistants",
+    )
+
+    user_message = "What are some cool math concepts behind this ML paper pdf? Explain in two sentences."
     client.beta.threads.messages.create(
-        thread_id=thread.id, role="user", content=user_message
+        thread_id=thread.id,
+        role="user",
+        content=user_message,
+        attachments=[
+            Attachment(file_id=file2.id, tools=[{"type": "file_search"}]),
+        ]
     )
     print(f"> {user_message}")
 
@@ -74,7 +90,7 @@ def run_with_assistant(assistant, client):
             for tool_call in run_step.step_details.tool_calls:
                 matches = tool_call.file_search
                 print(tool_call.file_search)
-            assert len(matches) > 0, "No matches found"
+            assert len(matches.chunks) > 0, "No matches found"
 
         @override
         def on_text_created(self, text) -> None:
@@ -101,6 +117,31 @@ def run_with_assistant(assistant, client):
 
     assert event_handler.on_text_created_count > 0, "No text created"
     assert event_handler.on_text_delta_count > 0, "No text delta"
+
+    user_message = "What is the name of my dog"
+    client.beta.threads.messages.create(
+        thread_id=thread.id,
+        role="user",
+        content=user_message,
+        attachments=[
+            Attachment(file_id=file2.id, tools=[{"type": "file_search"}]),
+        ]
+    )
+    print(f"> {user_message}")
+
+    event_handler = EventHandler()
+    print(f"creating run")
+    with client.beta.threads.runs.create_and_stream(
+            thread_id=thread.id,
+            assistant_id=assistant.id,
+            event_handler=event_handler,
+    ) as stream:
+        for part in stream.text_deltas:
+            print(part)
+
+    assert event_handler.on_text_created_count > 0, "No text created"
+    assert event_handler.on_text_delta_count > 0, "No text delta"
+
 
 
 instructions = "You are a personal math tutor. Answer thoroughly. The system will provide relevant context from files, use the context to respond."

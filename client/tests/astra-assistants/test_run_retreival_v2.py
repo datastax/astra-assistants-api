@@ -71,8 +71,23 @@ def run_with_assistant(assistant, client, file_path, embedding_model):
     user_message = "What are some cool math concepts behind this ML paper pdf? Explain in two sentences."
     logger.info("creating persistent thread and message")
     thread = client.beta.threads.create()
+    
+    # Create a message with an attachment that has file_search enabled
+    file2 = client.files.create(
+        file=open(
+            "./tests/fixtures/hudson.txt",
+            "rb",
+        ),
+        purpose="assistants",
+        embedding_model=embedding_model,
+    )
+    
     client.beta.threads.messages.create(
-        thread_id=thread.id, role="user", content=user_message
+        thread_id=thread.id,
+        role="user",
+        content=user_message,
+        file_ids=[file2.id],
+        tools=[{"type": "file_search"}]
     )
     logger.info(f"> {user_message}")
 
