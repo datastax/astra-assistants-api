@@ -81,7 +81,6 @@ def run_with_assistant(assistant, client, file_path, embedding_model):
             "rb",
         ),
         purpose="assistants",
-        embedding_model=embedding_model,
     )
     
     client.beta.threads.messages.create(
