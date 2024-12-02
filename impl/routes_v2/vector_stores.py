@@ -1,8 +1,9 @@
 from datetime import datetime
 import logging
 import time
+import os
 
-from fastapi import APIRouter, Path, Depends, Body, Query
+from fastapi import APIRouter, Path, Depends, Body, Query, HTTPException
 
 from impl.astra_vector import CassandraClient
 from impl.model_v2.vector_store_object import VectorStoreObject
@@ -67,12 +68,12 @@ async def create_vector_store(
     usage_bytes = 0
     for file_id in create_vector_store_request.file_ids:
         request = CreateVectorStoreFileRequest(file_id=file_id)
-        await create_vector_store_file(
+        vsf = await create_vector_store_file(
             vector_store_id=vector_store_id,
             create_vector_store_file_request=request,
             astradb=astradb
         )
-        #TODO - compute usage_bytes
+        usage_bytes += vsf.usage_bytes
 
     file_id_count = len(create_vector_store_request.file_ids)
     file_counts = VectorStoreObjectFileCounts(
@@ -118,13 +119,19 @@ async def create_vector_store_file(
 ) -> VectorStoreFileObject:
     created_at = int(time.mktime(datetime.now().timetuple()) * 1000)
 
+    file_info = astradb.select_from_table_by_pk(
+        table="files", partition_keys=["id"], args={"id": create_vector_store_file_request.file_id}
+    )
+    if len(file_info) == 0:
+        raise HTTPException(status_code=404, detail="File not found")
+    file_size = file_info[0]["bytes"]
+
     extra_fields = {
         "id": create_vector_store_file_request.file_id,
         "vector_store_id": vector_store_id,
         "object": "vector_store.file",
         "created_at": created_at,
-        # TODO - grab from file
-        "usage_bytes": -1,
+        "usage_bytes": file_size,
         "status": "completed"
     }
     vector_store_file: VectorStoreFileObject = await store_object(
@@ -262,4 +269,8 @@ async def delete_vector_store_file(
             created_at = vsf.created_at
             break
     astradb.delete_by_pks(table="vector_store_files", keys=["id", "created_at", "vector_store_id"], values=[file_id, created_at, vector_store_id])
-
+    return DeleteVectorStoreFileResponse(
+        id=file_id,
+        object="vector_store.file",
+        deleted=True
+    )
