@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "astra-assistants": "^1.0.1",
+    "astra-assistants": "^1.0.3",
     "dotenv": "^16.4.0",
     "openai": "^4.72.0"
   }
