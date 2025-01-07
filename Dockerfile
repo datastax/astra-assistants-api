@@ -24,8 +24,8 @@ COPY pyproject.toml poetry.lock* ./
 RUN poetry config virtualenvs.create false
 
 # Install the dependencies specified in `pyproject.toml` and `poetry.lock`.
-# Use `--no-root` to avoid installing the main package and `--no-dev` to exclude development dependencies.
-RUN poetry install --no-root --no-dev
+# Use `--no-root` to avoid installing the main package and `--only main` to exclude development dependencies.
+RUN poetry install --no-root  --only main
 
 # Copy the rest of your application files into the container
 COPY ./openapi_server ./openapi_server
