@@ -124,7 +124,7 @@ def create_document_chunks(
     # Generate a document id if not provided
     doc_id = doc.id or generate_id("doc")
 
-    # Split the document text into chunks
+    # for code
     if format in ("c", "cpp", "css", "html", "java", "js", "json", "md", "php", "py", "rb", "ts", "xml"):
         #TODO: do language specific code chunking
         #text_chunks = get_code_chunks(doc.text, chunk_token_size, format)
