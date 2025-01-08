@@ -28,7 +28,7 @@ from .utils import (
     get_litellm_kwargs,
     check_if_using_openai,
     forward_request,
-    infer_embedding_model,
+    infer_embedding_model, is_using_openai, maybe_get_openai_token,
 )
 from ..model.open_ai_file import OpenAIFile
 from ..rate_limiter import limiter
@@ -60,6 +60,7 @@ async def create_file(
     embedding_model: str = Depends(infer_embedding_model),
     astradb: CassandraClient = Depends(verify_db_client),
     using_openai: bool = Depends(check_if_using_openai),
+    maybe_openai_key: str = Depends(maybe_get_openai_token),
 ) -> OpenAIFile:
     # Supported purposes from: https://platform.openai.com/docs/api-reference/files/object
     if purpose in ["fine-tune", "fine-tune-results"]:
@@ -112,7 +113,8 @@ async def create_file(
         if existing_embedding_model_name_only != embedding_model_name_only:
             raise HTTPException(status_code=409, detail=f"File ({existing_file.id}) already exists but with different embedding model (existing: {existing_file.embedding_model}, requested {embedding_model}). Please delete the existing file and try again if you wish to switch models.")
     else:
-        document = await get_document_from_file(file, file_id)
+        api_key = maybe_openai_key
+        document = await get_document_from_file(file, file_id, api_key)
 
         litellm_kwargs_embedding = litellm_kwargs[1].copy()
         triple = utils.get_llm_provider(embedding_model)

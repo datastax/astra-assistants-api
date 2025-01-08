@@ -9,6 +9,8 @@ import pptx
 from fastapi import UploadFile, HTTPException
 from loguru import logger
 from PyPDF2 import PdfReader
+from markitdown import MarkItDown
+from openai import OpenAI
 
 from impl.astra_vector import HandledResponse
 from impl.models import Document
@@ -65,15 +67,15 @@ exclude_exts: List[str] = [
     ".lock",
 ]
 
-async def get_document_from_file(file: UploadFile, file_id: str) -> Document:
-    extracted_text = await extract_text_from_from_file(file)
+async def get_document_from_file(file: UploadFile, file_id: str, openai_api_key: str = None) -> Document:
+    extracted_text = await extract_text_from_from_file(file, openai_api_key)
 
     doc = Document(id=file_id, text=extracted_text)
 
     return doc
 
 
-def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None) -> str:
+def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None, openai_api_key: str = None) -> str:
     """Return the text content of a file given its filepath."""
     if mimetype is None or mimetype == "application/octet-stream":
         # Get the mimetype of the file based on its extension
@@ -96,7 +98,7 @@ def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None) ->
             mimetype = "text/plain"
     try:
         with open(filepath, "rb") as file:
-            extracted_text = extract_text_from_file(file, mimetype)
+            extracted_text = extract_text_from_file(file, mimetype, openai_api_key, filepath)
     except Exception as e:
         logger.error(e)
         raise e
@@ -104,7 +106,7 @@ def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None) ->
     return extracted_text
 
 
-def extract_text_from_file(file: BufferedReader, mimetype: str) -> str:
+def extract_text_from_file(file: BufferedReader, mimetype: str, openai_api_key, filepath: str) -> str:
     filetype = mimetype
     if mimetype == "application/pdf":
         # Extract text from pdf using PyPDF2
@@ -143,16 +145,21 @@ def extract_text_from_file(file: BufferedReader, mimetype: str) -> str:
                             extracted_text += run.text + " "
                     extracted_text += "\n"
     else:
-        # Unsupported file type
-        raise HTTPException(
-            status_code=400,
-            detail="Unsupported file type: {}".format(mimetype),
-        )
+        client = OpenAI(api_key=openai_api_key)
+        md = MarkItDown(mlm_client=client, mlm_model="gpt-4o")
+        try:
+            extracted_text = md.convert(source=filepath).text_content
+        except Exception as e:
+            # Unsupported file type
+            raise HTTPException(
+                status_code=400,
+                detail="Unsupported file type: {}".format(mimetype),
+            )
     return extracted_text
 
 
 # Extract text from a file based on its mimetype
-async def extract_text_from_from_file(file: UploadFile):
+async def extract_text_from_from_file(file: UploadFile, openai_api_key: str = None) -> str:
     """Return the text content of a file."""
     # get the file body from the upload file object
     mimetype = file.content_type
@@ -169,7 +176,7 @@ async def extract_text_from_from_file(file: UploadFile):
         f.write(file_stream)
 
     try:
-        extracted_text = extract_text_from_filepath(temp_file_path, mimetype)
+        extracted_text = extract_text_from_filepath(temp_file_path, mimetype, openai_api_key)
     except Exception as e:
         logger.error(e)
         os.remove(temp_file_path)

@@ -137,6 +137,18 @@ async def check_if_using_openai(
     embedding_is_openai = await is_using_openai(body, litellm_kwargs[1], openai_token)
     return llm_is_openai or embedding_is_openai
 
+async def maybe_get_openai_token(
+        body: Any = Depends(get_body),
+        litellm_kwargs: Dict[str, str] = Depends(get_litellm_kwargs),
+        openai_token: str = Depends(verify_openai_token),
+) -> str:
+    """Dependency to get OpenAI token"""
+    if await is_using_openai(body, litellm_kwargs[0], openai_token):
+        return openai_token
+    elif await is_using_openai(body, litellm_kwargs[1], openai_token):
+        return openai_token
+    else:
+        return None
 
 async def is_using_openai(
         body: Any,
