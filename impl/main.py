@@ -3,6 +3,7 @@ import inspect
 import logging
 import os
 import sys
+import traceback
 from typing import Callable, Sequence, Union, Any
 
 import httpx
@@ -102,29 +103,45 @@ app.include_router(vector_stores.router, prefix="/v2")
 
 class APIVersionMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        version_header = request.headers.get("OpenAI-Beta")
-        if version_header is None or version_header == "assistants=v1":
-            response = await call_next(request)
-            return response
-        if version_header == "assistants=v2":
-            request.scope['path'] = request.scope['path'].replace("v1", "v2")
-            if 'raw_path' in request.scope:
-                request.scope['raw_path'] = request.scope['raw_path'].replace(b'v1', b'v2')
-            try:
-                response = await call_next(request)
-                return response
-            except Exception as e:
-                if hasattr(request.state, "dbid"):
-                    logger.error(f"Error: {e}, dbid: {request.state.dbid}")
-                else:
-                    logger.error(f"Error: {e}")
-                print(e)
-                raise e
+        # Retrieve and normalize the version header
+        version_header = request.headers.get("OpenAI-Beta", "").lower()
 
-        else:
+        try:
+            if version_header in [None, "", "assistants=v1"]:
+                # Default version or v1: Proceed as is
+                return await call_next(request)
+
+            if version_header == "assistants=v2":
+                # Modify path for v2 requests
+                request.scope['path'] = request.scope['path'].replace("v1", "v2")
+                if 'raw_path' in request.scope:
+                    request.scope['raw_path'] = request.scope['raw_path'].replace(b'v1', b'v2')
+
+                # Proceed with the modified request
+                return await call_next(request)
+
+            # Unsupported version
             return Response(
-                f"Unsupported version: {version_header})",
-                status_code=400)
+                content=f"Unsupported version: {version_header}",
+                status_code=400
+            )
+
+        except Exception as e:
+            # Structured logging for errors
+            trace = traceback.format_exc()
+            dbid = getattr(request.state, "dbid", None)
+            error_message = f"Error processing request: {e}\nTraceback: {trace}"
+            if dbid:
+                logger.error(f"{error_message}, dbid: {dbid}")
+            else:
+                logger.error(error_message)
+
+            # Return a generic internal server error response
+            return Response(
+                content="An internal server error occurred.",
+                status_code=500
+            )
+
 
 
 app.add_middleware(APIVersionMiddleware)

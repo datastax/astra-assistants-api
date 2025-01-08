@@ -1,6 +1,7 @@
 import csv
 import mimetypes
 import os
+import traceback
 from io import BufferedReader
 from typing import Optional, List
 
@@ -9,7 +10,7 @@ import pptx
 from fastapi import UploadFile, HTTPException
 from loguru import logger
 from PyPDF2 import PdfReader
-from markitdown import MarkItDown
+from markitdown import MarkItDown, UnsupportedFormatException
 from openai import OpenAI
 
 from impl.astra_vector import HandledResponse
@@ -112,7 +113,7 @@ def extract_text_from_file(file: BufferedReader, mimetype: str, openai_api_key, 
         # Extract text from pdf using PyPDF2
         reader = PdfReader(file)
         extracted_text = " ".join([page.extract_text() for page in reader.pages])
-    elif mimetype == "text/plain" or mimetype == "text/markdown" or mimetype == "application/sql":
+    elif mimetype == "text/plain" or mimetype == "text/markdown" or mimetype == "application/sql" or mimetype == "message/rfc822":
         # Read text from plain text file
         extracted_text = file.read().decode("utf-8")
     elif (
@@ -145,15 +146,27 @@ def extract_text_from_file(file: BufferedReader, mimetype: str, openai_api_key, 
                             extracted_text += run.text + " "
                     extracted_text += "\n"
     else:
+        if openai_api_key is None:
+            raise HTTPException(
+                status_code=400,
+                detail="OpenAI API key is required for this file type: {}\nRemember to set your OPENAI_API_KEY env var".format(mimetype),
+            )
         client = OpenAI(api_key=openai_api_key)
-        md = MarkItDown(mlm_client=client, mlm_model="gpt-4o")
+        md = MarkItDown(llm_client=client, llm_model="gpt-4o")
         try:
             extracted_text = md.convert(source=filepath).text_content
+        except UnsupportedFormatException as e:
+            logger.error(f"markitdown unsupported exception for: {mimetype}\nerror: {e}")
+            raise HTTPException(
+                status_code=400,
+                detail="Unsupported file type: {}\nError: {}".format(mimetype, e)
+            )
         except Exception as e:
+            logger.error(f"Error: {e}\nTrace: {traceback.format_exc()}")
             # Unsupported file type
             raise HTTPException(
                 status_code=400,
-                detail="Unsupported file type: {}".format(mimetype),
+                detail="Unknown error parsing file type: {}\nError: {}".format(mimetype, e)
             )
     return extracted_text
 
