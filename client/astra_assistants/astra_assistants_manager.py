@@ -12,7 +12,9 @@ from astra_assistants.utils import env_var_is_missing, get_env_vars_for_provider
 logger = logging.getLogger(__name__)
 
 class AssistantManager:
-    def __init__(self, instructions: str, model: str = "gpt-4o", name: str = "managed_assistant", tools: List[ToolInterface] = None, thread_id: str = None, thread: str = None, assistant_id: str = None, client = None):
+    def __init__(self, instructions: str = None, model: str = "gpt-4o", name: str = "managed_assistant", tools: List[ToolInterface] = None, thread_id: str = None, thread: str = None, assistant_id: str = None, client = None, tool_resources = None):
+        if instructions is None and assistant_id is None:
+            raise Exception("Instructions must be provided if assistant_id is not provided")
         if tools is None:
             tools = []
         # Only patch if astra token is provided
@@ -30,6 +32,7 @@ class AssistantManager:
         self.model = model
         self.instructions = instructions
         self.tools = tools
+        self.tool_resources = tool_resources
         self.name = name
         self.tool_call_arguments = None
 
@@ -45,8 +48,8 @@ class AssistantManager:
         elif thread_id is not None:
             self.thread = self.client.beta.threads.retrieve(thread_id)
 
-        print(f'assistant {self.assistant}')
-        print(f'thread {self.thread}')
+        logger.info(f'assistant {self.assistant}')
+        logger.info(f'thread {self.thread}')
 
     def get_client(self):
         return self.client
@@ -58,16 +61,21 @@ class AssistantManager:
         return self.tool
 
     def create_assistant(self):
-        tool_functions = []
+        tool_holder = []
         for tool in self.tools:
-            tool_functions.append(tool.to_function())
+            if hasattr(tool, 'to_function'):
+                tool_holder.append(tool.to_function())
+
+        if len(tool_holder) == 0:
+            tool_holder = self.tools
 
         # Create and return the assistant
         self.assistant = self.client.beta.assistants.create(
             name=self.name,
             instructions=self.instructions,
             model=self.model,
-            tools=tool_functions
+            tools=tool_holder,
+            tool_resources=self.tool_resources
         )
         logger.debug("Assistant created:", self.assistant)
         return self.assistant
@@ -123,7 +131,7 @@ class AssistantManager:
                     for text in stream.text_deltas:
                         yield text
         except Exception as e:
-            print(e)
+            logger.error(e)
             raise e
         
     async def run_thread(self, content, tool = None, thread_id: str = None, thread = None, additional_instructions = None):
@@ -164,16 +172,17 @@ class AssistantManager:
                         text += part
 
                     tool_call_results = event_handler.tool_call_results
+                    file_search = event_handler.file_search
 
-                    if not isinstance(tool_call_results, str) and tool_call_results is not None:
-                        tool_call_results['text'] = text
-                        tool_call_results['error'] = event_handler.error
+                    tool_call_results['file_search'] = file_search
 
-                    print(tool_call_results)
+                    tool_call_results['arguments'] = event_handler.arguments
+
+                    logger.info(tool_call_results)
                     tool_call_results
             if tool_call_results is not None:
                 return tool_call_results
-            return {"text": text}
+            return {"text": text, "file_search": event_handler.file_search}
         except Exception as e:
-            print(e)
+            logger.error(e)
             raise e

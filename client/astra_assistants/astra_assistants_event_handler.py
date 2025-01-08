@@ -15,6 +15,7 @@ class AstraEventHandler(AssistantEventHandler):
         self.logger = logging.getLogger(__name__)
         self.tools = {}
         self.tool_output = ToolOutput
+        self.file_search = None
         self.tool_call_results = None
         self.arguments = None
         self.stream = None
@@ -22,6 +23,11 @@ class AstraEventHandler(AssistantEventHandler):
 
     def register_tool(self, tool):
         self.tools[tool.to_function()['function']['name']] = tool
+
+    @override
+    def on_run_step_done(self, run_step) -> None:
+        for tool_call in run_step.step_details.tool_calls:
+            self.file_search = tool_call.file_search
 
     @override
     def on_tool_call_done(self, tool_call):
