@@ -1181,10 +1181,16 @@ async def process_rag(
                 {"role": "assistant", "content": "I need more information to generate a good response."})
             search_string_messages.append({"role": "user", "content": search_string_prompt})
 
+            # Keys to remove
+            keys_to_remove = {'tools', 'tool_choice'}
+
+            # Create a new dictionary without the specified keys
+            relevant_litellm_kwargs = {key: value for key, value in litellm_kwargs[0].items() if key not in keys_to_remove}
+
             search_completion_response = await get_chat_completion(
                 messages=search_string_messages,
                 model=model,
-                **litellm_kwargs[0],
+                **relevant_litellm_kwargs,
             )
             search_string = search_completion_response.content
             logger.debug(f"ANN search_string {search_string}")

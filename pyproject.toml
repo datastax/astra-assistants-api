@@ -64,6 +64,7 @@ httptools = "^0.6.1"
 slowapi = "^0.1.9"
 async-lru = "^2.0.4"
 openai = "^1.20.0"
+markitdown = "^0.0.1a3"
 
 
 [tool.poetry.group.dev.dependencies]
