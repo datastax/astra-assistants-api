@@ -175,7 +175,7 @@ class AssistantManager:
                     file_search = event_handler.file_search
 
                     tool_call_results['file_search'] = file_search
-
+                    tool_call_results['text'] = text
                     tool_call_results['arguments'] = event_handler.arguments
 
                     logger.info(tool_call_results)
