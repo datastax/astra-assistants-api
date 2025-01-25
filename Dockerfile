@@ -1,11 +1,12 @@
 # Use a base image that has the correct Python version
-FROM python:3.10.12-slim
+FROM python:3.11.11-slim
 
 # Install build dependencies required for packages with C extensions
 RUN apt-get update && apt-get install -y \
     build-essential \
     gcc \
     curl \
+    mime-support \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry

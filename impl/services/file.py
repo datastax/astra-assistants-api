@@ -80,7 +80,9 @@ def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None, op
     """Return the text content of a file given its filepath."""
     if mimetype is None or mimetype == "application/octet-stream":
         # Get the mimetype of the file based on its extension
-        mimetype, _ = mimetypes.guess_type(filepath)
+        logger.info(f"guessing mimetype from filepath: {filepath}")
+        mimetype, _ = mimetypes.guess_type(filepath.strip())
+        logger.info(f"guessed: {mimetype}")
     #get extension from filepath for example /tmp/pytest.ini, safe because splittext returns a tuple
     extension = os.path.splitext(filepath)[1]
     if not mimetype:
@@ -109,6 +111,8 @@ def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None, op
 
 def extract_text_from_file(file: BufferedReader, mimetype: str, openai_api_key, filepath: str) -> str:
     filetype = mimetype
+    logger.info(f"mimetype: {mimetype}")
+    logger.info(f"filepath: {filepath}")
     if mimetype == "application/pdf":
         # Extract text from pdf using PyPDF2
         reader = PdfReader(file)
@@ -178,7 +182,7 @@ async def extract_text_from_from_file(file: UploadFile, openai_api_key: str = No
     mimetype = file.content_type
     logger.info(f"mimetype: {mimetype}")
     logger.info(f"file.file: {file.file}")
-    logger.info("file: ", file)
+    logger.info(f"file: {file}")
 
     file_stream = await file.read()
 
