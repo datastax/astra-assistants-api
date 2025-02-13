@@ -20,14 +20,6 @@ async def test_mcp(patched_openai_client):
             command="uvx",
             arguments=[
                 "mcp-server-time"
-                #"run",
-                #"--with",
-                #"mcp-google-docs",
-                #"server",
-                #"--creds-file-path",
-                #"../mcp-google-docs/.auth/client_secret_1049158366095-o78hnepquu77t0uf3gr7q5ik887a6tvv.apps.googleusercontent.com.json",
-                #"--token-path",
-                #"../mcp-google-docs/.auth/token"
             ]
         )
     ]
