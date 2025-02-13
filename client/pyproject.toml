@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "astra-assistants"
-version = "2.2.9"
+version = "2.3.1"
 description = "Astra Assistants API - drop in replacement for OpenAI Assistants, powered by AstraDB"
 authors = ["phact <estevezsebastian@gmail.com>"]
 readme = "README.md"
@@ -21,7 +21,7 @@ tree-sitter = "^0.23.0"
 astrapy = { version = "^1.2.1", optional = true }
 e2b-code-interpreter = { version = "^1.0.1", optional = true }
 e2b = { version = "^1.0.1", optional = true }
-mcp = "^0.9.1"
+mcp = "^1.2.1"
 
 
 [tool.poetry.group.dev.dependencies]
