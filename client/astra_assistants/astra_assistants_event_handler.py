@@ -47,7 +47,6 @@ class AstraEventHandler(AssistantEventHandler):
                 tool_call_results_string = tool_call_results_obj
         else:
             tool_call_results_string = self.tool_call_results
-        print(f"tool_call.id {tool_call.id}")
         self.tool_output = ToolOutput(
             tool_call_id=tool_call.id,
             output=tool_call_results_string
@@ -59,7 +58,6 @@ class AstraEventHandler(AssistantEventHandler):
             tool_outputs=[self.tool_output],
             event_handler=AssistantEventHandler()
         )
-        print("got the stream")
 
     def run_tool(self, tool_call):
         tool_name = tool_call.function.name

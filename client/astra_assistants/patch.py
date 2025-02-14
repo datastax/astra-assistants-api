@@ -253,7 +253,6 @@ def sync_create_async_client(original_create, client):
         assistant_id = kwargs.get("assistant_id")
         run_id = kwargs.get("run_id")
         if assistant_id is not None and "beta.threads.runs" in str(type(self)):
-            print(assistant_id)
             assistant = async_helper.run_async(client.beta.assistants.retrieve(assistant_id))
             model = assistant.model
             if(
@@ -304,7 +303,6 @@ def sync_create(original_create, client):
         assistant_id = kwargs.get("assistant_id")
         run_id = kwargs.get("run_id")
         if assistant_id is not None and "beta.threads.runs" in str(type(self)):
-            print(assistant_id)
             assistant = client.beta.assistants.retrieve(assistant_id)
             model = assistant.model
             if(
@@ -355,7 +353,6 @@ def async_create(original_create, client):
         assistant_id = kwargs.get("assistant_id")
         run_id = kwargs.get("run_id")
         if assistant_id is not None and "beta.threads.runs" in str(type(self)):
-            print(assistant_id)
             assistant = await client.beta.assistants.retrieve(assistant_id)
             model = assistant.model
             if(
