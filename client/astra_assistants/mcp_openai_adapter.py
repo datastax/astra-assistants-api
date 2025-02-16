@@ -24,7 +24,7 @@ class MCPRepresentationStdio(MCPRepresentationBase):
     type: str = Literal["stdio"]
     command: str
     arguments: Optional[List[str]] = None
-    env_vars: Optional[List[str]] = None
+    env_vars: Optional[Dict[str]] = None
     tool_filter: Optional[List[str]] = None
 
 class MCPRepresentationSSE(MCPRepresentationBase):
