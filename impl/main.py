@@ -105,19 +105,21 @@ class APIVersionMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Retrieve and normalize the version header
         version_header = request.headers.get("OpenAI-Beta", "").lower()
-
         try:
             if version_header in [None, "", "assistants=v1"]:
                 # Default version or v1: Proceed as is
                 return await call_next(request)
 
             if version_header == "assistants=v2":
-                # Modify path for v2 requests
-                request.scope['path'] = request.scope['path'].replace("v1", "v2")
-                if 'raw_path' in request.scope:
-                    request.scope['raw_path'] = request.scope['raw_path'].replace(b'v1', b'v2')
-
-                # Proceed with the modified request
+                # Modify only the version prefix in the path:
+                path = request.scope.get("path", "")
+                if path.startswith("/v1/"):
+                    request.scope["path"] = "/v2/" + path[len("/v1/"):]
+                # Similarly for raw_path if it exists (raw_path is bytes)
+                if "raw_path" in request.scope:
+                    raw_path = request.scope["raw_path"]
+                    if raw_path.startswith(b"/v1/"):
+                        request.scope["raw_path"] = b"/v2/" + raw_path[len(b"/v1/"):]
                 return await call_next(request)
 
             # Unsupported version
@@ -128,6 +130,7 @@ class APIVersionMiddleware(BaseHTTPMiddleware):
 
         except Exception as e:
             # Structured logging for errors
+            import traceback
             trace = traceback.format_exc()
             dbid = getattr(request.state, "dbid", None)
             error_message = f"Error processing request: {e}\nTraceback: {trace}"
@@ -135,8 +138,6 @@ class APIVersionMiddleware(BaseHTTPMiddleware):
                 logger.error(f"{error_message}, dbid: {dbid}")
             else:
                 logger.error(error_message)
-
-            # Return a generic internal server error response
             return Response(
                 content="An internal server error occurred.",
                 status_code=500
