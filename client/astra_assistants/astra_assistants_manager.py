@@ -9,7 +9,7 @@ from astra_assistants import patch, OpenAIWithDefaultKey
 from astra_assistants.astra_assistants_event_handler import AstraEventHandler
 from astra_assistants.tools.tool_interface import ToolInterface
 from astra_assistants.utils import env_var_is_missing, get_env_vars_for_provider
-from astra_assistants.mcp_openai_adapter import MCPOpenAIAAdapter
+from astra_assistants.mcp_openai_adapter import MCPOpenAIAAdapter, MCPRepresentation
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class AssistantManager:
                  assistant_id: str = None,
                  client = None,
                  tool_resources = None,
-                 mcp_represenations = None
+                 mcp_represenations: MCPRepresentation = None
                  ):
 
         if instructions is None and assistant_id is None:

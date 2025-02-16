@@ -25,10 +25,12 @@ class MCPRepresentationStdio(MCPRepresentationBase):
     command: str
     arguments: Optional[List[str]] = None
     env_vars: Optional[List[str]] = None
+    tool_filter: Optional[List[str]] = None
 
 class MCPRepresentationSSE(MCPRepresentationBase):
     type: str = Literal["sse"]
     sse_url: str
+    tool_filter: Optional[List[str]] = None
 
 MCPRepresentation = Union[MCPRepresentationStdio, MCPRepresentationSSE]
 
@@ -168,8 +170,14 @@ class MCPOpenAIAAdapter:
         return self.tools
 
     def get_json_schema_for_tools(self) -> List[dict]:
-        # Since to_function() is synchronous, simply return the schemas.
-        return [tool_adapter.to_function() for tool_adapter in self.tools]
+        # return schemas
+        # if there's afilter, only return schemas for tools that match the filter
+        return [
+            tool_adapter.to_function()
+            for tool_adapter in self.tools
+            if not tool_adapter.representation.tool_filter
+               or tool_adapter.mcp_tool.name in tool_adapter.representation.tool_filter
+        ]
 
     def shutdown(self):
         """

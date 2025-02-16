@@ -20,7 +20,8 @@ async def test_mcp(patched_openai_client):
             command="uvx",
             arguments=[
                 "mcp-server-time"
-            ]
+            ],
+            tool_filter=['get_current_time']
         )
     ]
 
@@ -30,6 +31,10 @@ async def test_mcp(patched_openai_client):
         client=client,
         mcp_represenations=mcps
     )
+
+
+    assert len(assistant_manager.tools) == 2, "expected 2 tools in get_current_time"
+    assert len(assistant_manager.assistant.tools) == 1, "tool_filter should have filtered to one tool"
 
     content = "what time is it?"
     result: ToolOutput = await assistant_manager.run_thread(
