@@ -7,18 +7,20 @@ import traceback
 from concurrent.futures import ThreadPoolExecutor
 from functools import wraps
 from types import MethodType
-from typing import Callable, Literal, Union, Dict, List
+from typing import Callable, Literal, Union, Dict, List, TypedDict
 import contextlib
 
 import httpx
 from openai import OpenAI, AsyncOpenAI
-from openai._base_client import make_request_options
+from openai._base_client import make_request_options, AsyncPaginator
 from openai._models import BaseModel
 from openai._types import NOT_GIVEN, Headers, Query, Body, NotGiven
 from openai._utils import maybe_transform
 
 from litellm import utils
+from openai.pagination import AsyncCursorPage, SyncCursorPage
 from openai.types import FileObject
+from openai.types.beta import Thread
 from openai.types.beta.threads import message_create_params, Message
 
 from dotenv import load_dotenv
@@ -41,6 +43,141 @@ def func_is_async(func: Callable) -> bool:
     """Returns true if the callable is async, accounting for wrapped callables"""
     return inspect.iscoroutinefunction(func) or (
             hasattr(func, "__wrapped__") and inspect.iscoroutinefunction(func.__wrapped__)
+    )
+
+
+
+class ThreadListParams(TypedDict, total=False):
+    after: str
+    """A cursor for use in pagination.
+
+    `after` is an object ID that defines your place in the list. For instance, if
+    you make a list request and receive 100 objects, ending with obj_foo, your
+    subsequent call can include after=obj_foo in order to fetch the next page of the
+    list.
+    """
+
+    before: str
+    """A cursor for use in pagination.
+
+    `before` is an object ID that defines your place in the list. For instance, if
+    you make a list request and receive 100 objects, starting with obj_foo, your
+    subsequent call can include before=obj_foo in order to fetch the previous page
+    of the list.
+    """
+
+    limit: int
+    """A limit on the number of objects to be returned.
+
+    Limit can range between 1 and 100, and the default is 20.
+    """
+
+    order: Literal["asc", "desc"]
+    """Sort order by the `created_at` timestamp of the objects.
+
+    `asc` for ascending order and `desc` for descending order.
+    """
+
+
+def list(
+        self,
+        *,
+        after: str | NotGiven = NOT_GIVEN,
+        before: str | NotGiven = NOT_GIVEN,
+        limit: int | NotGiven = NOT_GIVEN,
+        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+) -> SyncCursorPage[Thread]:
+    """
+    Returns a paginated list of threads.
+
+    Args:
+      after: A cursor for use in pagination. `after` is an object ID that defines your place
+          in the list. For instance, if you make a list request and receive 100 objects,
+          ending with obj_foo, your subsequent call can include after=obj_foo to fetch the next page.
+      before: A cursor for use in pagination. `before` is an object ID that defines your place
+          in the list. For instance, if you make a list request and receive 100 objects,
+          starting with obj_foo, your subsequent call can include before=obj_foo to fetch the previous page.
+      limit: A limit on the number of threads to be returned. Limit can range between 1 and 100; the default is 20.
+      order: Sort order by the `created_at` timestamp of the threads. Use "asc" for ascending order and "desc" for descending order.
+      extra_headers: Additional headers to send with the request.
+      extra_query: Additional query parameters.
+      extra_body: Additional JSON properties to include in the request.
+      timeout: Override the client-level default timeout for this request, in seconds.
+    """
+    extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+    return self._get_api_list(
+        "/threads",
+        page=SyncCursorPage[Thread],
+        options=make_request_options(
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+            query=maybe_transform(
+                {
+                    "after": after,
+                    "before": before,
+                    "limit": limit,
+                    "order": order,
+                },
+                ThreadListParams,  # Ensure this is defined appropriately
+            ),
+        ),
+        model=Thread,  # Your Thread model that represents a thread object
+    )
+
+# Asynchronous version for listing threads
+async def async_list(
+        self,
+        *,
+        after: str | NotGiven = NOT_GIVEN,
+        before: str | NotGiven = NOT_GIVEN,
+        limit: int | NotGiven = NOT_GIVEN,
+        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+) -> AsyncPaginator[Thread, AsyncCursorPage[Thread]]:
+    """
+    Asynchronously returns a paginated list of threads.
+
+    Args:
+      after: A cursor for pagination. The list will include items after this ID.
+      before: A cursor for pagination. The list will include items before this ID.
+      limit: The maximum number of threads to return.
+      order: Sort order by creation timestamp: "asc" or "desc".
+      extra_headers: Additional headers to include in the request.
+      extra_query: Additional query parameters.
+      extra_body: Additional JSON properties to include in the request.
+      timeout: An optional timeout override.
+    """
+    extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+    return await self._get_api_list(
+        "/threads",
+        page=AsyncCursorPage[Thread],
+        options=make_request_options(
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+            query=maybe_transform(
+                {
+                    "after": after,
+                    "before": before,
+                    "limit": limit,
+                    "order": order,
+                },
+                ThreadListParams,  # Make sure this exists
+            ),
+        ),
+        model=Thread,
     )
 
 def wrap_update_messages(original_update, is_async):
@@ -628,6 +765,12 @@ def patch(client: Union[OpenAI, AsyncOpenAI]):
 
     # Wrap client.beta.threads.messages.update to support modifying content
     client.beta.threads.messages.update = MethodType(wrap_update_messages(client.beta.threads.messages.update, client_is_async), client.beta.threads.messages)
+
+    # Attach the new method to the client's beta.threads object in the patch function:
+    if client_is_async:
+        client.beta.threads.list = MethodType(async_list, client.beta.threads)
+    else:
+        client.beta.threads.list = MethodType(list, client.beta.threads)
 
     # patch the copy method so that the copied instance is also patched
     client.copy = MethodType(enhance_copy_method(client.copy), client.copy)
