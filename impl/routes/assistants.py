@@ -53,7 +53,7 @@ async def list_assistants(
     if len(raw_assistants) == 0:
         return ListAssistantsResponse(
             data=assistants,
-            object="runs",
+            object="assistant",
             first_id="none",
             last_id="none",
             has_more=False,
