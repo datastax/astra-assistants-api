@@ -108,7 +108,22 @@ class MCPOpenAIAAdapter:
     ):
         self.exit_stack = AsyncExitStack()
         self.mcp_representations = mcp_representations or []
-        self.server_params = []
+
+        self.session: Optional[ClientSession] = None
+        self.tools: List[MCPToolAdapter] = []
+        self._bg_loop = asyncio.new_event_loop()
+        self._bg_thread = threading.Thread(target=self._run_bg_loop, daemon=True)
+        self._bg_thread.start()
+
+    def _run_bg_loop(self):
+        asyncio.set_event_loop(self._bg_loop)
+        self._bg_loop.run_forever()
+
+    def sync_connect(self):
+        """
+        Synchronously connect to the MCP server using the background loop.
+        This schedules the async connect() coroutine on the background loop.
+        """
         for rep in self.mcp_representations:
             if rep.type == 'stdio':
                 env_vars = {"PATH": os.environ["PATH"]}
@@ -128,28 +143,12 @@ class MCPOpenAIAAdapter:
                     args=combined_args,
                     env=env_vars,
                 )
-                self.server_params.append(server_param)
+                asyncio.run_coroutine_threadsafe(self._connect(server_param, rep), self._bg_loop).result()
             elif rep.type == 'sse':
-                self.server_params.append(rep.sse_url)
-        self.session: Optional[ClientSession] = None
-        self.tools: List[MCPToolAdapter] = []
-        self._bg_loop = asyncio.new_event_loop()
-        self._bg_thread = threading.Thread(target=self._run_bg_loop, daemon=True)
-        self._bg_thread.start()
+                asyncio.run_coroutine_threadsafe(self._connect(rep.sse_url, rep), self._bg_loop).result()
 
-    def _run_bg_loop(self):
-        asyncio.set_event_loop(self._bg_loop)
-        self._bg_loop.run_forever()
-
-    def sync_connect(self):
-        """
-        Synchronously connect to the MCP server using the background loop.
-        This schedules the async connect() coroutine on the background loop.
-        """
-        for server_param in self.server_params:
-            asyncio.run_coroutine_threadsafe(self._connect(server_param), self._bg_loop).result()
-
-    async def _connect(self, server_param):
+    # TODO: support sse
+    async def _connect(self, server_param, rep):
         transport = await self.exit_stack.enter_async_context(stdio_client(server_param))
         self.stdio, self.write = transport
         # Create the session on the background loop.
@@ -157,12 +156,11 @@ class MCPOpenAIAAdapter:
         await self.session.initialize()
         # Attach the background loop reference to each tool adapter.
         result = await self.session.list_tools()
-        for rep in self.mcp_representations:
-            for tool in result.tools:
-                adapter = MCPToolAdapter(representation=rep, mcp_session=self.session, mcp_tool=tool)
-                # Set the event loop used by this session (i.e. the background loop)
-                adapter.mcp_session_loop = self._bg_loop
-                self.tools.append(adapter)
+        for tool in result.tools:
+            adapter = MCPToolAdapter(representation=rep, mcp_session=self.session, mcp_tool=tool)
+            # Set the event loop used by this session (i.e. the background loop)
+            adapter.mcp_session_loop = self._bg_loop
+            self.tools.append(adapter)
 
     def get_tools(self) -> List[MCPToolAdapter]:
         if self.session is None:
