@@ -1,12 +1,11 @@
-from openai import OpenAI
 from astra_assistants import patch
-from agency_swarm import Agent, Agency, set_openai_client
+from agency_swarm import Agent, Agency, get_openai_client, set_openai_client
 from dotenv import load_dotenv
 
 load_dotenv("./.env")
 load_dotenv("../../../.env")
 
-client = patch(OpenAI())
+client = patch(get_openai_client())
 
 set_openai_client(client)
 
