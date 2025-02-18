@@ -28,6 +28,7 @@ from impl.services.inference_utils import get_chat_completion, get_async_chat_co
 from impl.utils import map_model, store_object, read_object, read_objects, generate_id
 from openapi_server_v2.models.assistants_api_response_format_option import AssistantsApiResponseFormatOption
 from openapi_server_v2.models.assistants_api_tool_choice_option import AssistantsApiToolChoiceOption
+from openapi_server_v2.models.list_threads_response import ListThreadsResponse
 from openapi_server_v2.models.message_delta_object_delta_content_inner import MessageDeltaObjectDeltaContentInner
 from openapi_server_v2.models.message_object_attachments_inner import MessageObjectAttachmentsInner
 from openapi_server_v2.models.message_object_attachments_inner_tools_inner import \
@@ -114,6 +115,70 @@ async def create_thread(
         extra_fields={"object": "thread", "id": thread_id, "created_at": created_at}
     )
     return astradb.upsert_table_from_base_model("threads", thread)
+
+@router.get(
+    "/threads",
+    responses={
+        200: {"model": ListThreadsResponse, "description": "OK"},
+    },
+    tags=["Threads"],
+    summary="Returns a list of threads.",
+    response_model_by_alias=True,
+)
+async def list_assistants(
+        limit: int = Query(
+            20,
+            description="A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 20. ",
+        ),
+        order: str = Query(
+            "desc",
+            description="Sort order by the &#x60;created_at&#x60; timestamp of the objects. &#x60;asc&#x60; for ascending order and &#x60;desc&#x60; for descending order. ",
+        ),
+        after: str = Query(
+            None,
+            description="A cursor for use in pagination. &#x60;after&#x60; is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with obj_foo, your subsequent call can include after&#x3D;obj_foo in order to fetch the next page of the list. ",
+        ),
+        before: str = Query(
+            None,
+            description="A cursor for use in pagination. &#x60;before&#x60; is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with obj_foo, your subsequent call can include before&#x3D;obj_foo in order to fetch the previous page of the list. ",
+        ),
+        astradb: CassandraClient = Depends(verify_db_client),
+) -> ListThreadsResponse:
+    raw_threads = astradb.selectAllFromTable(table="threads")
+
+    threads = []
+    if len(raw_threads) == 0:
+        return ListThreadsResponse(
+            data=threads,
+            object="threads",
+            first_id="none",
+            last_id="none",
+            has_more=False,
+        )
+    for raw_thread in raw_threads:
+        created_at = int(raw_thread["created_at"].timestamp() * 1000)
+
+        metadata = raw_thread["metadata"]
+        if metadata is None:
+            metadata = {}
+
+        thread = ThreadObject(
+            id=raw_thread["id"],
+            object="thread",
+            created_at=created_at,
+            metadata=metadata,
+        )
+        threads.append(thread)
+    first_id = raw_threads[0]["id"]
+    last_id = raw_threads[len(raw_threads) - 1]["id"]
+    threads_response = ListThreadsResponse(
+        data=threads,
+        object="thread",
+        first_id=first_id,
+        last_id=last_id,
+        has_more=False,
+    )
+    return threads_response
 
 @router.post(
     "/threads/runs",
@@ -434,7 +499,7 @@ def make_event(target_class: Type[BaseModel],data: BaseModel, event: str) -> Ass
 
 async def yield_event_from_object(obj: BaseModel, target_class: Type[BaseModel], event: str, obj_status: str = None):
     try:
-        holder = obj.copy()
+        holder = obj.model_copy()
         if obj_status is not None:
             holder.status = obj_status
         event = make_event(target_class=target_class, data=holder, event=event)
@@ -1136,7 +1201,9 @@ async def store_run(id, created_at, thread_id, assistant_id, status, required_ac
         "tool_choice": tool_choice,
         "response_format": response_format,
     }
+    logger.info(f"[STORE_RUN] About to store run with extra_fields: {extra_fields}")
     run = await store_object(astradb=astradb, obj=create_run_request, target_class=RunObject, table_name="runs_v2", extra_fields=extra_fields)
+    logger.info(f"[STORE_RUN] Stored run: {run}")
     return run
 
 
@@ -1515,11 +1582,14 @@ async def get_run(
         run_id: str = Path(..., description="The ID of the run to retrieve."),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> RunObject:
+    logger.info(f"[GET_RUN] Received request with thread_id: {thread_id}, run_id: {run_id}")
     run = await read_run(thread_id=thread_id, run_id=run_id, astradb=astradb)
+    logger.info(f"[GET_RUN] Returning run with id: {run.id}")
     return run.to_dict()
 
 
 async def read_run(thread_id, run_id, astradb):
+    logger.info(f"[READ_RUN] Querying run with thread_id: {thread_id} and run_id: {run_id}")
     run: RunObject = read_object(
         astradb=astradb,
         target_class=RunObject,
@@ -1527,6 +1597,7 @@ async def read_run(thread_id, run_id, astradb):
         partition_keys=["id", "thread_id"],
         args={"id": run_id, "thread_id": thread_id}
     )
+    logger.info(f"[READ_RUN] Retrieved run with id: {run.id}")
     return run
 
 
