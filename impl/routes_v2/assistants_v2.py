@@ -151,6 +151,7 @@ async def modify_assistant(
         "id": assistant_id,
         "object": "assistant"
     }
+    #TODO: fix tool validation
     if modify_assistant_request.response_format is not None:
         extra_fields['response_format'] = AssistantsApiResponseFormatOption(actual_instance=modify_assistant_request.response_format)
     await store_object(astradb=astradb, obj=modify_assistant_request, target_class=AssistantObject,
