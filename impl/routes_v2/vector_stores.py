@@ -67,11 +67,12 @@ async def create_vector_store(
     usage_bytes = 0
     for file_id in create_vector_store_request.file_ids:
         request = CreateVectorStoreFileRequest(file_id=file_id)
-        await create_vector_store_file(
+        vsf = await create_vector_store_file(
             vector_store_id=vector_store_id,
             create_vector_store_file_request=request,
             astradb=astradb
         )
+        vsf_usage_bytes = vsf.usage_bytes
         #TODO - compute usage_bytes
 
     file_id_count = len(create_vector_store_request.file_ids)
