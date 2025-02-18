@@ -1,13 +1,12 @@
-from openai import OpenAI
 from astra_assistants import patch
-from agency_swarm import Agent, Agency, set_openai_client
+from agency_swarm import Agent, Agency, get_openai_client, set_openai_client
 from dotenv import load_dotenv
 
 load_dotenv("./.env")
 load_dotenv("../../../.env")
 
 # remember to set OLLAMA_API_BASE_URL="http://ollama:11434" and base_url="http://localhost:8000/v1" in your env
-client = patch(OpenAI())
+client = patch(get_openai_client())
 
 set_openai_client(client)
 
