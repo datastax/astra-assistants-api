@@ -12,7 +12,7 @@ authors = ["phact <estevezsebastian@gmail.com>"]
 include = "openapi_server"
 
 [tool.poetry.dependencies]
-python = "^3.10.12,<3.12"
+python = "^3.10.12,<3.13"
 aiofiles = "23.1.0"
 aniso8601 = "7.0.0"
 async-exit-stack = "1.0.1"
