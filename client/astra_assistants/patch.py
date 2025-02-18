@@ -79,7 +79,7 @@ class ThreadListParams(TypedDict, total=False):
     """
 
 
-def list(
+def sync_list(
         self,
         *,
         after: str | NotGiven = NOT_GIVEN,
@@ -770,7 +770,7 @@ def patch(client: Union[OpenAI, AsyncOpenAI]):
     if client_is_async:
         client.beta.threads.list = MethodType(async_list, client.beta.threads)
     else:
-        client.beta.threads.list = MethodType(list, client.beta.threads)
+        client.beta.threads.list = MethodType(sync_list, client.beta.threads)
 
     # patch the copy method so that the copied instance is also patched
     client.copy = MethodType(enhance_copy_method(client.copy), client.copy)
