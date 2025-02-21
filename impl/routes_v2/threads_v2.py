@@ -144,7 +144,9 @@ async def list_assistants(
         ),
         astradb: CassandraClient = Depends(verify_db_client),
 ) -> ListThreadsResponse:
-    raw_threads = astradb.selectAllFromTable(table="threads")
+    if after or before:
+        raise HTTPException(502, f"after and before are not implemented")
+    raw_threads = astradb.selectAllFromTable(table="threads", limit=limit, order=order, order_by_col="created_at")
 
     threads = []
     if len(raw_threads) == 0:
@@ -167,6 +169,7 @@ async def list_assistants(
             object="thread",
             created_at=created_at,
             metadata=metadata,
+            tool_resources=raw_thread["tool_resources"]
         )
         threads.append(thread)
     first_id = raw_threads[0]["id"]

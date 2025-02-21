@@ -535,6 +535,11 @@ class CassandraClient:
             );"""
             )
 
+            self.session.execute(f"""
+            create INDEX if not exists threads_created_at_idx ON {CASSANDRA_KEYSPACE}.threads (created_at) ;
+            """
+            )
+
             try:
                 self.session.execute(
                     f"""alter TABLE {CASSANDRA_KEYSPACE}.threads ADD tool_resources Map<text,text>;"""
@@ -1514,8 +1519,11 @@ class CassandraClient:
             self.session.shutdown()
 
     # TODO: make these async
-    def selectAllFromTable(self, table):
-        queryString = f"""SELECT * FROM {CASSANDRA_KEYSPACE}.{table} limit 1000"""
+    def selectAllFromTable(self, table, limit: int = 1000, order: str = None, order_by_col: str = None):
+        queryString = f"""SELECT * FROM {CASSANDRA_KEYSPACE}.{table}"""
+        if order is not None and order_by_col is not None:
+            queryString += f""" order by {order_by_col} {order} """
+        queryString += f""" limit {limit};"""
         statement = self.session.prepare(queryString)
         statement.consistency_level = ConsistencyLevel.QUORUM
         self.session.row_factory = dict_factory
