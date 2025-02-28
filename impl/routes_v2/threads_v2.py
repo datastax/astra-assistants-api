@@ -1425,6 +1425,7 @@ async def process_rag(
                     start_time = await maybe_checkpoint(assistant_id, astradb,
                                                         frequency_in_seconds, message_id,
                                                         run_id, start_time, text, thread_id, created_at)
+                    await asyncio.sleep(0.01)
 
 
         # final message upsert
