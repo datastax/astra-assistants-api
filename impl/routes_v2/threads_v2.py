@@ -1416,17 +1416,27 @@ async def process_rag(
         else:
             done = False
             while not done:
-                async for part in response:
-                    if part.choices[0].finish_reason is not None:
-                        done = True
-                    delta = part.choices[0].delta.content
-                    if delta is not None and isinstance(delta, str):
-                        text += delta
-                    start_time = await maybe_checkpoint(assistant_id, astradb,
-                                                        frequency_in_seconds, message_id,
-                                                        run_id, start_time, text, thread_id, created_at)
-                    await asyncio.sleep(0.01)
+                try:
+                    part = await asyncio.wait_for(response.__anext__(), timeout=300)
+                except StopAsyncIteration:
+                    break
+                except asyncio.TimeoutError:
+                    # Timeout reached without new data; consider exiting or handling accordingly
+                    print("Timeout waiting for response part.")
+                    break
 
+                if part.choices[0].finish_reason is not None:
+                    done = True
+
+                delta = part.choices[0].delta.content
+                if delta is not None and isinstance(delta, str):
+                    text += delta
+
+                start_time = await maybe_checkpoint(assistant_id, astradb,
+                                                    frequency_in_seconds, message_id,
+                                                    run_id, start_time, text, thread_id, created_at)
+                # insert a small sleep to yield control
+                await asyncio.sleep(0.01)
 
         # final message upsert
         await complete_message_with_text(assistant_id, astradb, message_id, run_id, text, thread_id, created_at)
