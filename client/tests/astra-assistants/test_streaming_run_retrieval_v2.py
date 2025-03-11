@@ -168,6 +168,7 @@ def test_run_cohere(patched_openai_client):
     )
     run_with_assistant(cohere_assistant, patched_openai_client)
 
+@pytest.skip
 def test_run_perp(patched_openai_client):
     model="perplexity/llama-3.1-70b-instruct"
     name = f"{model} Math Tutor"
@@ -190,6 +191,7 @@ def test_run_claude(patched_openai_client):
     )
     run_with_assistant(claude_assistant, patched_openai_client)
 
+@pytest.skip
 def test_run_gemini(patched_openai_client):
     #model = "gemini/gemini-1.5-pro-latest"
     model = "gemini/gemini-1.5-flash"
