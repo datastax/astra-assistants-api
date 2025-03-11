@@ -87,7 +87,7 @@ def test_run_cohere(patched_openai_client):
     )
     run_with_assistant(cohere_assistant, patched_openai_client)
 
-@pytest.skip
+@pytest.mark.skip
 def test_run_perp(patched_openai_client):
     perplexity_assistant = patched_openai_client.beta.assistants.create(
         name="Perplexity/Mixtral Animal Tutor",
