@@ -20,7 +20,7 @@ class AssistantManager:
                  name: str = "managed_assistant",
                  tools: List[ToolInterface] = None,
                  thread_id: str = None,
-                 thread: str = None,
+                 thread: Any = None,
                  assistant_id: str = None,
                  client = None,
                  tool_resources = None,
@@ -31,7 +31,6 @@ class AssistantManager:
             raise Exception("Instructions must be provided if assistant_id is not provided")
         if tools is None:
             tools = []
-
 
         self.tools = tools
 
@@ -58,19 +57,26 @@ class AssistantManager:
         else:
             self.assistant = self.create_assistant()
 
-        if thread_id is None and thread is None:
-            self.thread = self.create_thread()
-        elif thread is not None:
-            self.thread = thread
+        # Instead of auto-creating the thread, we assign _thread based on input.
+        if thread is not None:
+            self._thread = thread
         elif thread_id is not None:
-            self.thread = self.client.beta.threads.retrieve(thread_id)
-
+            self._thread = self.client.beta.threads.retrieve(thread_id)
+        else:
+            self._thread = None  # Lazy initialization; will be created on first access.
 
         self.mcp_adapter = None
         self.register_mcp(mcp_represenations)
 
         logger.info(f'assistant {self.assistant}')
-        logger.info(f'thread {self.thread}')
+        logger.info(f'thread {self._thread}')
+
+    @property
+    def thread(self):
+        # Lazy creation of thread when accessed directly.
+        if self._thread is None:
+            self._thread = self.create_thread()
+        return self._thread
 
     def register_mcp(self, mcp_representations):
         # If MCP representations are provided, convert them to tools using the adapter.
@@ -118,10 +124,11 @@ class AssistantManager:
         logger.debug("Thread generated: %s", thread)
         return thread
 
-    def stream_thread(self, content, tool_choice = None, thread_id: str = None, thread = None, additional_instructions = None):
+    def stream_thread(self, content, tool_choice = None, thread_id: str = None, thread: Any = None, additional_instructions = None):
         if thread_id is not None:
             thread = self.client.beta.threads.retrieve(thread_id)
         elif thread is None:
+            # Use lazy property access; if not set, it will create one.
             thread = self.thread
 
         assistant = self.assistant
@@ -163,7 +170,7 @@ class AssistantManager:
             logger.error(e)
             raise e
 
-    async def run_thread(self, content, tool = None, thread_id: str = None, thread = None, additional_instructions = None):
+    async def run_thread(self, content, tool = None, thread_id: str = None, thread: Any = None, additional_instructions = None):
         if thread_id is not None:
             thread = self.client.beta.threads.retrieve(thread_id)
         elif thread is None:
@@ -223,4 +230,5 @@ class AssistantManager:
             raise e
 
     def shutdown(self):
-        self.mcp_adapter.shutdown()
+        if self.mcp_adapter:
+            self.mcp_adapter.shutdown()
