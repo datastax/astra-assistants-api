@@ -1,6 +1,6 @@
-from model_v2.assistants_api_tool_choice_option import AssistantsApiToolChoiceOption
-from model_v2.create_run_request import CreateRunRequest
-from model_v2.create_thread_and_run_request import CreateThreadAndRunRequest
+from impl.model_v2.assistants_api_tool_choice_option import AssistantsApiToolChoiceOption
+from impl.model_v2.create_run_request import CreateRunRequest
+from impl.model_v2.create_thread_and_run_request import CreateThreadAndRunRequest
 
 
 def test_CreateRunRequest():
