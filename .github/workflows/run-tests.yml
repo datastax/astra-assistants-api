@@ -5,7 +5,7 @@ on:
 
 jobs:
   run-http-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run http tests
     env:
         ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -32,8 +32,8 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  run: poetry env use python3.10
       - name: get dependencies
         run: |
           poetry install
@@ -41,7 +41,7 @@ jobs:
         run: |
           poetry run pytest --timeout 600 -s --disable-warnings tests/http/
   run-async-http-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run async http tests
     env:
         ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -68,8 +68,8 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  run: poetry env use python3.10
       - name: get dependencies
         run: |
           poetry install
@@ -77,7 +77,7 @@ jobs:
         run: |
           poetry run pytest --timeout 600 -s --disable-warnings tests/async_http/
   run-openai-sdk-test_files:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run openai-sdk test files
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -104,9 +104,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -132,7 +132,7 @@ jobs:
           popd
 
   run-openai-sdk-test_assistants_v1:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run openai-sdk test assistants_v1
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -159,9 +159,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -192,7 +192,7 @@ jobs:
           
 
   run-openai-sdk-test_assistants_v2:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run openai-sdk test assistants_v2
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -219,9 +219,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -247,7 +247,7 @@ jobs:
           popd
           
   run-astra-assistants-tests-chat:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run astra-assistants chat tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -274,9 +274,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -303,7 +303,7 @@ jobs:
           
 
   run-astra-assistants-tests-embedding:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run astra-assistants embedding tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -330,9 +330,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -359,7 +359,7 @@ jobs:
           
 
   run-astra-assistants-tests-file-embedding:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run astra-assistants file embedding tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -386,9 +386,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -415,7 +415,7 @@ jobs:
           
 
   run-streaming-assistants-tests-function-calling_v1:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run streaming-assistants v1 function calling tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -442,9 +442,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -475,7 +475,7 @@ jobs:
           
 
   run-streaming-assistants-tests-run_v1:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run streaming-assistants v1 run tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -502,9 +502,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -535,7 +535,7 @@ jobs:
           
 
   run-streaming-assistants-tests-run-retrieval_v1:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run streaming-assistants run retrieval v1 tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -562,9 +562,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -595,7 +595,7 @@ jobs:
           
 
   run-streaming-assistants-tests-streaming-run-retrieval_v1:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run streaming-assistants v1 streaming run retrieval tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -622,9 +622,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -655,7 +655,7 @@ jobs:
           
 
   run-streaming-assistants-tests-streaming-run_v1:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run streaming-assistants v1 streaming run tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -682,9 +682,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -715,7 +715,7 @@ jobs:
           
 
   run-streaming-assistants-tests-streaming-run-function-calling_v1:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run streaming-assistants v1 streaming run function calling tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -742,9 +742,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -775,7 +775,7 @@ jobs:
           
 
   run-streaming-assistants-tests-threads-v1:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run streaming-assistants v1 threads tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -803,9 +803,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -836,7 +836,7 @@ jobs:
           
 
   run-streaming-assistants-tests-auto-tool-call-v1:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run streaming-assistants v1 test auto tool_call
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -864,9 +864,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -897,7 +897,7 @@ jobs:
           
 
   run-astra-assistants-tests-run_v2:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run astra-assistants v2 run tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -924,9 +924,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -953,7 +953,7 @@ jobs:
           
 
   run-astra-assistants-tests-run_retrieval_v2:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run astra-assistants v2 run retrieval tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -980,9 +980,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1009,7 +1009,7 @@ jobs:
           
 
   run-astra-assistants-tests-function_calling_v2:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run astra-assistants v2 function calling tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -1036,9 +1036,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1066,7 +1066,7 @@ jobs:
 
 
   run-astra-assistants-tests-streaming-run-function_calling_async_v2:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run astra-assistants v2 streaming run function calling async tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -1093,9 +1093,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1124,7 +1124,7 @@ jobs:
 
 
   run-astra-assistants-tests-streaming_run_v2:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run astra-assistants v2 streaming run tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -1151,9 +1151,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1180,7 +1180,7 @@ jobs:
           
 
   run-astra-assistants-tests-streaming_run_retrieval_v2:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run astra-assistants v2 streaming run retrieval tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -1207,9 +1207,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1237,7 +1237,7 @@ jobs:
 
 
   run-astra-assistants-tests-streaming_run_retrieval_async_v2:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run astra-assistants v2 streaming run retrieval async tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -1264,9 +1264,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1293,7 +1293,7 @@ jobs:
           
 
   run-astra-assistants-tests-streaming_run_function_calling_v2:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run astra-assistants v2 streaming run function calling tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -1320,9 +1320,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1349,7 +1349,7 @@ jobs:
           
 
   run-astra-assistants-tests-auto_tool_call_v2:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run astra-assistants v2 auto tool call tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -1376,9 +1376,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1404,7 +1404,7 @@ jobs:
           popd
           
   run-data-api-tools-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run data api tools tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -1432,9 +1432,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1460,7 +1460,7 @@ jobs:
           popd
           
   run-data-code-interpreter-tools-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run code interpreter tools tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -1488,9 +1488,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1516,7 +1516,7 @@ jobs:
           popd
           
   run-lsp-tools-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run lsp tools tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -1544,9 +1544,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1572,7 +1572,7 @@ jobs:
           popd
           
   run-structured-code-tools-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: run structured code tools tests
     env:
       ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -1600,9 +1600,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
