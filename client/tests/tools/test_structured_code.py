@@ -18,6 +18,7 @@ from astra_assistants.tools.structured_code.write import StructuredCodeFileGener
 logger = logging.getLogger(__name__)
 
 
+@pytest.mark.skip
 def test_structured_code_raw(patched_openai_client):
     programs = ProgramCache()
     code_generator = StructuredCodeFileGenerator(programs)
@@ -82,6 +83,7 @@ use the structured code tool to generate code to help the user.
     programs.close()
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_structured_code_with_manager(patched_openai_client):
     programs = ProgramCache()

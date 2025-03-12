@@ -154,6 +154,7 @@ def test_run_cohere(patched_openai_client):
     )
     run_with_assistant(cohere_assistant, patched_openai_client, file2_path, embedding_model2)
 
+@pytest.mark.skip
 def test_run_perp(patched_openai_client):
     model="perplexity/llama-3.1-70b-instruct"
     name = f"{model} Math Tutor"

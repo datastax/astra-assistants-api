@@ -28,7 +28,7 @@ from openapi_server.models.modify_thread_request import ModifyThreadRequest  # n
 from openapi_server.models.run_object import RunObject  # noqa: F401
 from openapi_server.models.run_step_object import RunStepObject  # noqa: F401
 from openapi_server.models.thread_object import ThreadObject  # noqa: F401
-from tests.http.conftest import get_headers, MODEL
+from conftest import get_headers, MODEL
 
 logger = logging.getLogger(__name__)
 

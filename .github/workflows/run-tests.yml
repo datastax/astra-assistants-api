@@ -32,8 +32,8 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  run: poetry env use python3.10
       - name: get dependencies
         run: |
           poetry install
@@ -68,8 +68,8 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  run: poetry env use python3.10
       - name: get dependencies
         run: |
           poetry install
@@ -104,9 +104,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -159,9 +159,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -219,9 +219,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -274,9 +274,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -330,9 +330,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -386,9 +386,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -442,9 +442,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -502,9 +502,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -562,9 +562,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -622,9 +622,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -682,9 +682,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -742,9 +742,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -803,9 +803,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -864,9 +864,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -924,9 +924,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -980,9 +980,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1036,9 +1036,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1093,9 +1093,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1151,9 +1151,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1207,9 +1207,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1264,9 +1264,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1320,9 +1320,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1376,9 +1376,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1432,9 +1432,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1488,9 +1488,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1544,9 +1544,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |
@@ -1600,9 +1600,9 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
       - name: Check Poetry Version
         run: poetry --version
-      - name: Configure Poetry to Use Python 3.11.8
-        working-directory: ./client
-        run: poetry env use python3.10
+      #- name: Configure Poetry to Use Python 3.11.8
+      #  working-directory: ./client
+      #  run: poetry env use python3.10
       - name: get client dependencies
         working-directory: ./client
         run: |

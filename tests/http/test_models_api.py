@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from openapi_server.models.delete_model_response import DeleteModelResponse  # noqa: F401
 from openapi_server.models.list_models_response import ListModelsResponse  # noqa: F401
 from openapi_server.models.model import Model  # noqa: F401
-from tests.http.conftest import MODEL, get_headers
+from conftest import MODEL, get_headers
 
 
 @pytest.mark.skip(reason="use client")

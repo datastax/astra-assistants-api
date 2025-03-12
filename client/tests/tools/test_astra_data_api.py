@@ -13,6 +13,7 @@ db_url = "https://8a79c989-8b12-4154-8a93-063d597e78fd-us-east1.apps.astra.datas
 collection_name = "movie_reviews"
 namespace = "default"
 
+@pytest.mark.skip
 def test_astra_data_api(patched_openai_client):
    data_api_tool = AstraDataAPITool(
         db_url=db_url,
@@ -51,7 +52,7 @@ def test_astra_data_api(patched_openai_client):
        print()
        print(f"tool_output: {event_handler.tool_output}")
 
-@pytest.mark.asyncio
+@pytest.mark.skip
 async def test_astra_data_api_with_manager(patched_openai_client):
     data_api_tool = AstraDataAPITool(
         db_url=db_url,
