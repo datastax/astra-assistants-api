@@ -23,6 +23,7 @@ you are a python data scientist. you are given tasks to complete and you run pyt
 - you can run any python code you want, everything is running in a secure sandbox environment.
 """
 
+@pytest.mark.asyncio
 def test_code_interpreter(patched_openai_client):
     code_interpreter_tool = E2BCodeInterpreter()
 
