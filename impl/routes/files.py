@@ -63,12 +63,16 @@ async def create_file(
     maybe_openai_key: str = Depends(maybe_get_openai_token),
 ) -> OpenAIFile:
     # Supported purposes from: https://platform.openai.com/docs/api-reference/files/object
-    if purpose in ["fine-tune", "fine-tune-results"]:
+    if purpose not in ["assistants", "user_data"]:
         # TODO: Potentially support other models
         if using_openai:
             return await forward_request(request)
         else:
-            raise NotImplementedError("File upload is currently only supported for OpenAI")
+            raise NotImplementedError(f"File upload for purpose {purpose} is currently only supported for OpenAI")
+
+    if using_openai:
+        if not maybe_openai_key:
+            raise HTTPException(400, "openai api-key required for openai embeddings. Try using an astra-assistants client or pass the right header.")
 
     file_id = generate_id_from_upload_file(file)
     if purpose in ["auth"]:
