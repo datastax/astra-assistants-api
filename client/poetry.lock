@@ -2674,4 +2674,4 @@ tools = ["astrapy", "e2b", "e2b-code-interpreter"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12.0"
-content-hash = "80f001509c814822f9a739497daa74cd7a992d40c7a159e4e10ba6ed5a2bf419"
+content-hash = "469bc545ce59103c89d2b71de00b22f30b577c7515b66dd6116327f46165874a"
