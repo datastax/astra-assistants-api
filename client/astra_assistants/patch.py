@@ -22,7 +22,11 @@ from openai.types import FileObject
 from openai.types.beta.threads import message_create_params, Message
 
 from dotenv import load_dotenv
-from openai.types.beta.vector_stores import VectorStoreFile
+try:
+    from openai.types.beta.vector_stores import VectorStoreFile
+except ImportError:
+    from openai.types.vector_stores import VectorStoreFile
+
 
 from astra_assistants import OpenAIWithDefaultKey, AsyncOpenAIWithDefaultKey
 
