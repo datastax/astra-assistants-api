@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 from openapi_server.models.create_moderation_request import CreateModerationRequest  # noqa: F401
 from openapi_server.models.create_moderation_response import CreateModerationResponse  # noqa: F401
-from tests.http.conftest import get_headers, MODEL
+from conftest import get_headers, MODEL
 
 
 def test_create_moderation(client: TestClient):

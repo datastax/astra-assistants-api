@@ -876,18 +876,17 @@ async def create_run(
     model = create_run_request.model
     # TODO: implement support for ChatCompletionToolChoiceOption
     assistant = await get_assistant_obj(assistant_id=create_run_request.assistant_id, astradb=astradb)
+    if assistant is None:
+        raise HTTPException(status_code=404, detail="Assistant not found")
+    tool_resources = assistant.tool_resources
 
     if tools is None:
         tools = []
         if assistant.tools is not None:
             tools = assistant.tools
 
-    tool_resources = []
     if model is None:
-        if assistant is None:
-            raise HTTPException(status_code=404, detail="Assistant not found")
         model = assistant.model
-        tool_resources = assistant.tool_resources
 
     messages = get_messages_by_thread(astradb, thread_id, order="asc")
 
@@ -1274,7 +1273,7 @@ async def process_rag(
                             message_attachment_file_ids.append(attachment.file_id)
             
             file_ids = []
-            if tool_resources.file_search is not None:
+            if tool_resources is not None and tool_resources.file_search is not None:
                 if tool_resources.file_search.vector_store_ids is not None:
                     for vector_store_id in tool_resources.file_search.vector_store_ids:
                         vector_store_files = await read_vsf(vector_store_id=vector_store_id, astradb=astradb)
@@ -1395,7 +1394,8 @@ async def process_rag(
         logger.error("process_rag cancelled")
         raise RuntimeError("process_rag cancelled")
     except Exception as e:
-        logger.error(f"process_rag failed, dbid: {astradb.dbid}, error: {e}")
+        trace = traceback.format_exc()
+        logger.error(f"process_rag failed, dbid: {astradb.dbid}\nError: {e}\nTrace: {trace}")
         # TODO maybe do a cancelled run step with more details?
         await update_run_status(thread_id=thread_id, id=run_id, status="failed", astradb=astradb)
         logger.error("process_rag cancelled")

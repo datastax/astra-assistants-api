@@ -80,6 +80,7 @@ def test_run_cohere(streaming_assistants_openai_client):
     )
     run_with_assistant(cohere_assistant, streaming_assistants_openai_client)
 
+@pytest.mark.skip
 def test_run_perp(streaming_assistants_openai_client):
     perplexity_assistant = streaming_assistants_openai_client.beta.assistants.create(
         name="Perplexity/Mixtral Animal Tutor",

@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 
 from impl.model.create_completion_request import CreateCompletionRequest
 from openapi_server.models.create_completion_response import CreateCompletionResponse  # noqa: F401
-from tests.http.conftest import get_headers, MODEL
+from conftest import get_headers, MODEL
 
 logger = logging.getLogger(__name__)
 

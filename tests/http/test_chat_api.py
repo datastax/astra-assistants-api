@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 
 
 from openapi_server.models.create_chat_completion_response import CreateChatCompletionResponse  # noqa: F401
-from tests.http.conftest import get_headers, MODEL
+from conftest import get_headers, MODEL
 
 
 def test_create_chat_completion(client: TestClient):

@@ -7,7 +7,7 @@ from openapi_server.models.create_speech_request import CreateSpeechRequest  # n
 from openapi_server.models.create_transcription_request_model import CreateTranscriptionRequestModel  # noqa: F401
 from openapi_server.models.create_transcription_response import CreateTranscriptionResponse  # noqa: F401
 from openapi_server.models.create_translation_response import CreateTranslationResponse  # noqa: F401
-from tests.http.conftest import get_headers, MODEL
+from conftest import get_headers, MODEL
 
 
 def test_create_speech(client: TestClient):
