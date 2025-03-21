@@ -12,17 +12,12 @@ logger = logging.getLogger(__name__)
 
 class AstraDataAPITool(ToolInterface):
     def __init__(self, db_url: str, collection_name, vectorize: bool = False, openai_client: OpenAI = None, embedding_model:str = None, namespace: str = None):
-        client = DataAPIClient(token=os.environ["ASTRA_DB_APPLICATION_TOKEN"])
-        db = None
-        if namespace:
-            db = client.get_database_by_api_endpoint(
-                db_url,
-                namespace=namespace,
-            )
-        else:
-            db = client.get_database_by_api_endpoint(
-                db_url,
-            )
+        client = DataAPIClient()
+        db = client.get_database(
+            db_url,
+            token=os.environ["ASTRA_DB_APPLICATION_TOKEN"],
+            keyspace=namespace,  # if None it's like not passing it.
+        )
         self.collection = db.get_collection(collection_name)
         self.vectorize = vectorize
         self.openai_client = openai_client
