@@ -16,7 +16,7 @@ class AstraDataAPITool(ToolInterface):
         db = client.get_database(
             db_url,
             token=os.environ["ASTRA_DB_APPLICATION_TOKEN"],
-            keyspace=namespace,  # if None it's like not passing it.
+            keyspace=namespace,  # passing None is on (same as omitting the parameter)
         )
         self.collection = db.get_collection(collection_name)
         self.vectorize = vectorize
