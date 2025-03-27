@@ -163,15 +163,15 @@ trio = ["trio (>=0.26.1)"]
 
 [[package]]
 name = "astrapy"
-version = "2.0.0"
+version = "2.0.1"
 description = "AstraPy is a Pythonic SDK for DataStax Astra and its Data API"
 optional = true
 python-versions = "<4.0.0,>=3.8.0"
 groups = ["main"]
 markers = "extra == \"tools\""
 files = [
-    {file = "astrapy-2.0.0-py3-none-any.whl", hash = "sha256:0fd3d60ac680a0bfb3a0ab266f4cf99dd47e7afb1dbc7b212801a59a66250ccc"},
-    {file = "astrapy-2.0.0.tar.gz", hash = "sha256:727f4dd88e634f8ac36fa9c621b70ea2d8625cdd14ae4969c4927771201ad3a7"},
+    {file = "astrapy-2.0.1-py3-none-any.whl", hash = "sha256:4fa37f2955e7543a29e78565833de0dc8e39316ccc2f66263a4665b5871b7739"},
+    {file = "astrapy-2.0.1.tar.gz", hash = "sha256:3a35ebd7af5c24f0abe400f9b2778dc5e8812c78ae247f97704be27e6cb9dc5a"},
 ]
 
 [package.dependencies]
@@ -2758,4 +2758,4 @@ tools = ["astrapy", "e2b", "e2b-code-interpreter"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10.0,<4.0"
-content-hash = "f0ee6b1bc239a9e5ed98f7eeaaaa6482ae332876622525938bc7a2ae5994b9d5"
+content-hash = "8752b3707ed500b7bfb585523d983f7a9140f9373923daad835ffb190f7c74a8"
