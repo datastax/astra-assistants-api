@@ -163,15 +163,15 @@ trio = ["trio (>=0.26.1)"]
 
 [[package]]
 name = "astrapy"
-version = "2.0.0rc2"
+version = "2.0.0"
 description = "AstraPy is a Pythonic SDK for DataStax Astra and its Data API"
 optional = true
 python-versions = "<4.0.0,>=3.8.0"
 groups = ["main"]
 markers = "extra == \"tools\""
 files = [
-    {file = "astrapy-2.0.0rc2-py3-none-any.whl", hash = "sha256:4aa39d763d10abe5dd76dea8fd66001ac2828c1911bc8a4fd549a4fc604ce863"},
-    {file = "astrapy-2.0.0rc2.tar.gz", hash = "sha256:c21771aa469222a5aa7805b98d1cf39ada69115827f50b9957d84396b69eb41a"},
+    {file = "astrapy-2.0.0-py3-none-any.whl", hash = "sha256:0fd3d60ac680a0bfb3a0ab266f4cf99dd47e7afb1dbc7b212801a59a66250ccc"},
+    {file = "astrapy-2.0.0.tar.gz", hash = "sha256:727f4dd88e634f8ac36fa9c621b70ea2d8625cdd14ae4969c4927771201ad3a7"},
 ]
 
 [package.dependencies]
@@ -179,6 +179,7 @@ deprecation = ">=2.1.0,<2.2.0"
 httpx = {version = ">=0.25.2,<1", extras = ["http2"]}
 pymongo = ">=3"
 toml = ">=0.10.2,<0.11.0"
+typing-extensions = ">=4.0"
 uuid6 = ">=2024.1.12"
 
 [[package]]
@@ -2757,4 +2758,4 @@ tools = ["astrapy", "e2b", "e2b-code-interpreter"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10.0,<4.0"
-content-hash = "c3203b40c829fb516430e0b9e00777b02388e42a9170b549632cc98bdae91120"
+content-hash = "f0ee6b1bc239a9e5ed98f7eeaaaa6482ae332876622525938bc7a2ae5994b9d5"
