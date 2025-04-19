@@ -253,12 +253,13 @@ async def shutdown_event():
 
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
-    # Log the error
-    logger.error(f"Unexpected error: {exc} for request url {request.url} request method {request.method} request path params {request.path_params}  request query params {request.query_params} base_url {request.base_url}")
+    # Log the error with safe dbid access
+    dbid = getattr(request.state, "dbid", None)
+    logger.error(f"Unexpected error: {exc} for request url {request.url} request method {request.method} request path params {request.path_params} request query params {request.query_params} base_url {request.base_url}" + (f", dbid: {dbid}" if dbid else ""))
 
     if isinstance(exc, HTTPException):
-        raise exec
-    # Return an error response, not sure if we want to return all errors but at least this surfaces things like bad embedding model. Though that should be a 4xx error?
+        raise exc
+    # Return an error response
     return JSONResponse(
         status_code=500, content={"message": str(exc)}
     )
@@ -266,7 +267,9 @@ async def generic_exception_handler(request: Request, exc: Exception):
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    logging.error(f"Validation error for request: {request.url}, dbid: {request.state.dbid}")
+    dbid = getattr(request.state, "dbid", None)
+    if dbid:
+        logging.error(f"Validation error for request: {request.url}, dbid: {dbid}")
     logging.error(f"Body: {exc.body}")
     logging.error(f"Validation error: {exc} for request url {request.url} request method {request.method} request path params {request.path_params}  request query params {request.query_params} base_url {request.base_url}")
     logging.error(f"Errors: {exc.errors()}")
