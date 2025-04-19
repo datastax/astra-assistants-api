@@ -19,13 +19,13 @@ def run_with_assistant(assistant, client):
         purpose="assistants",
     )
 
-    vector_store = client.beta.vector_stores.create(
+    vector_store = client.vector_stores.create(
         name="papers",
         file_ids=[file.id]
     )
 
     # TODO support  vector store file creation
-    #file = client.beta.vector_stores.files.create_and_poll(
+    #file = client.vector_stores.files.create_and_poll(
     #    vector_store_id=vector_store.id,
     #    file_id=file2.id
     #)
@@ -37,7 +37,7 @@ def run_with_assistant(assistant, client):
 
     # Use the upload and poll SDK helper to upload the files, add them to the vector store,
     # and poll the status of the file batch for completion.
-    #file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
+    #file_batch = client.vector_stores.file_batches.upload_and_poll(
     #    vector_store_id=vector_store.id, files=file_streams
     #)
 
