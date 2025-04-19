@@ -42,7 +42,7 @@ def print_chat_completion(model, client):
             {"role": "system", "content": "You are an amazing json generator."},
             {"role": "user", "content": prompt}
         ],
-        response_format={"type": "json_object"},
+        #response_format={"type": "json_object"},
     )
 
     logger.info(f'prompt> {prompt}')
