@@ -83,6 +83,9 @@ def get_embeddings(
         return [result["embedding"] for result in response.data]
 
 
+import asyncio
+from litellm.exceptions import RateLimitError
+
 async def get_async_chat_completion_response(
         messages: List[Dict[str, Any]],
         model: Optional[str] = None,
@@ -116,13 +119,24 @@ async def get_async_chat_completion_response(
                 else:
                     litellm_kwargs[key] = type_hints[key](value)
 
-        completion = await acompletion(
-            model=model,
-            messages=messages,
-            deployment_id=deployment_id,
-            **litellm_kwargs
-        )
-        return completion
+            max_retries = 5
+        for attempt in range(max_retries):
+            try:
+                # Your existing logic to get the response
+                completion = await acompletion(
+                    model=model,
+                    messages=messages,
+                    deployment_id=deployment_id,
+                    **litellm_kwargs
+                )
+                return completion
+            except RateLimitError as e:
+                if attempt < max_retries - 1:
+                    backoff_time = 2 ** attempt  # Exponential backoff
+                    await asyncio.sleep(backoff_time)
+                else:
+                    raise HTTPException(status_code=429, detail=f"Rate limit exceeded: {e}")
+        
     except Exception as e:
         if "LLM Provider NOT provided" in e.args[0]:
             logger.error(f"Error: error {model} is not currently supported")
