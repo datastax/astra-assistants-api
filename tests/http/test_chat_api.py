@@ -41,7 +41,7 @@ def test_create_chat_completion(client: TestClient):
         "n":2,
         "top_p":1,
         "frequency_penalty":-1.6796687238155954,
-        "response_format":{"type":"json_object"},
+        #"response_format":{"type":"json_object"},
         "stream":False,
         "temperature":1,
         "messages":[
