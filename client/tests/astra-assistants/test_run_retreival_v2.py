@@ -32,17 +32,17 @@ def run_with_assistant(assistant, client, file_path, embedding_model):
         pass
 
 
-    vector_store = client.beta.vector_stores.create(
+    vector_store = client.vector_stores.create(
         name="papers",
         file_ids=[file.id]
     )
 
-    vs_list = client.beta.vector_stores.list()
+    vs_list = client.vector_stores.list()
 
     assert len(vs_list.data) > 0, "vector store list is empty"
 
     # TODO support  vector store file creation
-    #file = client.beta.vector_stores.files.create_and_poll(
+    #file = client.vector_stores.files.create_and_poll(
     #    vector_store_id=vector_store.id,
     #    file_id=file2.id
     #)
@@ -54,7 +54,7 @@ def run_with_assistant(assistant, client, file_path, embedding_model):
 
     # Use the upload and poll SDK helper to upload the files, add them to the vector store,
     # and poll the status of the file batch for completion.
-    #file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
+    #file_batch = client.vector_stores.file_batches.upload_and_poll(
     #    vector_store_id=vector_store.id, files=file_streams
     #)
 
@@ -116,10 +116,10 @@ def run_with_assistant(assistant, client, file_path, embedding_model):
     response = client.beta.threads.messages.list(thread_id=thread.id)
     logger.info(response.data[0].content[0].text.value)
 
-    vs_files = client.beta.vector_stores.files.list(vector_store_id=vector_store.id)
+    vs_files = client.vector_stores.files.list(vector_store_id=vector_store.id)
     for vsf in vs_files.data:
-        client.beta.vector_stores.files.delete(file_id=vsf.id, vector_store_id=vector_store.id)
-    client.beta.vector_stores.delete(vector_store.id)
+        client.vector_stores.files.delete(file_id=vsf.id, vector_store_id=vector_store.id)
+    client.vector_stores.delete(vector_store.id)
 
 
 

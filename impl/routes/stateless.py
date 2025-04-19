@@ -323,6 +323,8 @@ async def create_embedding(
 
     data = []
     for datum in embedding_response.data:
+        if hasattr(datum, "to_dict"):
+            datum = datum.to_dict()
         embedding = Embedding(**datum)
         data.append(embedding)
 

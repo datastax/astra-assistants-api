@@ -47,7 +47,7 @@ def test_assistants_crud(openai_client):
         assert asst.response_format == response_format
         assert len(asst.tool_resources.file_search.vector_store_ids[0]) > 0
 
-        vs = openai_client.beta.vector_stores.retrieve(asst.tool_resources.file_search.vector_store_ids[0])
+        vs = openai_client.vector_stores.retrieve(asst.tool_resources.file_search.vector_store_ids[0])
         assert vs.id == asst.tool_resources.file_search.vector_store_ids[0]
 
         assert asst.name == "Math Tutor"

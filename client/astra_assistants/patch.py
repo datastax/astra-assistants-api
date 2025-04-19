@@ -403,7 +403,10 @@ def sync_create_async_client(original_create, client):
             ):
                 # TODO figure out how to get the model from the tool resources
                 vector_store_id = assistant.tool_resources.file_search.vector_store_ids[0]
-                file_list_paginator = client.beta.vector_stores.files.list(vector_store_id=vector_store_id)
+                try:
+                    file_list_paginator = client.beta.vector_stores.files.list(vector_store_id=vector_store_id)
+                except Exception as e:
+                    file_list_paginator = client.vector_stores.files.list(vector_store_id=vector_store_id)
                 vs_file = async_helper.run_async(fetch_first_page(file_list_paginator))
                 if vs_file is not None:
                     # use the first file
@@ -453,7 +456,10 @@ def sync_create(original_create, client):
             ):
                 # TODO figure out how to get the model from the tool resources
                 vector_store_id = assistant.tool_resources.file_search.vector_store_ids[0]
-                vs_files = client.beta.vector_stores.files.list(vector_store_id=vector_store_id).data
+                try:
+                    vs_files = client.beta.vector_stores.files.list(vector_store_id=vector_store_id).data
+                except Exception as e:
+                    vs_files = client.vector_stores.files.list(vector_store_id=vector_store_id).data
                 if len(vs_files) > 0:
                     # use the first file
                     vs_file: VectorStoreFile= vs_files[0]
@@ -503,7 +509,10 @@ def async_create(original_create, client):
             ):
                 # TODO figure out how to get the model from the tool resources
                 vector_store_id = assistant.tool_resources.file_search.vector_store_ids[0]
-                vs_files = await client.beta.vector_stores.files.list(vector_store_id=vector_store_id).data
+                try:
+                    vs_files = await client.beta.vector_stores.files.list(vector_store_id=vector_store_id).data
+                except Exception as e:
+                    vs_files = await client.vector_stores.files.list(vector_store_id=vector_store_id).data
                 if len(vs_files) > 0:
                     # use the first file
                     vs_file: VectorStoreFile= vs_files[0]
