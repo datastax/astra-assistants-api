@@ -28,7 +28,7 @@ from dotenv import load_dotenv
 try:
     from openai.types.beta.vector_stores import VectorStoreObject
 except ImportError:
-    from openai.types.vector_stores import VectorStoreObject
+    from openai.types.vector_store import VectorStore as VectorStoreObject
 
 from astra_assistants import OpenAIWithDefaultKey, AsyncOpenAIWithDefaultKey
 
@@ -614,17 +614,21 @@ def get_headers_for_model(model):
         if provider == "bedrock":
             if os.getenv("AWS_ACCESS_KEY_ID") is None or os.getenv("AWS_SECRET_ACCESS_KEY") is None or os.getenv("AWS_REGION_NAME") is None:
                 raise Exception("For bedrock models you must set the AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION_NAME environment variables")
-            headers[AWS_ACCESS_KEY_ID] = os.getenv("AWS_ACCESS_KEY_ID")
-            headers[AWS_SECRET_ACCESS_KEY] = os.getenv("AWS_SECRET_ACCESS_KEY")
-            headers[AWS_REGION_NAME] = os.getenv("AWS_REGION_NAME")
+            headers[AWS_ACCESS_KEY_ID] = os.getenv("AWS_ACCESS_KEY_ID","")
+            headers[AWS_SECRET_ACCESS_KEY] = os.getenv("AWS_SECRET_ACCESS_KEY","")
+            headers[AWS_REGION_NAME] = os.getenv("AWS_REGION_NAME","")
         if provider != "openai":
             key = utils.get_api_key(provider, dynamic_key)
         if provider == "openrouter":
-            key = os.getenv("OPENROUTER_API_KEY")
+            key = os.getenv("OPENROUTER_API_KEY","")
         if provider == "gemini":
-            key = os.getenv("GEMINI_API_KEY")
+            key = os.getenv("GEMINI_API_KEY","")
         if provider == "ollama":
-            headers["base_url"]= os.getenv("OLLAMA_API_BASE_URL")
+            headers["base-url"]= os.getenv("OLLAMA_API_BASE_URL","")
+        if provider == "watsonx":
+            headers["base-url"]= os.getenv("WATSONX_API_BASE","")
+            headers["project-id"]= os.getenv("WATSONX_PROJECT_ID", "")
+            key = os.getenv("WATSONX_API_KEY", "")
         if key is not None:
             headers["api-key"] = key
     return headers
